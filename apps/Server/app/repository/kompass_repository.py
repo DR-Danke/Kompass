@@ -1446,8 +1446,33 @@ class ProductRepository:
         max_price: Optional[Decimal] = None,
         search: Optional[str] = None,
         tag_ids: Optional[List[UUID]] = None,
+        has_images: Optional[bool] = None,
+        min_moq: Optional[int] = None,
+        max_moq: Optional[int] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "asc",
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """Get all products with pagination and filters."""
+        """Get all products with pagination and filters.
+
+        Args:
+            page: Page number (1-indexed)
+            limit: Number of items per page
+            category_id: Filter by category UUID
+            supplier_id: Filter by supplier UUID
+            status: Filter by product status
+            min_price: Minimum unit price filter
+            max_price: Maximum unit price filter
+            search: Search term for name, description, and SKU
+            tag_ids: Filter by tag UUIDs
+            has_images: Filter products with/without images
+            min_moq: Minimum order quantity filter
+            max_moq: Maximum order quantity filter
+            sort_by: Sort field (name, unit_price, created_at, minimum_order_qty)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Tuple of (list of products, total count)
+        """
         conn = get_database_connection()
         if not conn:
             return [], 0
@@ -1473,9 +1498,11 @@ class ProductRepository:
                     conditions.append("p.unit_price <= %s")
                     params.append(max_price)
                 if search:
-                    conditions.append("(p.name ILIKE %s OR p.sku ILIKE %s)")
+                    conditions.append(
+                        "(p.name ILIKE %s OR p.sku ILIKE %s OR p.description ILIKE %s)"
+                    )
                     search_pattern = f"%{search}%"
-                    params.extend([search_pattern, search_pattern])
+                    params.extend([search_pattern, search_pattern, search_pattern])
                 if tag_ids:
                     placeholders = ", ".join(["%s"] * len(tag_ids))
                     conditions.append(
@@ -1487,6 +1514,28 @@ class ProductRepository:
                     """
                     )
                     params.extend([str(tid) for tid in tag_ids])
+                if has_images is True:
+                    conditions.append(
+                        """
+                        EXISTS (
+                            SELECT 1 FROM product_images pi WHERE pi.product_id = p.id
+                        )
+                    """
+                    )
+                elif has_images is False:
+                    conditions.append(
+                        """
+                        NOT EXISTS (
+                            SELECT 1 FROM product_images pi WHERE pi.product_id = p.id
+                        )
+                    """
+                    )
+                if min_moq is not None:
+                    conditions.append("p.minimum_order_qty >= %s")
+                    params.append(min_moq)
+                if max_moq is not None:
+                    conditions.append("p.minimum_order_qty <= %s")
+                    params.append(max_moq)
 
                 where_clause = (
                     "WHERE " + " AND ".join(conditions) if conditions else ""
@@ -1501,6 +1550,17 @@ class ProductRepository:
                 offset = (page - 1) * limit
                 params.extend([limit, offset])
 
+                # Build ORDER BY clause
+                allowed_sort_fields = {
+                    "name": "p.name",
+                    "unit_price": "p.unit_price",
+                    "created_at": "p.created_at",
+                    "minimum_order_qty": "p.minimum_order_qty",
+                }
+                order_field = allowed_sort_fields.get(sort_by, "p.name")
+                order_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
+                order_clause = f"ORDER BY {order_field} {order_direction}"
+
                 cur.execute(
                     f"""
                     SELECT p.id, p.sku, p.name, p.description, p.supplier_id, p.category_id,
@@ -1514,7 +1574,7 @@ class ProductRepository:
                     LEFT JOIN categories c ON p.category_id = c.id
                     LEFT JOIN hs_codes h ON p.hs_code_id = h.id
                     {where_clause}
-                    ORDER BY p.name
+                    {order_clause}
                     LIMIT %s OFFSET %s
                     """,
                     params,
@@ -1766,6 +1826,50 @@ class ProductRepository:
                 return cur.fetchone() is not None
         except Exception as e:
             print(f"ERROR [ProductRepository]: Failed to remove image: {e}")
+            conn.rollback()
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def set_primary_image(self, product_id: UUID, image_id: UUID) -> bool:
+        """Set a specific image as the primary image for a product.
+
+        Args:
+            product_id: Product UUID
+            image_id: Image UUID to set as primary
+
+        Returns:
+            True if successful, False otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                # First, set all images for this product to non-primary
+                cur.execute(
+                    """
+                    UPDATE product_images
+                    SET is_primary = false
+                    WHERE product_id = %s
+                    """,
+                    (str(product_id),),
+                )
+                # Then set the specified image as primary
+                cur.execute(
+                    """
+                    UPDATE product_images
+                    SET is_primary = true
+                    WHERE id = %s AND product_id = %s
+                    RETURNING id
+                    """,
+                    (str(image_id), str(product_id)),
+                )
+                conn.commit()
+                return cur.fetchone() is not None
+        except Exception as e:
+            print(f"ERROR [ProductRepository]: Failed to set primary image: {e}")
             conn.rollback()
             return False
         finally:

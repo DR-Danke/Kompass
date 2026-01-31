@@ -1210,3 +1210,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with supplier soft-delete or active products protection
     - When troubleshooting supplier service business logic
     - When implementing API routes that consume the supplier service
+
+- app_docs/feature-0081e866-product-service-biblia-general.md
+  - Conditions:
+    - When working with Kompass product service or product_service.py
+    - When implementing product business logic (SKU generation, bulk import, search)
+    - When working with product image management (add, remove, set primary)
+    - When working with product tag management
+    - When implementing product filtering with has_images or MOQ range
+    - When working with bulk create operations for products
+    - When using BulkCreateErrorDTO or BulkCreateResponseDTO
+    - When troubleshooting Kompass product service layer issues
