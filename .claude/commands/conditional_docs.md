@@ -1244,3 +1244,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When configuring ANTHROPIC_API_KEY, OPENAI_API_KEY, or REMOVEBG_API_KEY settings
     - When troubleshooting AI extraction or batch processing issues
     - When working with ExtractedProduct, ExtractionResult, or HsCodeSuggestion DTOs
+
+- app_docs/feature-98d1d93c-supplier-api-routes.md
+  - Conditions:
+    - When working with supplier API endpoints in Kompass
+    - When implementing or modifying apps/Server/app/api/supplier_routes.py
+    - When working with /api/suppliers/* endpoints
+    - When implementing supplier CRUD operations via REST API
+    - When troubleshooting supplier API authentication or authorization issues
+    - When implementing supplier search or filtering via API
+    - When working with supplier products listing endpoint
