@@ -1,0 +1,1189 @@
+# Conditional Documentation Guide
+
+This prompt helps you determine what documentation you should read based on the specific changes you need to make in the codebase. Review the conditions below and read the relevant documentation before proceeding with your task.
+
+## Instructions
+- Review the task you've been asked to perform
+- Check each documentation path in the Conditional Documentation section
+- For each path, evaluate if any of the listed conditions apply to your task
+  - IMPORTANT: Only read the documentation if any one of the conditions match your task
+- IMPORTANT: You don't want to excessively read documentation. Only read the documentation if it's relevant to your task.
+
+## Conditional Documentation
+
+- README.md
+  - Conditions:
+    - When operating on anything under Server
+    - When operating on anything under Client
+    - When first understanding the project structure
+    - When you want to learn the commands to start or stop the Server or Client
+
+- apps/Client/src/style.css
+  - Conditions:
+    - When you need to make changes to the Client's style
+
+- .claude/commands/classify_adw.md
+  - Conditions:
+    - When adding or removing new adws/adw_*.py files
+
+- adws/README.md
+  - Conditions:
+    - When you're operating in the adws/ directory
+
+- app_docs/feature-03992e72-paqueteo-backend-setup.md
+  - Conditions:
+    - When setting up or modifying the Paqueteo FastAPI backend structure
+    - When working with apps/Server/main.py or health endpoints for Paqueteo
+    - When configuring CORS, environment variables, or settings for Paqueteo
+    - When working with Supabase PostgreSQL connection in Paqueteo
+    - When troubleshooting Paqueteo Server startup or configuration issues
+    - When adding new routers or API endpoints to the Paqueteo Server
+
+- app_docs/feature-cbee702e-frontend-react-vite-setup.md
+  - Conditions:
+    - When setting up or modifying the Paqueteo Client folder structure
+    - When working with Vite configuration or @/ path aliases in Paqueteo
+    - When configuring Material-UI theming with Paqueteo logistics colors
+    - When troubleshooting axios interceptor or JWT token handling
+    - When deploying the Paqueteo Client to Vercel
+    - When adding new React dependencies to apps/Client/package.json
+    - When working with PQ-prefixed components (Paqueteo naming convention)
+    - When implementing Leaflet map components for vehicle tracking
+
+- app_docs/feature-8e5ab677-database-schema.md
+  - Conditions:
+    - When working with Paqueteo database tables (vehicles, deliveries, manifests, conversation_states)
+    - When modifying apps/Server/database/schema.sql for Paqueteo
+    - When implementing vehicle fleet management features
+    - When working with delivery tracking or route sequencing
+    - When implementing cross-docking manifest functionality
+    - When building WhatsApp bot conversation state management
+    - When troubleshooting foreign key constraints between vehicles, deliveries, and manifests
+
+- app_docs/feature-629357d4-backend-auth-jwt-endpoints.md
+  - Conditions:
+    - When implementing authentication or authorization in the Paqueteo backend
+    - When working with JWT tokens or protected routes
+    - When adding role-based access control (RBAC) to endpoints
+    - When modifying user registration, login, or credential validation
+    - When working with the users table or UserRepository
+    - When troubleshooting 401/403 authentication errors
+    - When integrating frontend authentication with the backend API
+
+- app_docs/feature-90788f14-frontend-auth-context-jwt.md
+  - Conditions:
+    - When working with frontend authentication in Paqueteo
+    - When using AuthContext, useAuth hook, or auth state management
+    - When implementing ProtectedRoute or RoleProtectedRoute
+    - When modifying the LoginPage or login flow
+    - When troubleshooting frontend authentication issues
+    - When working with JWT token storage or API interceptors in the frontend
+
+- app_docs/feature-6fb5c2e0-backend-data-models-crud.md
+  - Conditions:
+    - When working with Vehicle, Delivery, or Manifest CRUD operations
+    - When adding or modifying /api/vehicles, /api/deliveries, or /api/manifests endpoints
+    - When implementing frontend services that consume vehicle/delivery/manifest APIs
+    - When troubleshooting 404/400 errors on data model endpoints
+    - When understanding the repository or service layer patterns in Paqueteo backend
+    - When adding new DTOs or extending existing Pydantic models for entities
+
+- app_docs/feature-4433c526-frontend-services-types.md
+  - Conditions:
+    - When working with frontend TypeScript types for Vehicle, Delivery, or Manifest
+    - When using or modifying vehicleService, deliveryService, or manifestService
+    - When implementing UI components that fetch data from backend APIs
+    - When using useVehicles or useDeliveries hooks
+    - When troubleshooting frontend API communication issues
+    - When adding new entity types or DTOs on the frontend
+    - When understanding the frontend service layer pattern in Paqueteo
+
+- app_docs/feature-813f8226-control-tower-layout.md
+  - Conditions:
+    - When working with the Torre de Control (Control Tower) dashboard layout
+    - When modifying PQSidebar, PQMainLayout, PQContentHeader, or related layout components
+    - When implementing new pages that need the main application shell
+    - When working with sidebar navigation or collapsible state
+    - When adding or modifying PQStatsCards or PQFilterBar components
+    - When implementing responsive layout behavior in the Paqueteo frontend
+    - When troubleshooting sidebar state persistence or localStorage issues
+
+- app_docs/feature-d345548b-leaflet-map-integration.md
+  - Conditions:
+    - When working with Leaflet map components (PQMapView, PQVehicleMarker, PQDeliveryMarker)
+    - When implementing vehicle tracking or delivery visualization on maps
+    - When modifying apps/Client/src/components/map/* files
+    - When adding new map markers, polylines, or popups
+    - When working with TorreControlPage (Control Tower dashboard)
+    - When troubleshooting map rendering, tile loading, or marker display issues
+    - When customizing map styles, colors, or marker appearance
+    - When working with map type definitions in apps/Client/src/types/map.ts
+
+- app_docs/feature-1331ebd3-vehicle-management-ui.md
+  - Conditions:
+    - When working with VehiclesPage or VehicleDetailPage components
+    - When implementing or modifying vehicle CRUD UI operations
+    - When working with PQVehicleCard, PQVehicleForm, or PQVehicleStatusBadge components
+    - When using VehicleContext or useVehicleContext hook
+    - When adding delivery progress display to vehicle components
+    - When implementing Leaflet maps for vehicle route visualization
+    - When troubleshooting vehicle management UI issues
+
+- app_docs/feature-3778f21e-delivery-management-ui.md
+  - Conditions:
+    - When working with delivery UI components (PQDeliveryList, PQDeliveryCard, PQDeliveryForm)
+    - When using DeliveryContext or useDeliveryContext hook
+    - When implementing delivery selection, status updates, or CRUD operations in the UI
+    - When building pages that display or manage deliveries
+    - When troubleshooting delivery component rendering or state management issues
+
+- app_docs/feature-70df491c-route-optimizer-backend.md
+  - Conditions:
+    - When working with route optimization or TSP algorithms
+    - When using /api/routes/optimize or /api/routes/{vehicle_id} endpoints
+    - When implementing delivery sequence optimization
+    - When working with OSRM integration or distance matrices
+    - When generating GeoJSON for route visualization on maps
+    - When troubleshooting route optimization or ETA calculation issues
+    - When modifying route_optimizer_service.py or route_routes.py
+
+- app_docs/feature-b559e59f-route-optimizer-frontend.md
+  - Conditions:
+    - When working with RouteOptimizerPage or route optimization UI
+    - When implementing CSV import for delivery points
+    - When working with PQRouteImporter, PQOptimizedRouteView, or PQRouteStatsCard components
+    - When displaying optimized routes with numbered markers on Leaflet maps
+    - When using routeService or useRouteOptimization hook
+    - When troubleshooting route optimization frontend issues
+    - When modifying apps/Client/src/components/route/* files
+    - When working with route optimization TypeScript types (OptimizedStop, RouteOptimizeResponse)
+
+- app_docs/feature-586dd3cc-whatsapp-webhook-integration.md
+  - Conditions:
+    - When working with WhatsApp webhook endpoints or message handling
+    - When implementing or modifying apps/Server/app/whatsapp/* files
+    - When sending messages via Twilio WhatsApp API
+    - When working with conversation state tracking for drivers
+    - When configuring TWILIO_* or WHATSAPP_VERIFY_TOKEN environment variables
+    - When troubleshooting webhook signature validation issues
+    - When implementing driver communication features via WhatsApp
+    - When working with incoming text, image, or location messages from drivers
+
+- app_docs/feature-a7531007-ocr-document-processing.md
+  - Conditions:
+    - When working with OCR document extraction or LandingAI integration
+    - When implementing remesa (delivery document) processing
+    - When working with /api/ocr/process or /api/ocr/process-base64 endpoints
+    - When modifying ocr_service.py, ocr_routes.py, or ocr_dto.py
+    - When integrating WhatsApp image processing with document extraction
+    - When troubleshooting signature detection or field extraction issues
+    - When configuring LANDINGAI_API_KEY or OCR-related settings
+
+- app_docs/feature-d411817e-whatsapp-conversation-flow-engine.md
+  - Conditions:
+    - When working with WhatsApp bot conversation flows
+    - When implementing or modifying apps/Server/app/whatsapp/* files
+    - When handling driver message parsing or state transitions
+    - When working with conversation_states database table
+    - When implementing delivery confirmation via WhatsApp
+    - When adding new Spanish response templates for the bot
+    - When troubleshooting conversation flow state machine issues
+    - When integrating OCR processing with delivery completion
+
+- app_docs/feature-f7a590e1-crossdocking-allocator-backend.md
+  - Conditions:
+    - When working with cross-docking or cargo allocation features
+    - When implementing or modifying apps/Server/app/services/crossdock_allocator_service.py
+    - When using the /api/crossdock/allocate endpoint
+    - When working with bin-packing or vehicle capacity optimization
+    - When implementing LIFO loading sequence calculations
+    - When building the Cross-Docking UI that consumes the allocation API
+    - When troubleshooting cargo-to-vehicle assignment issues
+    - When working with CrossDockAllocator, CargoItemDTO, or AllocationResultDTO classes
+
+- app_docs/feature-cb7fc18a-crossdocking-ui.md
+  - Conditions:
+    - When working with the Cross-Docking UI (CrossDockingPage)
+    - When modifying apps/Client/src/pages/CrossDockingPage.tsx
+    - When working with PQCargoInput, PQCargoImporter, PQCargoList, or PQVehicleSelector components
+    - When implementing cargo allocation results display or PQAllocationResults
+    - When working with PQManifestView or printable manifest generation
+    - When using useCrossDocking hook or crossdockService
+    - When troubleshooting cross-docking frontend issues
+    - When working with apps/Client/src/components/crossdock/* files
+    - When implementing CSV import for cargo data
+
+- app_docs/feature-fd7cd28c-sample-data-simulation.md
+  - Conditions:
+    - When working with sample data seeding or database reset functionality
+    - When implementing or modifying simulation mode features
+    - When working with apps/Server/app/services/simulation_service.py or seed_service.py
+    - When using /api/admin/seed, /api/admin/reset, or /api/simulation/* endpoints
+    - When modifying PQSimulationToggle or useSimulation hook
+    - When working with sample data files in apps/Server/data/
+    - When troubleshooting simulation or seeding issues
+    - When demonstrating the platform without real driver interaction
+
+- app_docs/feature-aa45cc3b-deployment-config.md
+  - Conditions:
+    - When deploying Paqueteo to Vercel or Render
+    - When configuring render.yaml or Render Blueprint settings
+    - When setting up production environment variables
+    - When initializing the database schema on startup
+    - When seeding sample data with scripts/seed_data.py
+    - When troubleshooting deployment or environment configuration issues
+    - When working with apps/Server/database/init_db.py
+
+- app_docs/feature-29404b78-vehicle-bulk-import.md
+  - Conditions:
+    - When working with vehicle bulk import from Excel or CSV files
+    - When implementing or modifying PQVehicleImporter component
+    - When using POST /vehicles/bulk endpoint
+    - When troubleshooting vehicle import validation errors
+    - When extending bulk import functionality for other entities
+
+- app_docs/feature-5b33920c-db-schema-manifest-lifo.md
+  - Conditions:
+    - When working with delivery-to-manifest linkage
+    - When implementing LIFO loading sequence functionality
+    - When querying deliveries by manifest ID
+    - When storing or retrieving route optimization metadata on manifests
+    - When working with integrated cargo allocation and route optimization
+    - When troubleshooting manifest_id foreign key or loading_sequence issues
+
+- app_docs/feature-408da1b9-unified-shipment-dtos.md
+  - Conditions:
+    - When working with integrated allocation + route optimization workflows
+    - When implementing services that combine cargo allocation with route optimization
+    - When using ShipmentItemDTO, IntegratedAllocationRequestDTO, or related DTOs
+    - When implementing LIFO loading sequence calculations
+    - When building the integrated allocator service that derives loading sequences from delivery order
+    - When troubleshooting shipment allocation or sequencing issues
+    - When working with apps/Server/app/models/shipment_dto.py
+
+- app_docs/feature-77399ec5-integrated-allocator-service.md
+  - Conditions:
+    - When working with the IntegratedAllocator service or integrated_allocator_service singleton
+    - When implementing combined cargo allocation + route optimization workflows
+    - When working with FFD (First-Fit Decreasing) bin-packing algorithms for vehicle loading
+    - When implementing or troubleshooting LIFO loading sequence calculations
+    - When using allocate_and_optimize() method for shipment allocation
+    - When working with apps/Server/app/services/integrated_allocator_service.py
+    - When implementing 2-opt TSP route optimization for delivery routes
+    - When building API endpoints that consume the integrated allocator service
+    - When troubleshooting cargo-to-vehicle assignment with route optimization
+
+- app_docs/feature-677c981f-integrated-allocation-api-endpoint.md
+  - Conditions:
+    - When working with POST /api/integrated/allocate-and-optimize endpoint
+    - When implementing frontend services that call the integrated allocation API
+    - When troubleshooting integrated allocation API errors (400, 401, 403, 422, 500)
+    - When modifying apps/Server/app/api/integrated_routes.py
+    - When implementing RBAC for integrated allocation features
+    - When understanding the request/response format for combined allocation and route optimization
+
+- app_docs/feature-6ed9a78a-frontend-typescript-types.md
+  - Conditions:
+    - When working with frontend TypeScript types for integrated allocation
+    - When using ShipmentItem, AllocatedShipment, or VehicleAllocationWithRoute interfaces
+    - When implementing CSV import for shipment data
+    - When working with LIFO loading sequence types
+    - When building UI components for the integrated allocation workflow
+    - When using parseShipmentRow or validateShipment utility functions
+    - When modifying apps/Client/src/types/shipment.ts
+
+- app_docs/feature-4cb515ea-frontend-service-hook-integrated-allocation.md
+  - Conditions:
+    - When working with integratedService or useIntegratedAllocation hook
+    - When implementing UI components that consume the integrated allocation API
+    - When working with apps/Client/src/services/integratedService.ts
+    - When working with apps/Client/src/hooks/useIntegratedAllocation.ts
+    - When using ShipmentItem, IntegratedAllocationRequest, or IntegratedAllocationResult types
+    - When implementing CSV export for allocation results
+    - When troubleshooting frontend integrated allocation state management
+
+- app_docs/feature-41bb998c-integrated-allocation-ui-components.md
+  - Conditions:
+    - When working with integrated allocation UI components (PQShipmentImporter, PQShipmentList, etc.)
+    - When implementing CSV import for unified shipment data with lat/lng coordinates
+    - When working with apps/Client/src/components/integrated/* files
+    - When implementing LIFO loading sequence visualization for warehouse staff
+    - When displaying allocation results with route metrics (distance, duration, stops)
+    - When working with PQIntegratedAllocationCard or PQIntegratedResults components
+    - When troubleshooting shipment import validation or loading sequence display
+
+- app_docs/feature-11aaea55-integrated-allocation-page-routing.md
+  - Conditions:
+    - When working with IntegratedAllocationPage or /asignacion-integrada route
+    - When adding or modifying the integrated allocation page layout or workflow
+    - When implementing combined cargo allocation + route optimization UI
+    - When modifying sidebar navigation for "Operaciones" section
+    - When troubleshooting integrated allocation page component issues
+    - When working with CSV template download for shipment imports
+    - When implementing role-protected routes for admin/manager features
+
+- app_docs/chore-4943baec-tendery-database-schema.md
+  - Conditions:
+    - When working with Tendery transport quotation system
+    - When working with ty_ prefixed database tables (ty_quotes, ty_drivers, ty_routes, etc.)
+    - When modifying apps/Server/database/tendery_schema.sql
+    - When implementing quotation or pricing features for Colombian freight
+    - When working with SICE-TAC tariffs or RNDC market data integration
+    - When implementing Kiosco driver assignment functionality
+    - When working with commercial policies or margin calculations
+    - When troubleshooting Tendery database foreign key or schema issues
+
+- app_docs/feature-74d78b0b-tendery-backend-module.md
+  - Conditions:
+    - When working with Tendery transport quotation backend module
+    - When implementing or modifying apps/Server/app/api/tendery/* files
+    - When working with Tendery quote, pricing, or Kiosco endpoints
+    - When implementing SICE-TAC or RNDC service integrations
+    - When working with apps/Server/app/services/tendery/* files
+    - When working with apps/Server/app/repository/tendery/* files
+    - When working with apps/Server/app/models/tendery/* DTOs
+    - When troubleshooting Tendery module health or router registration
+    - When adding new Tendery features to the Paqueteo backend
+
+- app_docs/feature-a25cd48d-tendery-frontend-pages-setup.md
+  - Conditions:
+    - When working with Tendery transport quotation system
+    - When implementing or modifying apps/Client/src/pages/tendery/* files
+    - When working with TY-prefixed components (TYMockBanner, TYQuotationForm, TYPricingCard, TYRouteSelector)
+    - When using apps/Client/src/types/tendery/* types (Quote, Pricing, Route)
+    - When using apps/Client/src/services/tendery/* services
+    - When using apps/Client/src/hooks/tendery/* hooks (useQuotes, usePricing, useRoutes)
+    - When modifying Tendery routes (/tendery, /tendery/quote/new, /tendery/quotes, /tendery/kiosco)
+    - When troubleshooting Tendery module navigation or sidebar issues
+
+- app_docs/feature-aa9939a5-route-corridors-master-data.md
+  - Conditions:
+    - When working with TYRouteSelector component or city autocomplete functionality
+    - When implementing or modifying route/city search endpoints in Tendery
+    - When working with apps/Server/app/api/tendery/route_routes.py
+    - When working with apps/Server/app/services/tendery/route_service.py
+    - When working with apps/Server/app/repository/tendery/route_repository.py
+    - When implementing haversine distance calculations or travel time estimation
+    - When working with Colombian city master data or SICE-TAC codes
+    - When troubleshooting city search, route lookup, or caching issues
+    - When modifying tendery_cities.json or tendery_routes.json sample data
+
+- app_docs/feature-ee3abf93-vehicle-types-services-catalog.md
+  - Conditions:
+    - When working with vehicle type selection in Tendery quotation forms
+    - When working with additional services selection in quotation forms
+    - When implementing or modifying TYVehicleTypeSelector or TYServiceCheckboxList components
+    - When using useVehicleTypes or useServices hooks
+    - When working with vehicleTypeService or serviceService API clients
+    - When working with /api/tendery/vehicle-types or /api/tendery/services endpoints
+    - When implementing vehicle type CRUD operations
+    - When implementing additional services catalog features
+    - When working with SICE-TAC vehicle codes integration
+    - When troubleshooting vehicle type or service selection issues
+
+- app_docs/feature-74ace983-tendery-commercial-policies.md
+  - Conditions:
+    - When working with Tendery commercial policies or margin calculations
+    - When implementing or modifying apps/Server/app/services/tendery/policy_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/policy_routes.py
+    - When working with ty_commercial_policies database table
+    - When implementing utility vs rentability margin logic
+    - When working with TYPolicyManager, TYPolicyForm, TYPolicyList, or TYMarginDisplay components
+    - When using useCommercialPolicies hook or policyService
+    - When modifying apps/Client/src/pages/tendery/TenderyPoliciesPage.tsx
+    - When troubleshooting policy hierarchy or priority-based lookup issues
+    - When implementing seller margin override features
+
+- app_docs/feature-b08b9a0e-sicetac-api-integration.md
+  - Conditions:
+    - When working with SICE-TAC government tariff integration
+    - When implementing or modifying apps/Server/app/services/tendery/sicetac_service.py
+    - When implementing or modifying apps/Server/app/repository/tendery/sicetac_repository.py
+    - When working with /api/tendery/pricing/sicetac endpoint
+    - When working with ty_sicetac_tariffs database table
+    - When implementing tariff caching or cache invalidation
+    - When working with TYTariffSourceIndicator or TYMockBanner components
+    - When using pricingService.getSiceTacTariff() in frontend
+    - When configuring SICETAC_API_URL, SICETAC_API_KEY, or USE_MOCK_APIS settings
+    - When implementing Colombian freight minimum tariff compliance
+    - When troubleshooting mock mode or API fallback issues
+
+- app_docs/feature-e688abc0-rndc-gaussian-price-analysis.md
+  - Conditions:
+    - When working with RNDC market data analysis or Gaussian statistics
+    - When implementing or modifying apps/Server/app/services/tendery/rndc_service.py
+    - When working with ty_rndc_data database table or percentile columns
+    - When implementing TYGaussianChart or price distribution visualization
+    - When using TYRndcStatusBadge component for data freshness display
+    - When working with price zone classification (dumping, optimal, overpriced)
+    - When implementing /api/tendery/pricing/rndc endpoints
+    - When using RndcAnalysis or RndcStatus TypeScript types
+    - When working with usePricing hook RNDC functions (fetchRndcAnalysis, fetchRndcStatus)
+    - When troubleshooting RNDC mock data generation or confidence level calculations
+
+- app_docs/feature-193-rndc-gaussian-optimal-price-extraction.md
+  - Conditions:
+    - When working with RNDC optimal price calculation or P25-P40 zone targeting
+    - When implementing or modifying the "lower-left quadrant" pricing strategy
+    - When working with optimal_price_cop field in RNDC analysis
+    - When implementing 5-zone price classification (dumping, optimal, average, above_optimal, overpriced)
+    - When working with SICE-TAC floor enforcement in optimal price calculation
+    - When updating TYGaussianChart zone colors or reference lines
+    - When troubleshooting pricing calculator base cost calculation with RNDC optimal
+    - When modifying price zone boundaries or classification logic
+    - When working with P10, P40, or P90 percentile fields
+
+- app_docs/feature-caae9499-historical-pricing-repository.md
+  - Conditions:
+    - When working with Tendery historical pricing repository or price tracking
+    - When implementing or modifying apps/Server/app/services/tendery/pricing_history_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/pricing_history_routes.py
+    - When working with ty_pricing_history database table
+    - When implementing seller inconsistency detection or pricing deviation analysis
+    - When implementing price trend visualization or statistical analysis
+    - When working with TYPriceHistoryChart or TYInconsistencyAlert components
+    - When using usePricingHistory hook or pricingHistoryService
+    - When modifying apps/Client/src/pages/tendery/TenderyPricingHistoryPage.tsx
+    - When troubleshooting pricing statistics or inconsistency detection issues
+    - When implementing fallback pricing when RNDC data is unavailable
+
+- app_docs/feature-beb634e6-tendery-quotation-form-ui.md
+  - Conditions:
+    - When working with Tendery quotation form or multi-step form UI
+    - When implementing or modifying TYQuotationForm component
+    - When working with TYClientInfoSection, TYTransportSection, TYServicesSection, or TYReviewSection components
+    - When implementing TYRoutePreviewMini or route preview functionality
+    - When working with QuotationFormData type or form validation
+    - When modifying apps/Client/src/pages/tendery/TenderyQuotePage.tsx
+    - When implementing stepper navigation or step validation in quotation forms
+    - When troubleshooting quotation form submission or data transformation issues
+
+- app_docs/feature-ad41e033-tendery-pricing-calculator.md
+  - Conditions:
+    - When working with Tendery pricing calculation or multi-source pricing engine
+    - When implementing or modifying apps/Server/app/services/tendery/pricing_calculator_service.py
+    - When working with POST /api/tendery/pricing/calculate or /calculate-with-override endpoints
+    - When implementing TYPricingBreakdown or pricing breakdown UI components
+    - When working with pricing source transparency (SICE-TAC, RNDC, Historical)
+    - When implementing seller margin override functionality
+    - When combining SICE-TAC floor, RNDC optimal, and historical average prices
+    - When troubleshooting pricing calculation or margin determination issues
+    - When working with PricingResult, PricingCalculatorRequest, or PricingWithOverrideRequest types
+    - When implementing additional services cost calculation (fixed and percentage-based)
+
+- app_docs/feature-de3a3a1e-tendery-proforma-generation.md
+  - Conditions:
+    - When working with Tendery proforma PDF generation
+    - When implementing or modifying apps/Server/app/services/tendery/proforma_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/proforma_routes.py
+    - When working with TYProformaPreview, TYProformaActions, or proforma UI components
+    - When implementing TenderyProformaPage or TenderyTrackingPage
+    - When working with quote PDF download, preview, or email sending
+    - When implementing public tracking page for client quote responses
+    - When working with QR code generation or tracking tokens
+    - When troubleshooting proforma generation or client tracking issues
+    - When working with ProformaPreview, TrackingInfo, or TrackingAction types
+
+- app_docs/feature-1836a2ad-odoo-crm-integration.md
+  - Conditions:
+    - When working with Odoo CRM integration or prospect/opportunity management
+    - When implementing or modifying apps/Server/app/services/tendery/odoo_crm_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/odoo_crm_routes.py
+    - When working with TYCrmStatusIndicator component or CRM sync status display
+    - When implementing automatic quote-to-CRM synchronization
+    - When working with Odoo prospect lookup by NIT or email
+    - When implementing opportunity stage updates on quote status changes
+    - When using odooCrmService or useCrmSync functionality
+    - When configuring ODOO_API_URL, ODOO_API_KEY, or ODOO_DB_NAME settings
+    - When troubleshooting CRM sync failures or retry functionality
+    - When working with OdooProspectDTO, OdooOpportunityDTO, or OdooCrmSyncStatusDTO types
+
+- app_docs/feature-826151cd-quote-tracking-lifecycle.md
+  - Conditions:
+    - When working with quote tracking lifecycle or status state machine
+    - When implementing or modifying apps/Server/app/services/tendery/tracking_service.py
+    - When implementing or modifying apps/Server/app/services/tendery/notification_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/tracking_routes.py
+    - When working with JWT-based tracking tokens for public quote access
+    - When implementing quote accept/reject/negotiate functionality
+    - When working with TYNegotiationDialog or TYQuoteStatusTimeline components
+    - When working with TenderyTrackingPage negotiation features
+    - When implementing status transition validation (draft/sent/negotiating/accepted/rejected/expired)
+    - When troubleshooting public tracking API endpoints
+    - When working with QuoteTrackingInfoDTO, TrackingActionRequestDTO, or TrackingActionResponseDTO types
+    - When implementing quote lifecycle notifications (sent, accepted, rejected, expiring, negotiating)
+
+- app_docs/feature-e5b21171-tendery-driver-database.md
+  - Conditions:
+    - When working with Tendery Kiosco driver management
+    - When implementing or modifying apps/Server/app/api/tendery/driver_routes.py
+    - When implementing or modifying apps/Server/app/services/tendery/driver_service.py
+    - When implementing or modifying apps/Server/app/repository/tendery/driver_repository.py
+    - When working with TYDriverList, TYDriverForm, TYDriverCard, or TYDriverStatusBadge components
+    - When working with TYCargoQualificationChips component
+    - When using useDrivers hook or driverService
+    - When modifying apps/Client/src/pages/tendery/TenderyDriversPage.tsx
+    - When working with driver cargo qualifications (ceramica, alimentos, maquinaria, telas, electronica, valores)
+    - When implementing driver availability or location tracking
+    - When troubleshooting driver CRUD operations or validation issues
+    - When working with ty_drivers database table
+
+- app_docs/feature-19a7cd81-kiosco-assignment-engine.md
+  - Conditions:
+    - When working with Kiosco automated driver-quote matching
+    - When implementing or modifying apps/Server/app/services/tendery/kiosco_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/kiosco_routes.py
+    - When implementing or modifying apps/Server/app/repository/tendery/kiosco_repository.py
+    - When working with TYAcceptedQuoteList, TYAssignmentStatus, or TYOfferCard components
+    - When using useKioscoAssignment hook or kioscoService
+    - When modifying apps/Client/src/pages/tendery/TenderyKioscoPage.tsx
+    - When working with load offers or cost orders (ty_load_offers, ty_cost_orders tables)
+    - When implementing driver scoring or ranking algorithms
+    - When implementing first-accept-wins assignment logic
+    - When troubleshooting assignment workflow or offer processing issues
+    - When working with driver candidate filtering by vehicle type, city, or cargo qualification
+
+- app_docs/feature-8acef312-driver-notification-system.md
+  - Conditions:
+    - When working with driver WhatsApp/SMS notifications for load offers
+    - When implementing or modifying apps/Server/app/services/tendery/driver_notification_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/driver_response_routes.py
+    - When implementing or modifying apps/Server/app/models/tendery/driver_notification_dto.py
+    - When working with TenderyDriverResponsePage or driver response UI
+    - When using driverResponseService or driver response types
+    - When implementing JWT-based token authorization for public endpoints
+    - When working with offer accept/reject functionality via notification links
+    - When implementing notification mock mode or WhatsApp/SMS fallback
+    - When troubleshooting driver notification delivery or response processing
+    - When configuring OFFER_EXPIRATION_MINUTES, DRIVER_NOTIFICATION_ENABLED, or DRIVER_RESPONSE_URL_VALIDITY_HOURS settings
+
+- app_docs/feature-9f4729b9-cost-order-generation.md
+  - Conditions:
+    - When working with cost order management or operations tracking
+    - When implementing or modifying apps/Server/app/services/tendery/cost_order_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/cost_order_routes.py
+    - When implementing or modifying apps/Server/app/repository/tendery/cost_order_repository.py
+    - When working with TenderyCostOrdersPage or cost order UI components
+    - When working with TYCostOrderList, TYCostOrderDetail, TYCostOrderPrint, or TYCostOrderStatusTimeline components
+    - When using useCostOrders hook or costOrderService
+    - When implementing cost order status transitions or validation
+    - When working with cost order print functionality
+    - When troubleshooting cost order filtering or status update issues
+    - When working with /api/tendery/operations/cost-orders endpoints
+
+- app_docs/feature-b9bdc7a8-dispatch-management.md
+  - Conditions:
+    - When working with dispatch workflow or status transitions (dispatched, in_transit, delivered)
+    - When implementing or modifying apps/Server/app/services/tendery/dispatch_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/dispatch_routes.py
+    - When implementing or modifying apps/Server/app/repository/tendery/dispatch_repository.py
+    - When working with TenderyDispatchPage or dispatch UI components
+    - When working with TYDispatchDashboard, TYDispatchTimeline, or TYDispatchActions components
+    - When using useDispatch hook or dispatchService
+    - When implementing dispatch event timeline or audit logging
+    - When implementing incident reporting for cost orders
+    - When troubleshooting dispatch status transitions or driver notifications
+    - When working with /api/tendery/operations/cost-orders/{id}/dispatch endpoints
+    - When working with ty_dispatch_events database table
+
+- app_docs/feature-75646b98-tendery-sample-data-simulation.md
+  - Conditions:
+    - When working with Tendery sample data seeding or database reset
+    - When implementing or modifying apps/Server/app/services/tendery/seed_service.py
+    - When implementing or modifying apps/Server/app/services/tendery/simulation_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/admin_routes.py
+    - When using /api/tendery/admin/seed, /api/tendery/admin/reset, or /api/tendery/admin/simulation endpoints
+    - When working with TYSimulationToggle component or useTenderySimulation hook
+    - When working with sample data files in apps/Server/data/tendery/
+    - When demonstrating Tendery system without real SICE-TAC, RNDC, or CRM integrations
+    - When troubleshooting Tendery simulation or RNDC price fluctuation issues
+    - When implementing background simulation for RNDC market data updates
+
+- app_docs/chore-f08ead0d-tendery-deployment-config.md
+  - Conditions:
+    - When configuring Tendery environment variables or .env settings
+    - When running Tendery database migrations
+    - When checking /api/health endpoint for module status
+    - When running Tendery integration tests
+    - When deploying Tendery to production
+    - When troubleshooting USE_MOCK_APIS or mock mode configuration
+    - When configuring SICE-TAC, RNDC, or Odoo API credentials
+
+- app_docs/feature-706a6bce-cargo-type-classification.md
+  - Conditions:
+    - When working with cargo type classification or CargoType enum
+    - When implementing vehicle requirements or surcharges based on cargo type
+    - When working with TYTransportSection cargo type dropdown
+    - When implementing TD-036 security rules engine for cargo-based service suggestions
+    - When modifying QuoteCreateDTO cargo_type or cargo_description fields
+    - When working with CARGO_TYPE_OPTIONS constant or cargo type labels
+    - When troubleshooting quotation form transport section validation
+
+- app_docs/feature-33f920af-tariff-visibility-controls.md
+  - Conditions:
+    - When working with role-based field visibility or tariff hiding logic
+    - When implementing or modifying apps/Server/app/models/tendery/visibility.py
+    - When working with useTariffVisibility hook or canSeeTariff/canSeeMargin flags
+    - When implementing conditional rendering based on user role in Tendery components
+    - When adding new roles and determining their visibility classification
+    - When working with operational DTOs (QuoteOperationalDTO, CostOrderOperationalDetailDTO, etc.)
+    - When implementing security controls to hide pricing from dispatchers or operations staff
+    - When troubleshooting visibility or role-based response filtering in cost orders or quotes
+
+- app_docs/feature-3f9259b7-kiosco-fidelization-scoring.md
+  - Conditions:
+    - When working with Kiosco driver scoring or ranking algorithm
+    - When implementing or modifying fidelization or loyalty scoring logic
+    - When implementing or modifying client familiarity scoring
+    - When working with _calculate_score() or _find_candidates() in kiosco_service.py
+    - When adding new scoring factors to the Kiosco assignment engine
+    - When working with driver-to-quote matching based on trip history
+    - When querying ty_cost_orders for driver performance metrics
+    - When troubleshooting driver candidate ranking or score calculations
+
+- app_docs/feature-05a48eb7-service-request-data-model.md
+  - Conditions:
+    - When working with service requests (Solicitud de Servicio / SS) data layer
+    - When implementing or modifying apps/Server/app/repository/tendery/service_request_repository.py
+    - When implementing or modifying apps/Server/app/models/tendery/service_request_dto.py
+    - When working with ty_service_requests database table or migration
+    - When implementing SS creation endpoints or dispatch workflows
+    - When working with ServiceRequest TypeScript types or SS status helpers
+    - When implementing role-based visibility for tariff/margin fields in service requests
+    - When working with SS number generation (SS-{YEAR}-{seq} format)
+    - When troubleshooting service request status transitions or filtering
+
+- app_docs/feature-98cdf6ee-service-request-creation-from-quote.md
+  - Conditions:
+    - When working with service request creation from quotes
+    - When implementing or modifying apps/Server/app/services/tendery/service_request_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/service_request_routes.py
+    - When working with quote-to-SS auto-population logic
+    - When implementing quote status transitions (accepted to active)
+    - When using useServiceRequests hook or serviceRequestService
+    - When working with /api/tendery/service-requests endpoints
+    - When troubleshooting SS creation validation or quote status issues
+    - When implementing role-based visibility on SS detail endpoint
+
+- app_docs/feature-09cad801-service-request-dashboard-list-ui.md
+  - Conditions:
+    - When working with the service request dashboard or list UI
+    - When implementing or modifying apps/Client/src/pages/tendery/TenderyServiceRequestsPage.tsx
+    - When working with TYServiceRequestList, TYServiceRequestFilters, TYServiceRequestDetail, or TYServiceRequestStatusCards components
+    - When implementing status summary cards or status count endpoints
+    - When working with /api/tendery/service-requests/counts endpoint
+    - When implementing service request filtering by status, origin, destination, or date range
+    - When working with the /tendery/solicitudes route
+    - When troubleshooting service request dashboard pagination or filter issues
+    - When implementing dispatch actions from the service request list
+
+- app_docs/feature-5167c961-ss-kiosco-dispatch-link.md
+  - Conditions:
+    - When working with SS dispatch to Kiosco assignment engine
+    - When implementing or modifying the dispatch endpoint on service requests
+    - When working with initiate_assignment_from_ss() in kiosco_service.py
+    - When linking load offers to service requests via service_request_id
+    - When implementing SS status sync on driver offer acceptance
+    - When working with the dispatch confirmation dialog on the SS page
+    - When troubleshooting tender vs direct dispatch mode logic
+    - When working with ty_load_offers.service_request_id column
+
+- app_docs/feature-b8834581-backend-auth-jwt-endpoints-spec.md
+  - Conditions:
+    - When implementing backend authentication JWT endpoints from the spec
+    - When working with the auth implementation plan (Wave 2)
+    - When creating AuthService, UserRepository, or auth DTOs
+    - When implementing auth routes (register, login, me)
+    - When adding JWT dependencies or RBAC enforcement
+
+- app_docs/feature-09100842-dual-mode-dispatch.md
+  - Conditions:
+    - When working with dual-mode dispatch (tender vs direct) functionality
+    - When implementing or modifying direct driver assignment logic
+    - When working with dispatch_mode column on ty_cost_orders table
+    - When implementing or modifying TYDispatchModeSelector component
+    - When working with POST /tendery/kiosco/assignments/direct endpoint
+    - When implementing dispatch mode analytics or comparative analysis
+    - When troubleshooting direct assignment validation or cost order creation
+    - When working with dispatch mode toggle UI in the service request page
+
+- app_docs/feature-5e79ccc9-driver-turno-availability.md
+  - Conditions:
+    - When working with driver turno (availability declaration) system
+    - When implementing or modifying apps/Server/app/api/tendery/turno_routes.py
+    - When implementing or modifying apps/Server/app/services/tendery/turno_service.py
+    - When implementing or modifying apps/Server/app/repository/tendery/turno_repository.py
+    - When working with ty_driver_turnos database table
+    - When implementing turno bonus in Kiosco scoring algorithm
+    - When working with TYDriverTurnoList component or useTurnos hook
+    - When modifying _calculate_score() has_turno parameter in kiosco_service.py
+    - When implementing driver availability or queue position features
+    - When troubleshooting turno lifecycle (active/expired/cancelled/assigned) issues
+    - When working with /api/tendery/kiosco/turnos/* endpoints
+
+- app_docs/feature-afb2eb22-reoffer-price-escalation.md
+  - Conditions:
+    - When working with re-offer or price escalation logic in Kiosco
+    - When implementing or modifying reoffer() or handle_offer_expiry() in kiosco_service.py
+    - When working with offer_round tracking on ty_load_offers table
+    - When implementing price ceiling enforcement or commercial policy margin lookups
+    - When working with TYReofferStatus or TYOfferHistory components
+    - When working with /api/tendery/kiosco/assignments/{ss_id}/reoffer or offer-history endpoints
+    - When troubleshooting automatic reoffer triggers or escalation-to-manual dispatch
+    - When implementing configurable escalation (fixed COP or percentage) for driver offers
+
+- app_docs/feature-c548285c-sicetac-playwright-web-scraping.md
+  - Conditions:
+    - When working with SICE-TAC Playwright web scraping or browser automation
+    - When implementing or modifying apps/Server/app/services/tendery/sicetac_scraper.py
+    - When working with SICETAC_URL, SICETAC_SCRAPE_TIMEOUT, SICETAC_SCRAPE_MAX_RETRIES, or SICETAC_SCRAPE_DELAY settings
+    - When troubleshooting scraping failures or fallback-to-mock behavior
+    - When working with Playwright browser lifecycle or concurrency control
+    - When implementing COP currency value parsing
+    - When deploying Playwright/Chromium to Render
+    - When working with the "scraping" source type on SiceTacTariffDTO
+
+- app_docs/feature-3b0c126a-rndc-excel-processing-pipeline.md
+  - Conditions:
+    - When working with RNDC Excel file upload or processing pipeline
+    - When implementing or modifying apps/Server/app/api/tendery/rndc_routes.py
+    - When implementing or modifying apps/Server/app/services/tendery/rndc_service.py process_upload method
+    - When working with bulk_store_analysis or get_analysis_list in rndc_repository.py
+    - When working with RndcUploadResultDTO or RndcAnalysisListItemDTO models
+    - When implementing or modifying TYRndcUpload component
+    - When working with RNDC data cleaning (zero-freight removal, P10 outlier removal)
+    - When working with corridor grouping and Gaussian statistics from Excel data
+    - When troubleshooting RNDC upload, column normalization, or city-to-route resolution
+    - When adding pandas, openpyxl, or scipy dependencies for data processing
+
+- app_docs/feature-2d0121c5-market-rate-input-dispatchers.md
+  - Conditions:
+    - When working with market rate input or dispatcher pricing observations
+    - When implementing or modifying apps/Server/app/api/tendery/market_rate_routes.py
+    - When implementing or modifying apps/Server/app/repository/tendery/market_rate_repository.py
+    - When working with ty_market_rates database table
+    - When working with TYMarketRateInput or TYMarketRateWidget components
+    - When using useMarketRates hook or marketRateService
+    - When modifying pricing calculator service 4th source integration
+    - When implementing pricing weight adjustments (RNDC/Historical/Market ratios)
+    - When troubleshooting market rate averaging or expiry logic
+    - When working with MarketRateCreateDTO, MarketRateResponseDTO, or MarketRateAverageDTO
+
+- app_docs/feature-ca950c5f-security-rules-engine.md
+  - Conditions:
+    - When working with security rules engine for cargo route combinations
+    - When implementing or modifying apps/Server/app/api/tendery/security_rules_routes.py
+    - When implementing or modifying apps/Server/app/services/tendery/security_rules_service.py
+    - When implementing or modifying apps/Server/app/repository/tendery/security_rules_repository.py
+    - When working with ty_security_rules database table
+    - When working with TYSecurityRulesWarning, TYSecurityRulesAdmin, or TYSecurityRuleForm components
+    - When using useSecurityRules hook or securityRulesService
+    - When implementing mandatory service detection for high-risk cargo/routes
+    - When working with escort or satellite lock requirements for cargo
+    - When troubleshooting security rules evaluation or matching logic
+    - When adding new security rules or modifying rule conditions
+
+- app_docs/feature-10c38569-client-categorization-scoring.md
+  - Conditions:
+    - When working with Tendery client management or client profiles
+    - When implementing or modifying apps/Server/app/api/tendery/client_routes.py
+    - When implementing or modifying apps/Server/app/services/tendery/client_service.py
+    - When implementing or modifying apps/Server/app/repository/tendery/client_repository.py
+    - When working with ty_clients database table
+    - When working with TYClientBadge, TYClientProfile, or TYClientInfoSection components
+    - When using useClients hook or clientService
+    - When implementing client categorization (distribution, ports, general)
+    - When implementing client scoring or performance metrics tracking
+    - When implementing pricing strategy based on client category
+    - When working with NIT lookup or client auto-fill in quotation forms
+    - When troubleshooting client creation or category update issues
+
+- app_docs/feature-7d41a9d9-auto-proforma-generation-ss.md
+  - Conditions:
+    - When working with automatic proforma generation for service requests
+    - When implementing or modifying ty_proformas database table or migration
+    - When implementing or modifying apps/Server/app/repository/tendery/proforma_repository.py
+    - When working with generate_for_ss() or get_ss_preview_data() in proforma_service.py
+    - When working with SS-level proforma endpoints (/tendery/service-requests/{ss_id}/proforma)
+    - When implementing or modifying "Ver Proforma" button in TYServiceRequestDetail.tsx
+    - When working with insurance coverage or security services compliance fields
+    - When troubleshooting auto-proforma generation on SS creation
+
+- app_docs/feature-339667c9-dispatch-compliance-validation.md
+  - Conditions:
+    - When working with pre-dispatch compliance validation
+    - When implementing or modifying apps/Server/app/services/tendery/compliance_service.py
+    - When implementing or modifying apps/Server/app/models/tendery/compliance_dto.py
+    - When working with /tendery/operations/compliance/* endpoints
+    - When implementing TYComplianceChecklist component or compliance UI
+    - When working with driver documentation, vehicle certification, or cargo insurance checks
+    - When implementing mandatory security services validation before dispatch
+    - When working with driver cargo qualification checks (MATPEL, refrigerated, oversized)
+    - When troubleshooting dispatch blocking or compliance validation issues
+    - When modifying the dispatch workflow to enforce compliance requirements
+
+- app_docs/bug-39e3f46a-quotes-list-display.md
+  - Conditions:
+    - When working with TenderyQuoteListPage or /tendery/quotes route
+    - When troubleshooting quote listing or display issues
+    - When modifying quote_repository.py get_all() method
+    - When modifying quote_service.py list_quotes() method
+    - When working with GET /tendery/quotes endpoint
+    - When implementing quote list filtering or pagination
+    - When working with QuoteListItemDTO in the frontend
+    - When using useQuotes hook for quote listing
+
+- app_docs/bugfix-8c75711e-analytics-logging-fields.md
+  - Conditions:
+    - When working with direct_assignment() method in kiosco_service.py
+    - When implementing analytics logging for Kiosco dispatch modes
+    - When troubleshooting missing flete or time_to_assign fields in logs
+    - When implementing performance metrics for tender vs direct dispatch comparison
+
+- app_docs/bug-c777856b-routes-price-endpoint.md
+  - Conditions:
+    - When working with route price lookup by city codes in Tendery
+    - When troubleshooting 404 errors on /api/tendery/routes/price endpoint
+    - When implementing city code to city ID resolution
+    - When working with TYRouteSelector component route info display
+    - When modifying route_routes.py or route_service.py for pricing endpoints
+
+- app_docs/feature-265ca989-quote-details-drilldown.md
+  - Conditions:
+    - When working with quote creation success feedback or post-creation dialogs
+    - When implementing or modifying TYQuoteCreatedDialog component
+    - When working with quote list row click navigation
+    - When implementing GET /tendery/quotes/{id} endpoint
+    - When working with TenderyQuotePage form submission flow
+    - When troubleshooting quote details display after creation
+    - When adding drill-down navigation from list views
+
+- app_docs/feature-41438390-mandatory-client-before-quote.md
+  - Conditions:
+    - When working with client validation in the quotation form
+    - When implementing or modifying TYClientInfoSection component
+    - When implementing or modifying TYClientQuickCreate component
+    - When working with quote creation client linkage requirements
+    - When troubleshooting client NIT validation errors
+    - When implementing inline client creation during quotation flow
+    - When working with QuoteCreateDTO client_nit validation
+    - When modifying quote_service.py client resolution logic
+
+- app_docs/feature-afd1b665-separate-vehicle-body-type.md
+  - Conditions:
+    - When working with body type (carroceria) selection in Tendery quotation forms
+    - When implementing or modifying TYBodyTypeSelector component
+    - When working with /api/tendery/body-types endpoints
+    - When working with ty_body_types database table
+    - When implementing vehicle type to body type compatibility filtering
+    - When working with TYTransportSection body type integration
+    - When troubleshooting body type selection or validation issues
+    - When implementing SICE-TAC pricing with both vehicle type and body type codes
+
+- app_docs/feature-191-below-policy-quote-approval.md
+  - Conditions:
+    - When working with below-policy quote approval workflow
+    - When implementing or modifying TenderyApprovalQueuePage
+    - When working with TYApprovalQueue, TYApprovalDialog, or TYBelowPolicyBadge components
+    - When implementing or modifying apps/Server/app/services/tendery/approval_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/approval_routes.py
+    - When working with quote status "on_hold" or requires_approval field
+    - When implementing manager/admin approval endpoints
+    - When troubleshooting policy compliance checks during quote creation
+    - When working with approval-related columns in ty_quotes table (is_below_policy, approved_by, etc.)
+
+- app_docs/feature-cb9c265b-complete-sa-catalog.md
+  - Conditions:
+    - When working with additional services (SA) catalog or service selection
+    - When implementing or modifying TYServiceCheckboxList component
+    - When working with service categories or grouped service display
+    - When implementing manual pricing for exotic services
+    - When implementing vehicle-type-dependent pricing for services
+    - When working with percentage-based service calculations
+    - When modifying ty_additional_services database table
+    - When working with services.json seed data
+    - When troubleshooting service selection or pricing calculation issues
+    - When adding new services to the catalog
+
+- app_docs/feature-194-historical-pricing-weight-ranges.md
+  - Conditions:
+    - When working with historical pricing weight ranges or weight-based price segmentation
+    - When implementing or modifying apps/Server/app/utils/weight_ranges.py
+    - When working with weight range classification for Colombian freight (10-15t, 15-18t, etc.)
+    - When working with pricing history auto-recording on cost order completion
+    - When implementing weight_range filtering in pricing history queries
+    - When using get_average_by_weight_range() in pricing calculator
+    - When modifying pricing_history_service.py weight-related functionality
+    - When troubleshooting weight range classification or boundary issues
+    - When working with ty_pricing_history.weight_range column
+
+- app_docs/feature-195-driver-fidelity-classification.md
+  - Conditions:
+    - When working with driver fidelity classification or tiered assignment
+    - When implementing or modifying apps/Server/app/services/tendery/driver_fidelity_service.py
+    - When implementing or modifying apps/Server/app/api/tendery/driver_fidelity_routes.py
+    - When implementing or modifying apps/Server/app/repository/tendery/driver_fidelity_repository.py
+    - When working with fidelity_tier, is_currently_loaded, or trips_last_30_days columns on ty_drivers
+    - When implementing driver tier bonuses in Kiosco scoring algorithm
+    - When working with mark_driver_loaded() or mark_driver_delivered() functionality
+    - When implementing batch driver classification or daily refresh jobs
+    - When troubleshooting driver tier assignment or classification issues
+    - When working with FidelityTier enum or fidelity-related DTOs
+
+- app_docs/feature-196-wave-based-driver-assignment.md
+  - Conditions:
+    - When working with wave-based driver assignment or progressive offer sending
+    - When implementing or modifying apps/Server/app/services/tendery/assignment_session_service.py
+    - When implementing or modifying apps/Server/app/services/tendery/assignment_poller.py
+    - When implementing or modifying apps/Server/app/api/tendery/assignment_session_routes.py
+    - When implementing or modifying apps/Server/app/repository/tendery/assignment_session_repository.py
+    - When working with ty_assignment_sessions database table
+    - When working with assignment_session_id or wave_number columns on ty_load_offers
+    - When implementing wave progression or timeout handling logic
+    - When working with background polling for assignment sessions
+    - When troubleshooting wave-based assignment session issues
+    - When implementing manual wave progression or session cancellation
+    - When working with ENABLE_ASSIGNMENT_POLLER or wave timeout configuration
+
+- app_docs/feature-0b8738bc-ss-price-revalidation.md
+  - Conditions:
+    - When working with SS price re-validation at creation time
+    - When implementing or modifying price approval workflow for service requests
+    - When working with pending_price_approval status or requires_client_approval flag
+    - When implementing or modifying TYPriceRevalidationAlert or TYPriceApprovalDialog components
+    - When working with original_cost_cop, current_cost_cop, or cost_delta_cop columns
+    - When working with extra_margin_captured or client_approved_price fields
+    - When implementing pricing comparison at SS creation from quote
+    - When working with /tendery/service-requests/{ss_id}/approve-price endpoint
+    - When troubleshooting SS price approval workflow or status transitions
+    - When working with PRICE_APPROVAL_THRESHOLD_PCT configuration
+
+- app_docs/feature-29422864-client-price-increase-notification.md
+  - Conditions:
+    - When working with client price increase notifications for service requests
+    - When implementing or modifying TYPriceChangeAlert or TYClientResponseDialog components
+    - When working with ty_price_change_notifications database table
+    - When implementing client response recording (accepted, rejected, negotiated)
+    - When working with /tendery/service-requests/{ss_id}/price-notification endpoints
+    - When implementing seller notification workflow for price changes
+    - When working with price_notification_service.py or price_notification_repository.py
+    - When troubleshooting notification status transitions (pending, contacted, responded)
+    - When implementing negotiated price tracking or client response notes
+
+- app_docs/feature-fdce34c9-auto-quote-email-generation.md
+  - Conditions:
+    - When working with quote email generation or sending functionality
+    - When implementing or modifying apps/Server/app/services/tendery/email_service.py
+    - When implementing or modifying TYEmailPreviewDialog component
+    - When working with /tendery/quotes/{id}/email-preview or /send-email endpoints
+    - When implementing SMTP email sending for Tendery quotes
+    - When modifying TYQuoteCreatedDialog "Enviar por Email" button
+    - When working with EMAIL_MOCK_MODE or SMTP_* environment variables
+    - When troubleshooting quote email preview or sending issues
+    - When working with email_dto.py or email-related TypeScript types
+
+- app_docs/feature-963102f6-sicetac-dane-codes-tariff-cache.md
+  - Conditions:
+    - When working with SICE-TAC Web Service API integration
+    - When working with DANE municipality codes in ty_cities table
+    - When implementing or modifying apps/Server/database/migrations/add_sicetac_dane_codes_and_cache.py
+    - When working with ty_sicetac_api_cache table
+    - When using get_city_by_dane_code() method in route_repository.py
+    - When implementing SOAP API client for SICE-TAC tariffs
+    - When troubleshooting DANE code conversion or cache lookup issues
+    - When working with 8-digit DANE codes vs 5-digit SICE-TAC codes
+
+- app_docs/feature-70e79fe7-sicetac-vehicle-code-mapping.md
+  - Conditions:
+    - When working with SICE-TAC vehicle configuration code mapping
+    - When implementing or modifying apps/Server/app/services/tendery/sicetac_vehicle_mapper.py
+    - When working with ty_sicetac_vehicle_codes database table
+    - When adding sicetac_config_code or sicetac_description to vehicle types
+    - When implementing SICE-TAC XML Web Service API integration
+    - When mapping Tendery vehicle types (MULA, TURBO, SENCILLO) to SICE-TAC codes (3S3, 2S2, 2L1)
+    - When working with CONFIGURACIONESID parameter for SICE-TAC API calls
+    - When troubleshooting vehicle type to SICE-TAC code translation issues
+
+- app_docs/feature-f579dc41-sicetac-xml-api-client.md
+  - Conditions:
+    - When working with SICE-TAC XML Web Service API client
+    - When implementing or modifying apps/Server/app/services/tendery/sicetac_api_client.py
+    - When working with RNDC SOAP endpoint integration
+    - When configuring SICETAC_API_ENDPOINT, SICETAC_API_BACKUP, RNDC_API_USERNAME, or RNDC_API_PASSWORD
+    - When building XML requests for SICE-TAC tariff queries
+    - When parsing SICE-TAC XML responses
+    - When implementing API failover to backup endpoint
+    - When working with valormoviliza minimum tariff retrieval
+    - When using sicetac_api_client singleton
+    - When troubleshooting SICE-TAC API connectivity or XML parsing issues
+
+- app_docs/feature-7159b624-sicetac-api-cache-repository.md
+  - Conditions:
+    - When working with SICE-TAC API response caching
+    - When implementing or modifying apps/Server/app/repository/tendery/sicetac_api_cache_repository.py
+    - When working with ty_sicetac_api_cache table
+    - When implementing cache TTL enforcement for SICE-TAC tariffs
+    - When working with cache lookup, store, or invalidation logic
+    - When implementing periodic cache cleanup for SICE-TAC data
+    - When troubleshooting cache hit/miss behavior or cache statistics
+    - When using sicetac_api_cache_repository singleton
+
+- app_docs/feature-5fb4ce23-sicetac-api-service-integration.md
+  - Conditions:
+    - When working with SICE-TAC tariff lookup fallback chain (API cache -> API -> scraping -> mock)
+    - When implementing or modifying the priority-based tariff retrieval in sicetac_service.py
+    - When troubleshooting SICE-TAC API vs scraping source selection
+    - When working with DANE code extraction for API queries
+    - When using get_api_status() for SICE-TAC health checks
+    - When debugging tariff source field values (api, api_cache, cache, scraping, mock)
+    - When integrating Wave 2 API components with the service layer
+
+- app_docs/feature-9d55e0b6-sicetac-api-routes.md
+  - Conditions:
+    - When working with /api/tendery/sicetac/* endpoints
+    - When implementing or modifying apps/Server/app/api/tendery/sicetac_routes.py
+    - When querying SICE-TAC tariffs directly by DANE codes
+    - When working with SICE-TAC vehicle configuration code listings
+    - When checking SICE-TAC API status or cache statistics
+    - When implementing admin cache invalidation for SICE-TAC
+    - When troubleshooting direct SICE-TAC query validation errors
+    - When working with TariffQueryRequest, TariffResponse, or ApiStatusResponse DTOs
+
+- app_docs/chore-64f8d6a5-sicetac-integration-tests.md
+  - Conditions:
+    - When writing or modifying tests for SICE-TAC API client
+    - When testing SICE-TAC vehicle code mapping
+    - When testing SICE-TAC cache repository
+    - When working with apps/Server/tests/tendery/test_sicetac_api_client.py
+    - When working with apps/Server/tests/tendery/test_sicetac_cache.py
+    - When troubleshooting SICE-TAC test failures
+    - When adding new test cases for SICE-TAC integration
+
+- app_docs/feature-f44c180a-multiline-quotations-grid.md
+  - Conditions:
+    - When working with multi-line quotations or line items in Tendery
+    - When implementing or modifying TYLineItemGrid or TYLineItemRow components
+    - When working with ty_quote_line_items database table
+    - When implementing or modifying QuoteLineItemDTO or line item types
+    - When working with quote_line_item_repository.py
+    - When modifying quote_service.py for multi-line quote creation
+    - When troubleshooting quotation form Step 2 grid issues
+    - When working with useFieldArray for line items in quotation forms
+    - When implementing per-line pricing calculation
+    - When working with TYReviewSection line items display
+
+- app_docs/feature-5934682a-rndc-statistics-upload-page.md
+  - Conditions:
+    - When working with the RNDC data upload page at /tendery/rndc
+    - When implementing or modifying TenderyRndcPage component
+    - When working with TYRndcUpload component integration
+    - When adding admin pages for data upload functionality
+    - When troubleshooting RNDC upload page navigation or access issues
+    - When modifying sidebar navigation for RNDC data upload
+
+- app_docs/feature-15048e7c-sicetac-webservice-api.md
+  - Conditions:
+    - When working with SICE-TAC Web Service API integration overview
+    - When understanding the complete SICE-TAC architecture (API client, cache, routes, vehicle mapper)
+    - When configuring SICE-TAC environment variables or fallback order
+    - When implementing pricing calculator SICE-TAC tariff retrieval
+    - When troubleshooting SICE-TAC integration end-to-end
+    - When onboarding to the SICE-TAC module
+    - When understanding SICE-TAC vehicle configuration codes or DANE codes
+    - When working with ty_sicetac_api_cache database table
+    - When implementing or modifying /api/tendery/sicetac/* endpoints
+
+- app_docs/feature-6498e07d-container-tara-weight-field.md
+  - Conditions:
+    - When working with container body types (Contenedor 20, Contenedor 40) in Tendery quotation forms
+    - When implementing or modifying tara weight calculation logic
+    - When working with effective weight vs declared weight in pricing calculations
+    - When implementing or modifying TYTransportSection container detection
+    - When troubleshooting weight-based pricing for container transport
+    - When working with includes_tara, tara_weight_tons, or effective_weight_tons fields
+    - When modifying QuoteCreateDTO or QuoteResponseDTO tara-related fields
+
+- app_docs/feature-48817b43-price-rounding-50k-cop.md
+  - Conditions:
+    - When working with price rounding in Tendery quotation system
+    - When implementing or modifying apps/Server/app/utils/pricing_utils.py
+    - When working with round_price_to_50k() utility function
+    - When working with raw_total_price_cop or total_price_cop fields
+    - When implementing or modifying TYPricingBreakdown component
+    - When troubleshooting price display or rounding issues in quotations
+    - When working with pricing calculator final total calculations
+    - When implementing seller margin override with rounded totals
+
+- app_docs/feature-bb25cf15-manual-margin-entry-seller.md
+  - Conditions:
+    - When working with manual margin entry in Tendery quotation forms
+    - When implementing or modifying TYMarginInput component
+    - When working with seller-entered utilidad_cop or rentabilidad_pct values
+    - When modifying TYReviewSection margin handling
+    - When implementing or modifying TYPricingBreakdown manualMarginMode
+    - When working with validate_seller_margin() in quote_service.py
+    - When troubleshooting margin validation or below-policy detection
+    - When implementing margin per line item in multi-line quotes
+
+- app_docs/feature-215c1848-manual-margin-entry-tests.md
+  - Conditions:
+    - When writing or modifying E2E tests for manual margin entry
+    - When running Playwright tests for quotation flow
+    - When troubleshooting margin input E2E test failures
+    - When working with apps/Client/tests/review-margin*.spec.ts files
+    - When capturing screenshots for code review of quotation features
+
+- app_docs/feature-c2cbfd81-dual-margin-display-cop-percentage.md
+  - Conditions:
+    - When working with margin display in Tendery quotation components
+    - When implementing dual format display (COP + percentage) for pricing data
+    - When modifying TYPricingBreakdown margin section
+    - When modifying TYReviewSection aggregate totals
+    - When troubleshooting margin percentage calculation
+    - When working with "Margen Total" or "Margen Aplicado" display
+
+- app_docs/feature-01bbfb6c-cost-source-take-highest.md
+  - Conditions:
+    - When working with base cost calculation in Tendery pricing
+    - When modifying _calculate_base_cost method in pricing_calculator_service.py
+    - When working with pricing source comparison or MAX logic
+    - When implementing or modifying TYPricingBreakdown cost sources section
+    - When working with base_cost_source field in PricingResultDTO
+    - When troubleshooting which pricing source determines base cost
+    - When working with "Fuentes de Costo" UI section
+    - When implementing winner highlighting for pricing sources
+
+- app_docs/feature-a74a7a68-policy-enforcement-approval-escalation.md
+  - Conditions:
+    - When working with policy enforcement or approval escalation in Tendery quotation forms
+    - When implementing or modifying TYQuotationForm policy violation handling
+    - When working with TYReviewSection policy compliance detection
+    - When implementing or modifying "Solicitar Aprobacion" escalation flow
+    - When working with `pending_approval` quote status
+    - When modifying `/api/tendery/quotes/request-approval` endpoint
+    - When working with create_quote_for_approval() in quote_service.py
+    - When troubleshooting below-policy margin blocking or escalation issues
+    - When modifying approval queue to handle both `on_hold` and `pending_approval` statuses
+    - When working with TYQuoteCreatedDialog pending approval restrictions
+
+- app_docs/feature-5e348d12-optional-security-services-suggestions.md
+  - Conditions:
+    - When working with security service suggestions in Tendery quotation forms
+    - When implementing or modifying TYSecurityRulesWarning component
+    - When working with suggested_* or mandatory_* fields in security rules DTOs
+    - When implementing security service selection checkboxes
+    - When working with SuggestedServiceDTO or SuggestedService types
+    - When modifying TYTransportSection security rules integration
+    - When troubleshooting security service suggestion display or selection issues
+    - When working with "Recomendado" badges for high-risk security services
+
+- app_docs/feature-e2b947ea-ss-creation-from-quote-line-items.md
+  - Conditions:
+    - When working with SS (Service Request) creation from multi-line quotes
+    - When implementing or modifying TYQuoteLineItemsTable component
+    - When working with quote_line_number field in service requests
+    - When implementing or modifying create_from_quote_line() service method
+    - When working with /tendery/service-requests/from-line endpoint
+    - When working with line-item-based SS creation in Tendery
+    - When troubleshooting SS creation from specific quote line items
+    - When working with ServiceRequestFromLineDTO or ServiceRequestFromLineData types
