@@ -1221,3 +1221,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with bulk create operations for products
     - When using BulkCreateErrorDTO or BulkCreateResponseDTO
     - When troubleshooting Kompass product service layer issues
+
+- app_docs/feature-0a08fee5-category-tag-management-service.md
+  - Conditions:
+    - When working with CategoryService or TagService in Kompass
+    - When implementing hierarchical category tree operations
+    - When working with category CRUD, reparenting, or descendant retrieval
+    - When working with tag CRUD, product counts, or search functionality
+    - When using CategoryTreeNode or TagWithCountDTO
+    - When implementing API routes for categories or tags
+    - When troubleshooting category cycle prevention or delete validation

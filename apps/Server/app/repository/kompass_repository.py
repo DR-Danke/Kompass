@@ -454,6 +454,105 @@ class CategoryRepository:
         d["parent_name"] = row[8] if len(row) > 8 else None
         return d
 
+    def get_children(self, category_id: UUID) -> List[Dict[str, Any]]:
+        """Get immediate children of a category."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, description, parent_id, sort_order,
+                           is_active, created_at, updated_at
+                    FROM categories
+                    WHERE parent_id = %s
+                    ORDER BY sort_order, name
+                    """,
+                    (str(category_id),),
+                )
+                rows = cur.fetchall()
+                return [self._row_to_dict(row) for row in rows]
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to get children: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def has_products(self, category_id: UUID) -> bool:
+        """Check if category has associated products."""
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM products WHERE category_id = %s",
+                    (str(category_id),),
+                )
+                count = cur.fetchone()[0]
+                return count > 0
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to check products: {e}")
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def has_children(self, category_id: UUID) -> bool:
+        """Check if category has child categories."""
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM categories WHERE parent_id = %s",
+                    (str(category_id),),
+                )
+                count = cur.fetchone()[0]
+                return count > 0
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to check children: {e}")
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def set_parent(
+        self, category_id: UUID, parent_id: Optional[UUID]
+    ) -> Optional[Dict[str, Any]]:
+        """Set parent of a category (for reparenting)."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE categories
+                    SET parent_id = %s
+                    WHERE id = %s
+                    RETURNING id, name, description, parent_id, sort_order, is_active,
+                              created_at, updated_at
+                    """,
+                    (str(parent_id) if parent_id else None, str(category_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to set parent: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # TAG REPOSITORY
@@ -653,6 +752,98 @@ class TagRepository:
             print(f"ERROR [TagRepository]: Failed to delete tag: {e}")
             conn.rollback()
             return False
+        finally:
+            close_database_connection(conn)
+
+    def search(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Search tags by name using ILIKE."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, color, created_at, updated_at
+                    FROM tags
+                    WHERE name ILIKE %s
+                    ORDER BY name
+                    LIMIT %s
+                    """,
+                    (f"%{query}%", limit),
+                )
+                rows = cur.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "color": row[2],
+                        "created_at": row[3],
+                        "updated_at": row[4],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to search tags: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def get_product_count(self, tag_id: UUID) -> int:
+        """Get product count for a single tag."""
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM product_tags WHERE tag_id = %s",
+                    (str(tag_id),),
+                )
+                return cur.fetchone()[0]
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to get product count: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+    def get_all_with_counts(self) -> List[Dict[str, Any]]:
+        """Get all tags with product counts."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT t.id, t.name, t.color, t.created_at, t.updated_at,
+                           COALESCE(COUNT(pt.product_id), 0) as product_count
+                    FROM tags t
+                    LEFT JOIN product_tags pt ON t.id = pt.tag_id
+                    GROUP BY t.id, t.name, t.color, t.created_at, t.updated_at
+                    ORDER BY t.name
+                    """
+                )
+                rows = cur.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "color": row[2],
+                        "created_at": row[3],
+                        "updated_at": row[4],
+                        "product_count": row[5],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to get tags with counts: {e}")
+            return []
         finally:
             close_database_connection(conn)
 
