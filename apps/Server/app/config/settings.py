@@ -24,6 +24,14 @@ class Settings(BaseSettings):
     SERVER_PORT: int = 8000
     USE_MOCK_APIS: bool = True
 
+    # AI Data Extraction
+    ANTHROPIC_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+    REMOVEBG_API_KEY: Optional[str] = None
+    EXTRACTION_AI_PROVIDER: str = "anthropic"
+    EXTRACTION_MAX_RETRIES: int = 3
+    EXTRACTION_TIMEOUT_SECONDS: int = 60
+
     def get_cors_origins(self) -> List[str]:
         """Parse CORS_ORIGINS from JSON string to list."""
         try:

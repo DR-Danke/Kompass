@@ -168,6 +168,22 @@ class CategoryListResponseDTO(BaseModel):
     pagination: PaginationDTO
 
 
+class CategoryTreeNode(BaseModel):
+    """Tree node for hierarchical category representation."""
+
+    id: UUID
+    name: str
+    description: Optional[str] = None
+    parent_id: Optional[UUID] = None
+    sort_order: int = 0
+    is_active: bool = True
+    depth: int = 0
+    path: str = ""
+    children: List["CategoryTreeNode"] = []
+
+    model_config = {"from_attributes": True}
+
+
 # =============================================================================
 # TAG DTOs
 # =============================================================================
@@ -204,6 +220,19 @@ class TagListResponseDTO(BaseModel):
 
     items: List[TagResponseDTO]
     pagination: PaginationDTO
+
+
+class TagWithCountDTO(BaseModel):
+    """Tag response with product count."""
+
+    id: UUID
+    name: str
+    color: str
+    product_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 # =============================================================================
@@ -362,9 +391,12 @@ class ProductFilterDTO(BaseModel):
 
 
 class ProductCreateDTO(BaseModel):
-    """Request model for creating a product."""
+    """Request model for creating a product.
 
-    sku: str = Field(min_length=1, max_length=100)
+    Note: SKU is optional. If not provided, the service will auto-generate one.
+    """
+
+    sku: Optional[str] = Field(default=None, max_length=100)
     name: str = Field(min_length=1, max_length=500)
     description: Optional[str] = None
     supplier_id: UUID
@@ -849,3 +881,26 @@ class QuotationListResponseDTO(BaseModel):
     items: List[QuotationResponseDTO]
     pagination: PaginationDTO
     filters: Optional[QuotationFilterDTO] = None
+
+
+# =============================================================================
+# BULK OPERATION DTOs
+# =============================================================================
+
+
+class BulkCreateErrorDTO(BaseModel):
+    """Error details for a failed bulk create item."""
+
+    index: int
+    sku: Optional[str] = None
+    error: str
+
+
+class BulkCreateResponseDTO(BaseModel):
+    """Response for bulk create operations."""
+
+    successful: List[ProductResponseDTO] = []
+    failed: List[BulkCreateErrorDTO] = []
+    total_count: int = 0
+    success_count: int = 0
+    failure_count: int = 0

@@ -454,6 +454,105 @@ class CategoryRepository:
         d["parent_name"] = row[8] if len(row) > 8 else None
         return d
 
+    def get_children(self, category_id: UUID) -> List[Dict[str, Any]]:
+        """Get immediate children of a category."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, description, parent_id, sort_order,
+                           is_active, created_at, updated_at
+                    FROM categories
+                    WHERE parent_id = %s
+                    ORDER BY sort_order, name
+                    """,
+                    (str(category_id),),
+                )
+                rows = cur.fetchall()
+                return [self._row_to_dict(row) for row in rows]
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to get children: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def has_products(self, category_id: UUID) -> bool:
+        """Check if category has associated products."""
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM products WHERE category_id = %s",
+                    (str(category_id),),
+                )
+                count = cur.fetchone()[0]
+                return count > 0
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to check products: {e}")
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def has_children(self, category_id: UUID) -> bool:
+        """Check if category has child categories."""
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM categories WHERE parent_id = %s",
+                    (str(category_id),),
+                )
+                count = cur.fetchone()[0]
+                return count > 0
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to check children: {e}")
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def set_parent(
+        self, category_id: UUID, parent_id: Optional[UUID]
+    ) -> Optional[Dict[str, Any]]:
+        """Set parent of a category (for reparenting)."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE categories
+                    SET parent_id = %s
+                    WHERE id = %s
+                    RETURNING id, name, description, parent_id, sort_order, is_active,
+                              created_at, updated_at
+                    """,
+                    (str(parent_id) if parent_id else None, str(category_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to set parent: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # TAG REPOSITORY
@@ -653,6 +752,98 @@ class TagRepository:
             print(f"ERROR [TagRepository]: Failed to delete tag: {e}")
             conn.rollback()
             return False
+        finally:
+            close_database_connection(conn)
+
+    def search(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Search tags by name using ILIKE."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, color, created_at, updated_at
+                    FROM tags
+                    WHERE name ILIKE %s
+                    ORDER BY name
+                    LIMIT %s
+                    """,
+                    (f"%{query}%", limit),
+                )
+                rows = cur.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "color": row[2],
+                        "created_at": row[3],
+                        "updated_at": row[4],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to search tags: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def get_product_count(self, tag_id: UUID) -> int:
+        """Get product count for a single tag."""
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM product_tags WHERE tag_id = %s",
+                    (str(tag_id),),
+                )
+                return cur.fetchone()[0]
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to get product count: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+    def get_all_with_counts(self) -> List[Dict[str, Any]]:
+        """Get all tags with product counts."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT t.id, t.name, t.color, t.created_at, t.updated_at,
+                           COALESCE(COUNT(pt.product_id), 0) as product_count
+                    FROM tags t
+                    LEFT JOIN product_tags pt ON t.id = pt.tag_id
+                    GROUP BY t.id, t.name, t.color, t.created_at, t.updated_at
+                    ORDER BY t.name
+                    """
+                )
+                rows = cur.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "color": row[2],
+                        "created_at": row[3],
+                        "updated_at": row[4],
+                        "product_count": row[5],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to get tags with counts: {e}")
+            return []
         finally:
             close_database_connection(conn)
 
@@ -1162,6 +1353,160 @@ class SupplierRepository:
             "updated_at": row[13],
         }
 
+    def count_products_by_supplier(self, supplier_id: UUID) -> int:
+        """Count products for a specific supplier.
+
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Number of products for this supplier
+        """
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM products WHERE supplier_id = %s",
+                    (str(supplier_id),),
+                )
+                return cur.fetchone()[0]
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to count products: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+    def get_all_with_filters(
+        self,
+        page: int = 1,
+        limit: int = 20,
+        status: Optional[str] = None,
+        country: Optional[str] = None,
+        has_products: Optional[bool] = None,
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """Get all suppliers with extended filtering options.
+
+        Args:
+            page: Page number (1-indexed)
+            limit: Items per page
+            status: Filter by supplier status
+            country: Filter by country
+            has_products: Filter by whether supplier has products
+
+        Returns:
+            Tuple of (list of suppliers, total count)
+        """
+        conn = get_database_connection()
+        if not conn:
+            return [], 0
+
+        try:
+            with conn.cursor() as cur:
+                conditions = []
+                params: List[Any] = []
+
+                if status:
+                    conditions.append("s.status = %s")
+                    params.append(status)
+                if country:
+                    conditions.append("s.country = %s")
+                    params.append(country)
+
+                # Handle has_products filter using subquery
+                if has_products is True:
+                    conditions.append(
+                        "EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
+                    )
+                elif has_products is False:
+                    conditions.append(
+                        "NOT EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
+                    )
+
+                where_clause = (
+                    "WHERE " + " AND ".join(conditions) if conditions else ""
+                )
+
+                # Count query
+                cur.execute(
+                    f"SELECT COUNT(*) FROM suppliers s {where_clause}",
+                    params,
+                )
+                total = cur.fetchone()[0]
+
+                offset = (page - 1) * limit
+                params.extend([limit, offset])
+
+                # Main query
+                cur.execute(
+                    f"""
+                    SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
+                           s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
+                           s.created_at, s.updated_at
+                    FROM suppliers s
+                    {where_clause}
+                    ORDER BY s.name
+                    LIMIT %s OFFSET %s
+                    """,
+                    params,
+                )
+                rows = cur.fetchall()
+
+                items = [self._row_to_dict(row) for row in rows]
+                return items, total
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get suppliers with filters: {e}")
+            return [], 0
+        finally:
+            close_database_connection(conn)
+
+    def search(
+        self,
+        query: str,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """Search suppliers by name, email, or contact phone.
+
+        Args:
+            query: Search query string
+            limit: Maximum number of results
+
+        Returns:
+            List of matching suppliers
+        """
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                search_pattern = f"%{query}%"
+                cur.execute(
+                    """
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           created_at, updated_at
+                    FROM suppliers
+                    WHERE name ILIKE %s
+                       OR contact_email ILIKE %s
+                       OR contact_phone ILIKE %s
+                       OR code ILIKE %s
+                    ORDER BY name
+                    LIMIT %s
+                    """,
+                    (search_pattern, search_pattern, search_pattern, search_pattern, limit),
+                )
+                rows = cur.fetchall()
+
+                return [self._row_to_dict(row) for row in rows]
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to search suppliers: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # PRODUCT REPOSITORY
@@ -1292,8 +1637,33 @@ class ProductRepository:
         max_price: Optional[Decimal] = None,
         search: Optional[str] = None,
         tag_ids: Optional[List[UUID]] = None,
+        has_images: Optional[bool] = None,
+        min_moq: Optional[int] = None,
+        max_moq: Optional[int] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "asc",
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """Get all products with pagination and filters."""
+        """Get all products with pagination and filters.
+
+        Args:
+            page: Page number (1-indexed)
+            limit: Number of items per page
+            category_id: Filter by category UUID
+            supplier_id: Filter by supplier UUID
+            status: Filter by product status
+            min_price: Minimum unit price filter
+            max_price: Maximum unit price filter
+            search: Search term for name, description, and SKU
+            tag_ids: Filter by tag UUIDs
+            has_images: Filter products with/without images
+            min_moq: Minimum order quantity filter
+            max_moq: Maximum order quantity filter
+            sort_by: Sort field (name, unit_price, created_at, minimum_order_qty)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Tuple of (list of products, total count)
+        """
         conn = get_database_connection()
         if not conn:
             return [], 0
@@ -1319,9 +1689,11 @@ class ProductRepository:
                     conditions.append("p.unit_price <= %s")
                     params.append(max_price)
                 if search:
-                    conditions.append("(p.name ILIKE %s OR p.sku ILIKE %s)")
+                    conditions.append(
+                        "(p.name ILIKE %s OR p.sku ILIKE %s OR p.description ILIKE %s)"
+                    )
                     search_pattern = f"%{search}%"
-                    params.extend([search_pattern, search_pattern])
+                    params.extend([search_pattern, search_pattern, search_pattern])
                 if tag_ids:
                     placeholders = ", ".join(["%s"] * len(tag_ids))
                     conditions.append(
@@ -1333,6 +1705,28 @@ class ProductRepository:
                     """
                     )
                     params.extend([str(tid) for tid in tag_ids])
+                if has_images is True:
+                    conditions.append(
+                        """
+                        EXISTS (
+                            SELECT 1 FROM product_images pi WHERE pi.product_id = p.id
+                        )
+                    """
+                    )
+                elif has_images is False:
+                    conditions.append(
+                        """
+                        NOT EXISTS (
+                            SELECT 1 FROM product_images pi WHERE pi.product_id = p.id
+                        )
+                    """
+                    )
+                if min_moq is not None:
+                    conditions.append("p.minimum_order_qty >= %s")
+                    params.append(min_moq)
+                if max_moq is not None:
+                    conditions.append("p.minimum_order_qty <= %s")
+                    params.append(max_moq)
 
                 where_clause = (
                     "WHERE " + " AND ".join(conditions) if conditions else ""
@@ -1347,6 +1741,17 @@ class ProductRepository:
                 offset = (page - 1) * limit
                 params.extend([limit, offset])
 
+                # Build ORDER BY clause
+                allowed_sort_fields = {
+                    "name": "p.name",
+                    "unit_price": "p.unit_price",
+                    "created_at": "p.created_at",
+                    "minimum_order_qty": "p.minimum_order_qty",
+                }
+                order_field = allowed_sort_fields.get(sort_by, "p.name")
+                order_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
+                order_clause = f"ORDER BY {order_field} {order_direction}"
+
                 cur.execute(
                     f"""
                     SELECT p.id, p.sku, p.name, p.description, p.supplier_id, p.category_id,
@@ -1360,7 +1765,7 @@ class ProductRepository:
                     LEFT JOIN categories c ON p.category_id = c.id
                     LEFT JOIN hs_codes h ON p.hs_code_id = h.id
                     {where_clause}
-                    ORDER BY p.name
+                    {order_clause}
                     LIMIT %s OFFSET %s
                     """,
                     params,
@@ -1612,6 +2017,50 @@ class ProductRepository:
                 return cur.fetchone() is not None
         except Exception as e:
             print(f"ERROR [ProductRepository]: Failed to remove image: {e}")
+            conn.rollback()
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def set_primary_image(self, product_id: UUID, image_id: UUID) -> bool:
+        """Set a specific image as the primary image for a product.
+
+        Args:
+            product_id: Product UUID
+            image_id: Image UUID to set as primary
+
+        Returns:
+            True if successful, False otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                # First, set all images for this product to non-primary
+                cur.execute(
+                    """
+                    UPDATE product_images
+                    SET is_primary = false
+                    WHERE product_id = %s
+                    """,
+                    (str(product_id),),
+                )
+                # Then set the specified image as primary
+                cur.execute(
+                    """
+                    UPDATE product_images
+                    SET is_primary = true
+                    WHERE id = %s AND product_id = %s
+                    RETURNING id
+                    """,
+                    (str(image_id), str(product_id)),
+                )
+                conn.commit()
+                return cur.fetchone() is not None
+        except Exception as e:
+            print(f"ERROR [ProductRepository]: Failed to set primary image: {e}")
             conn.rollback()
             return False
         finally:
