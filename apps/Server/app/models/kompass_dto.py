@@ -168,6 +168,22 @@ class CategoryListResponseDTO(BaseModel):
     pagination: PaginationDTO
 
 
+class CategoryTreeNode(BaseModel):
+    """Tree node for hierarchical category representation."""
+
+    id: UUID
+    name: str
+    description: Optional[str] = None
+    parent_id: Optional[UUID] = None
+    sort_order: int = 0
+    is_active: bool = True
+    depth: int = 0
+    path: str = ""
+    children: List["CategoryTreeNode"] = []
+
+    model_config = {"from_attributes": True}
+
+
 # =============================================================================
 # TAG DTOs
 # =============================================================================
@@ -204,6 +220,19 @@ class TagListResponseDTO(BaseModel):
 
     items: List[TagResponseDTO]
     pagination: PaginationDTO
+
+
+class TagWithCountDTO(BaseModel):
+    """Tag response with product count."""
+
+    id: UUID
+    name: str
+    color: str
+    product_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 # =============================================================================
