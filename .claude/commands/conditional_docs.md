@@ -1244,3 +1244,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When configuring ANTHROPIC_API_KEY, OPENAI_API_KEY, or REMOVEBG_API_KEY settings
     - When troubleshooting AI extraction or batch processing issues
     - When working with ExtractedProduct, ExtractionResult, or HsCodeSuggestion DTOs
+
+- app_docs/feature-e7062de8-product-api-routes.md
+  - Conditions:
+    - When working with product API endpoints (/api/products/*)
+    - When implementing or modifying apps/Server/app/api/product_routes.py
+    - When implementing product CRUD operations via REST API
+    - When implementing product image management endpoints
+    - When implementing product tag management endpoints
+    - When implementing product search or filtering endpoints
+    - When troubleshooting product API authentication or authorization
+    - When adding new product-related routes to the Kompass backend
