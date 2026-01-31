@@ -1187,3 +1187,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with line-item-based SS creation in Tendery
     - When troubleshooting SS creation from specific quote line items
     - When working with ServiceRequestFromLineDTO or ServiceRequestFromLineData types
+
+- app_docs/feature-9ce5e2ee-database-schema-core-dtos.md
+  - Conditions:
+    - When working with Kompass Portfolio & Quotation system database tables
+    - When implementing supplier, product, portfolio, client, or quotation features
+    - When working with apps/Server/database/schema.sql Kompass tables
+    - When working with apps/Server/app/models/kompass_dto.py
+    - When working with apps/Server/app/repository/kompass_repository.py
+    - When implementing CRUD operations for Kompass entities
+    - When working with niches, categories, tags, or HS codes
+    - When implementing pricing with freight rates or pricing settings
+    - When troubleshooting Kompass data layer or repository issues

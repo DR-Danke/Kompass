@@ -1,0 +1,13 @@
+{
+  "browser": {
+    "headless": true,
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "recording": {
+    "dir": "/mnt/c/Users/user/danke_apps/Kompass/trees/9ce5e2ee/videos",
+    "enabled": true
+  }
+}
