@@ -1244,3 +1244,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When configuring ANTHROPIC_API_KEY, OPENAI_API_KEY, or REMOVEBG_API_KEY settings
     - When troubleshooting AI extraction or batch processing issues
     - When working with ExtractedProduct, ExtractionResult, or HsCodeSuggestion DTOs
+
+- app_docs/feature-1ee9c0ae-data-extraction-api-routes.md
+  - Conditions:
+    - When working with data extraction API endpoints (/api/extract/*)
+    - When implementing or modifying apps/Server/app/api/extraction_routes.py
+    - When working with apps/Server/app/models/extraction_job_dto.py
+    - When implementing file upload for product data extraction
+    - When working with extraction job status polling or progress tracking
+    - When implementing confirm import for extracted products
+    - When working with single-image background removal API
+    - When working with HS code suggestion API
+    - When troubleshooting extraction job state management
+    - When working with ExtractionJobDTO, ConfirmImportRequestDTO, or UploadResponseDTO
