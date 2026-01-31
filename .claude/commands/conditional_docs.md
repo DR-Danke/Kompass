@@ -1265,3 +1265,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing product search or filtering endpoints
     - When troubleshooting product API authentication or authorization
     - When adding new product-related routes to the Kompass backend
+
+- app_docs/feature-c58228ec-category-tag-api-routes.md
+  - Conditions:
+    - When working with /api/categories or /api/tags endpoints
+    - When implementing or modifying apps/Server/app/api/category_routes.py
+    - When implementing or modifying apps/Server/app/api/tag_routes.py
+    - When working with category tree structure or hierarchical categories
+    - When implementing category move or reparenting functionality via API
+    - When implementing tag search autocomplete endpoints
+    - When troubleshooting category or tag API authentication/authorization
+    - When adding new category or tag API endpoints
+    - When working with CategoryMoveDTO or category/tag route tests
