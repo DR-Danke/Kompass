@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kompass - Workflow Flowcharts v2</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        .version-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        .flowchart-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .flowchart-section h2 {
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #1e3a5f;
+        }
+        .flowchart-section h3 {
+            color: #666;
+            font-weight: normal;
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+            overflow-x: auto;
+        }
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .nav-tab {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .nav-tab.active {
+            background: white;
+            color: #1e3a5f;
+            font-weight: bold;
+        }
+        .role-badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        .role-badge.manual {
+            background: #dc2626;
+        }
+        .role-badge.bottleneck {
+            background: #f59e0b;
+        }
+        .role-badge.critical {
+            background: #dc2626;
+        }
+        .integration-badge {
+            display: inline-block;
+            background: #6366f1;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #1e3a5f;
+        }
+        .feature-item.pain {
+            border-left-color: #dc2626;
+        }
+        .feature-item.success {
+            border-left-color: #10b981;
+        }
+        .feature-item .icon {
+            font-size: 1.5rem;
+        }
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            opacity: 0.8;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fef3c7;
+            border-radius: 12px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        .cost-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fee2e2;
+            border-radius: 12px;
+        }
+        .cost-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .cost-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc2626;
+        }
+        .cost-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        .update-note {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .update-note h4 {
+            color: #1e40af;
+            margin-bottom: 5px;
+        }
+        .update-note p {
+            color: #1e3a8a;
+            font-size: 0.9rem;
+        }
+        .pricing-formula {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+        }
+        .pricing-formula h4 {
+            color: #166534;
+            margin-bottom: 10px;
+        }
+        .pricing-formula code {
+            display: block;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1rem;
+            color: #166534;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kompass <span class="version-badge">v2.0</span></h1>
+            <p>Workflow Flowcharts - China Sourcing & Trading Platform</p>
+            <p class="subtitle">Mobiliario, Decoracion y Acabados para Construccion</p>
+            <p class="subtitle" style="margin-top: 10px; font-size: 0.85rem;">Actualizado: 29 Enero 2026 - Refinamiento con Ruben</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="scrollToSection('sourcing')">Sourcing</button>
+            <button class="nav-tab" onclick="scrollToSection('biblia')">Biblia General</button>
+            <button class="nav-tab" onclick="scrollToSection('portfolio')">Portafolios Curados</button>
+            <button class="nav-tab" onclick="scrollToSection('quotation')">Cotizacion</button>
+            <button class="nav-tab" onclick="scrollToSection('sales')">Ventas</button>
+            <button class="nav-tab" onclick="scrollToSection('bottlenecks')">Cuellos de Botella</button>
+            <button class="nav-tab" onclick="scrollToSection('tradeshow')">Ferias China</button>
+            <button class="nav-tab" onclick="scrollToSection('proposed')">Solucion IA</button>
+            <button class="nav-tab" onclick="scrollToSection('architecture')">Arquitectura</button>
+        </nav>
+
+        <!-- Current State Stats -->
+        <section class="flowchart-section">
+            <h2>Estado Actual - Metricas Clave (Actualizado)</h2>
+            <h3>Datos refinados de la segunda llamada con Ruben (29 Enero 2026)</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Meses de Operacion</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Cotizaciones Enviadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Orden Esperada Esta Semana</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">55</div>
+                    <div class="stat-label">Contactos en CRM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Portafolios Curados</div>
+                </div>
+            </div>
+
+            <div class="update-note">
+                <h4>Actualizacion v2</h4>
+                <p>Se espera cerrar la primera orden esta semana. Se tienen 2 portafolios curados: Hospitality (rentas cortas/hoteles) y Vivienda de Interes Social.</p>
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Equipo Operativo</h4>
+            <div class="cost-grid">
+                <div class="cost-item">
+                    <div class="cost-value">2</div>
+                    <div class="cost-label">Personas Full-Time</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-value">Diana</div>
+                    <div class="cost-label">Diseno + Data Entry</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-value">Alejo</div>
+                    <div class="cost-label">Comercial + Excel</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Supplier Sourcing Workflow -->
+        <section id="sourcing" class="flowchart-section">
+            <h2>1. Proceso de Sourcing de Proveedores <span class="role-badge">Ruben / Equipo</span></h2>
+            <h3>Recopilacion de informacion de proveedores chinos via ferias, redes sociales e internet</h3>
+            <div class="mermaid">
+flowchart TD
+    A[Iniciar Busqueda de Proveedores] --> B{Fuente de Proveedores?}
+
+    B -->|Ferias| C[Visitar Feria en China]
+    B -->|Digital| D[Busqueda en Internet/Redes]
+    B -->|Referidos| E[Contactos Existentes]
+
+    C --> F[Recopilar Tarjetas/Catalogos]
+    D --> G[Algoritmos Redes Sociales]
+    E --> H[Solicitar Portafolio]
+
+    F --> I[Crear Excel de Scouting]
+    G --> I
+    H --> I
+
+    I --> J[Registrar Datos del Proveedor]
+    J --> K[Empresa / Web / WeChat / Email]
+    K --> L[Linkear Catalogo PDF]
+
+    L --> M[Solicitar Lista de Precios]
+    M --> N{Proveedor Envia Lista?}
+
+    N -->|No - Tipico| O[Proveedor pide: Que queres saber?]
+    N -->|Si - Raro| P[Recibir Lista Completa]
+
+    O --> Q[Seleccionar Productos del Catalogo]
+    Q --> R[Enviar Seleccion al Proveedor]
+    R --> S[Proveedor Cotiza Solo Seleccion]
+
+    P --> T[Agregar a BIBLIA GENERAL]
+    S --> T
+
+    T --> U[Proveedor Registrado con Productos]
+
+    style A fill:#e0f2f1
+    style U fill:#c8e6c9
+    style O fill:#ffcdd2
+    style T fill:#ddd6fe
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="icon">🇨🇳</span>
+                    <span>Feria Canton + Ferias Especializadas</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📱</span>
+                    <span>WeChat para comunicacion</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📧</span>
+                    <span>Email para documentos formales</span>
+                </div>
+                <div class="feature-item pain">
+                    <span class="icon">⚠️</span>
+                    <span>Proveedores NO envian listas completas</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Biblia General - Master Database -->
+        <section id="biblia" class="flowchart-section">
+            <h2>2. Biblia General - Base de Datos Maestra <span class="role-badge">Diana / Alejo</span> <span class="role-badge bottleneck">Data Entry</span></h2>
+            <h3>Documento central con TODOS los productos de TODAS las fabricas - El sueno de Ruben</h3>
+
+            <div class="update-note">
+                <h4>Concepto Clave v2</h4>
+                <p>La "Biblia General" es la base de datos maestra que contiene TODO lo que llega de fabricas. De aqui se filtran los portafolios curados por nicho. Es el repositorio central antes de cualquier curaduria.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TD
+    subgraph ENTRADA [Fuentes de Informacion]
+        E1[PDF Catalogos]
+        E2[Excel de Fabricas]
+        E3[Conversaciones WeChat]
+        E4[Imagenes WhatsApp]
+        E5[Word Documents]
+    end
+
+    subgraph EXTRACCION [Proceso Manual Actual]
+        X1[Abrir Documento]
+        X2[Identificar Productos]
+        X3[Copiar Datos a Excel]
+        X4[Buscar/Mejorar Imagenes]
+        X5[Completar Campos Faltantes]
+    end
+
+    subgraph BIBLIA [Biblia General]
+        B1[(Base de Datos Central)]
+        B2[Todos los Proveedores]
+        B3[Todos los Productos]
+        B4[Todos los Precios FOB]
+    end
+
+    E1 --> X1
+    E2 --> X1
+    E3 --> X1
+    E4 --> X1
+    E5 --> X1
+
+    X1 --> X2 --> X3 --> X4 --> X5
+    X5 --> B1
+
+    B1 --> B2
+    B1 --> B3
+    B1 --> B4
+
+    style B1 fill:#ddd6fe
+    style X3 fill:#ffcdd2
+    style X4 fill:#ffcdd2
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Campos de la Biblia General</h4>
+            <div class="mermaid">
+flowchart LR
+    C1[Imagen] --> C2[SKU/Referencia]
+    C2 --> C3[MOQ]
+    C3 --> C4[HS Code]
+    C4 --> C5[Precio FOB]
+    C5 --> C6[Fabrica ID]
+    C6 --> C7[Categoria]
+    C7 --> C8[Personalizacion?]
+
+    style C1 fill:#e0f2f1
+    style C8 fill:#e0f2f1
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item pain">
+                    <span class="icon">📥</span>
+                    <span>Reciben info de fabricas dia de por medio</span>
+                </div>
+                <div class="feature-item pain">
+                    <span class="icon">⌨️</span>
+                    <span>Data entry manual - costo alto en tiempo</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🎯</span>
+                    <span>Meta: Todo automatizado a la biblia</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🔄</span>
+                    <span>Luego curar portafolios desde biblia</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Curated Portfolios -->
+        <section id="portfolio" class="flowchart-section">
+            <h2>3. Portafolios Curados por Nicho <span class="role-badge">Diana</span> <span class="integration-badge">Conocimiento Experto</span></h2>
+            <h3>Filtrado de la Biblia General hacia portafolios especificos por tipo de cliente</h3>
+
+            <div class="mermaid">
+flowchart TD
+    BG[(Biblia General<br/>Todos los Productos)] --> F{Filtrar por Nicho}
+
+    F -->|Rentas Cortas + Hoteles| P1[Portafolio Hospitality]
+    F -->|Construccion Masiva| P2[Portafolio VIS]
+    F -->|Premium| P3[Portafolio Arquitectura]
+    F -->|Retail| P4[Portafolio Retailers]
+
+    P1 --> R1[Cliente ve solo productos relevantes]
+    P2 --> R1
+    P3 --> R1
+    P4 --> R1
+
+    style BG fill:#ddd6fe
+    style P1 fill:#c8e6c9
+    style P2 fill:#c8e6c9
+    style P3 fill:#fff3e0
+    style P4 fill:#fff3e0
+            </div>
+
+            <div class="update-note">
+                <h4>Proceso de Curaduria (Requiere Juicio Humano)</h4>
+                <p>Diana y Alejo filtran productos basandose en su conocimiento del mercado y gustos de clientes. Este proceso NO se puede automatizar completamente, pero SI se puede entrenar una IA para sugerir categorizaciones.</p>
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Reunion de Curaduria con Cliente</h4>
+            <div class="mermaid">
+flowchart LR
+    A[Diana + Directora Arq/Diseno Cliente] --> B[Reunion Presencial Ideal]
+    B --> C[Revisar Necesidades del Proyecto]
+    C --> D[Esto si / Esto no]
+    D --> E[Consejos de Diana]
+    E --> F{Items Faltantes?}
+    F -->|Si| G[Salir a Buscar 2-3 Items]
+    G --> H[Agregar a Pedido]
+    F -->|No| H
+    H --> I[Seleccion Final para Cotizar]
+
+    style B fill:#e0f2f1
+    style I fill:#c8e6c9
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="icon">🏨</span>
+                    <span>Hospitality: Rentas cortas + Hoteles</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🏗️</span>
+                    <span>VIS: Vivienda de Interes Social</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🎨</span>
+                    <span>Arquitectura: Proyectos premium</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🛒</span>
+                    <span>Retailers: Venta al por mayor</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quotation Workflow - MAJOR UPDATE -->
+        <section id="quotation" class="flowchart-section">
+            <h2>4. Proceso de Cotizacion <span class="role-badge">Ruben / Alejo</span> <span class="role-badge critical">50% del Tiempo</span></h2>
+            <h3>El mayor dolor de cabeza actual - Matriz financiera con multiples variables</h3>
+
+            <div class="update-note">
+                <h4>Hallazgo Clave v2</h4>
+                <p>La cotizacion consume el 50% del tiempo porque estan perfeccionando la matriz financiera. Un error puede significar perdida de dinero, cotizar muy alto (perder cliente) o muy bajo (perder margen).</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TD
+    A[Cliente Confirma Seleccion] --> B{Timing del Proyecto OK?}
+
+    B -->|No - Llegamos Tarde| Z[No Cotizar - No Servimos]
+    B -->|Si - A Tiempo| C[Verificar Incoterm]
+
+    C --> D{Tipo de Incoterm?}
+    D -->|FOB| E1[Precio en Puerto China]
+    D -->|CIF| E2[Incluye Flete + Seguro]
+    D -->|DDP| E3[Entregado en Colombia]
+
+    E1 --> F[Abrir Excel Cotizador]
+    E2 --> F
+    E3 --> F
+
+    F --> G[Cargar Productos Seleccionados]
+    G --> H[Sistema Jala: SKU, Imagen, FOB]
+
+    H --> I[APLICAR FORMULA DE PRICING]
+
+    I --> J1[+ Partidas Arancelarias]
+    J1 --> J2[+ Flete Internacional]
+    J2 --> J3[+ Flete Nacional Colombia]
+    J3 --> J4[+ Costos de Inspeccion]
+    J4 --> J5[+ Margen Comercial]
+    J5 --> K[= PRECIO FINAL COP]
+
+    K --> L[Revisar Cotizacion]
+    L --> M{Precio Competitivo?}
+
+    M -->|No - Muy Alto| N[Ajustar Margen o Productos]
+    N --> I
+    M -->|Si| O[Exportar PDF Proforma]
+
+    O --> P[Enviar por Correo/WhatsApp]
+    P --> Q[Cotizacion Enviada]
+
+    style A fill:#e0f2f1
+    style Q fill:#c8e6c9
+    style I fill:#ffcdd2
+    style Z fill:#fecaca
+    style K fill:#fff3e0
+            </div>
+
+            <div class="pricing-formula">
+                <h4>Formula de Pricing (Variables Criticas)</h4>
+                <code>
+Precio Final COP =
+    Precio FOB (USD)
+    + Arancel (segun HS Code / Partida Arancelaria)
+    + Flete Internacional (China → Puerto Colombia)
+    + Flete Nacional (Puerto → Bodega Cliente)
+    + Inspeccion Pre-Embarque
+    + Seguro de Carga
+    + Costos de Nacionalizacion
+    + Margen Comercial Kompass
+    × Tasa de Cambio USD/COP
+                </code>
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Estructura del Excel Cotizador</h4>
+            <div class="mermaid">
+flowchart LR
+    E1[Base Productos<br/>de Biblia] --> E2[Selector Si/No<br/>Condicionales]
+    E2 --> E3[Formula Pricing<br/>All-in Cost]
+    E3 --> E4[Proforma PDF<br/>para Cliente]
+
+    style E1 fill:#e3f2fd
+    style E2 fill:#fff3e0
+    style E3 fill:#ffcdd2
+    style E4 fill:#c8e6c9
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item pain">
+                    <span class="icon">⚠️</span>
+                    <span>Mil variables - no se puede errar</span>
+                </div>
+                <div class="feature-item pain">
+                    <span class="icon">📊</span>
+                    <span>Partidas arancelarias complejas</span>
+                </div>
+                <div class="feature-item pain">
+                    <span class="icon">🚢</span>
+                    <span>Fletes cambian constantemente</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🎯</span>
+                    <span>Meta: Excel perfeccionado que fluya</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sales/Client Lifecycle -->
+        <section id="sales" class="flowchart-section">
+            <h2>5. Ciclo de Vida del Cliente y Condiciones de Pago <span class="role-badge">Comercial</span></h2>
+            <h3>Desde prospecto hasta cierre - Con condiciones de financiamiento</h3>
+
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> Prospecto: Identificar Lead
+    Prospecto --> Contactado: Primer Contacto
+    Contactado --> Calificado: Discovery Call
+    Calificado --> CheckTiming: Verificar Timeline
+    CheckTiming --> NoServimos: Llegamos Tarde
+    CheckTiming --> EnCotizacion: Timing OK
+    EnCotizacion --> EnDiseno: Requiere Curaduria Diana
+    EnDiseno --> EnCotizacion: Diseno Aprobado
+    EnCotizacion --> Negociando: Cotizacion Enviada
+    Negociando --> ConfirmaOrden: Cliente Acepta
+    ConfirmaOrden --> Anticipo30: Paga 30% Anticipo
+    Anticipo30 --> EnProduccion: Iniciar Produccion
+    EnProduccion --> EnTransito: Embarque
+    EnTransito --> LlegaColombia: Mercancia Llega
+    LlegaColombia --> PagoFinal: Cliente Paga 70%
+    PagoFinal --> Entregado: Entrega Final
+    Negociando --> Perdido: Cliente Rechaza
+    NoServimos --> [*]: Lead Descartado
+    Entregado --> [*]: Proyecto Completado
+    Perdido --> [*]: Lead Cerrado
+            </div>
+
+            <div class="update-note">
+                <h4>Condiciones de Pago v2</h4>
+                <p>30% anticipo al confirmar orden + 70% cuando la mercancia llega a Colombia. Kompass financia al cliente durante produccion y transito maritimo.</p>
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Nichos de Clientes Objetivo (Actualizado)</h4>
+            <div class="mermaid">
+flowchart TD
+    subgraph CONSTRUCCION [Construccion & Desarrollo]
+        N1[Constructoras]
+        N2[Desarrolladores]
+        N3[Estructuradores]
+    end
+
+    subgraph DISENO [Diseno & Arquitectura]
+        N4[Estudios de Arquitectura]
+        N5[Disenadores de Interiores]
+    end
+
+    subgraph HOSPITALITY [Hospitality]
+        N6[Hoteles]
+        N7[Operadores Rentas Cortas]
+    end
+
+    subgraph RETAIL [Retail]
+        N8[Retailers]
+    end
+
+    CONSTRUCCION --> P1[Acabados + Mobiliario VIS]
+    DISENO --> P2[Mobiliario Premium]
+    HOSPITALITY --> P3[Portafolio Hospitality]
+    RETAIL --> P4[Volumen Alto]
+
+    style N6 fill:#c8e6c9
+    style HOSPITALITY fill:#e0f7fa
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item success">
+                    <span class="icon">🏨</span>
+                    <span>Hoteles agregado como nicho (v2)</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">⏱️</span>
+                    <span>Timing critico: produccion + transito</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">💰</span>
+                    <span>30% anticipo / 70% llegada</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📋</span>
+                    <span>Incoterm define responsabilidades</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottlenecks Analysis - UPDATED -->
+        <section id="bottlenecks" class="flowchart-section">
+            <h2>6. Analisis de Cuellos de Botella (Actualizado) <span class="role-badge bottleneck">Refinado v2</span></h2>
+            <h3>Distribucion de tiempo corregida basada en la segunda llamada</h3>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Distribucion de Tiempo - CORREGIDO</h4>
+            <div class="mermaid">
+flowchart TD
+    A[TIEMPO ACTUAL<br/>Corregido v2] --> B[25% Armado Portafolio]
+    A --> C[50% Cotizacion]
+    A --> D[25% Venta]
+
+    E[TIEMPO IDEAL<br/>Con Automatizacion] --> F[10% Portafolio Auto]
+    E --> G[15% Cotizacion Auto]
+    E --> H[75% Venta y Clientes]
+
+    style C fill:#ffcdd2
+    style B fill:#fff3e0
+    style H fill:#c8e6c9
+    style A fill:#1e3a5f,color:#fff
+    style E fill:#1e3a5f,color:#fff
+            </div>
+
+            <div class="update-note">
+                <h4>Correccion Importante</h4>
+                <p>En la primera llamada se estimo 80% portafolio. Ruben corrigio: el primer mes fue asi, pero hoy es 25% portafolio, 50% cotizacion, 25% venta. El dolor mayor es la COTIZACION, no el portafolio.</p>
+            </div>
+
+            <h4 style="color: #dc2626; margin: 30px 0 10px 0;">Cuello #1: Extraccion de Datos → Biblia General</h4>
+            <div class="mermaid">
+flowchart LR
+    A[Catalogos multiples formatos] --> B[PDF/Excel/Word/WeChat]
+    B --> C[Extraccion manual]
+    C --> D[Llenar Biblia General]
+    D --> E[Dolor de Diana]
+
+    style E fill:#ffcdd2
+            </div>
+
+            <h4 style="color: #dc2626; margin: 20px 0 10px 0;">Cuello #2: Matriz de Cotizacion</h4>
+            <div class="mermaid">
+flowchart LR
+    A[Variables complejas] --> B[Aranceles + Fletes + Margen]
+    B --> C[Perfeccionando Excel]
+    C --> D[No pueden errar]
+    D --> E[Dolor de Ruben]
+
+    style E fill:#ffcdd2
+            </div>
+
+            <h4 style="color: #f59e0b; margin: 20px 0 10px 0;">Cuello #3: Procesamiento de Imagenes</h4>
+            <div class="mermaid">
+flowchart LR
+    A[Imagenes baja calidad] --> B[Google Lens manual]
+    B --> C[Quitar fondos uno x uno]
+    C --> D[Tiempo repetitivo]
+
+    style D fill:#fff3e0
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 30px 0 10px 0;">Impacto de los Cuellos</h4>
+            <div class="mermaid">
+flowchart LR
+    A[2 Dolores Principales] --> B[Diana: Data Entry a Biblia]
+    A --> C[Ruben: Perfeccionar Cotizador]
+    B --> D[50% tiempo NO vendiendo]
+    C --> D
+
+    style D fill:#fecaca
+            </div>
+        </section>
+
+        <!-- Trade Show Automation - NEW SECTION -->
+        <section id="tradeshow" class="flowchart-section">
+            <h2>7. Automatizacion de Ferias en China <span class="role-badge">Ruben</span> <span class="integration-badge">Quick Win</span></h2>
+            <h3>Caso de uso nuevo: Captura de proveedores en tiempo real desde ferias</h3>
+
+            <div class="update-note">
+                <h4>Propuesta de Ruben</h4>
+                <p>Actualmente llega de China con 120+ tarjetas y un cuaderno de notas. Pierde ~1 semana transcribiendo todo. Quiere que el equipo en Colombia reciba la info mientras el viaja de vuelta.</p>
+            </div>
+
+            <h4 style="color: #dc2626; margin: 20px 0 10px 0;">Proceso Actual - Arcaico</h4>
+            <div class="mermaid">
+flowchart LR
+    A[Ruben en Feria China] --> B[Cuaderno + 120 Tarjetas]
+    B --> C[Volar a Colombia]
+    C --> D[Sentarse a Transcribir]
+    D --> E[Meter en Excel uno x uno]
+    E --> F[1 Semana Perdida]
+
+    style F fill:#ffcdd2
+            </div>
+
+            <h4 style="color: #16a34a; margin: 30px 0 10px 0;">Proceso Propuesto - WhatsApp Bot</h4>
+            <div class="mermaid">
+flowchart TD
+    A[Ruben en Stand de Feria] --> B[Foto Business Card]
+    B --> C[Subir a Grupo WhatsApp]
+    C --> D[+ Fotos de Productos]
+    D --> E[+ Voice Note con Contexto]
+
+    E --> F[Bot IA Procesa]
+    F --> G[OCR extrae datos de tarjeta]
+    F --> H[Clasifica tipo de productos]
+    F --> I[Transcribe voice note]
+
+    G --> J[Auto-Email al Proveedor]
+    J --> K[Hello! We met at Canton Fair...<br/>Please send your catalog]
+
+    H --> L[Actualiza Biblia General]
+    I --> L
+
+    L --> M[Notifica Equipo Colombia]
+    M --> N[Diana ve nuevo proveedor]
+    N --> O[Brochures llegan antes que Ruben]
+
+    style A fill:#e0f2f1
+    style O fill:#c8e6c9
+    style F fill:#ddd6fe
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item success">
+                    <span class="icon">📸</span>
+                    <span>Foto tarjeta → OCR → Contacto</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">🎤</span>
+                    <span>Voice note → Contexto del proveedor</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">📧</span>
+                    <span>Auto-email pidiendo catalogos</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✈️</span>
+                    <span>Info llega antes que Ruben aterrice</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Proposed Solution -->
+        <section id="proposed" class="flowchart-section">
+            <h2>8. Solucion Propuesta - Automatizacion con IA <span class="role-badge">AI Huevos</span></h2>
+            <h3>Sistema automatizado para extraccion, catalogacion y cotizacion</h3>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Pipeline de Automatizacion Completo</h4>
+            <div class="mermaid">
+flowchart LR
+    E[1. ENTRADA<br/>PDF/Excel/WeChat<br/>Business Cards] --> P[2. MOTOR IA<br/>OCR + Extraccion<br/>Clasificacion]
+    P --> D[3. BIBLIA GENERAL<br/>Proveedores<br/>Productos]
+    D --> C[4. CURADURIA<br/>Rules of Thumb<br/>IA + Humano]
+    C --> S[5. PORTAFOLIOS<br/>Por Nicho]
+    S --> Q[6. COTIZADOR<br/>Formula Automatica]
+    Q --> F[RESULTADO<br/>Cotizacion Minutos]
+
+    style E fill:#e0f2f1
+    style P fill:#ddd6fe
+    style D fill:#e3f2fd
+    style C fill:#fff3e0
+    style S fill:#c8e6c9
+    style Q fill:#bbf7d0
+    style F fill:#10b981,color:#fff
+            </div>
+
+            <h4 style="color: #dc2626; margin: 30px 0 10px 0;">Proceso Actual - Toma DIAS</h4>
+            <div class="mermaid">
+flowchart LR
+    A1[Recibir PDF] --> A2[Abrir manual]
+    A2 --> A3[Seleccionar]
+    A3 --> A4[Copiar Excel]
+    A4 --> A5[Buscar imgs]
+    A5 --> A6[Quitar fondos]
+    A6 --> A7[Crear slides]
+    A7 --> A8[Repetir x500]
+    A8 --> R1[Portafolio: DIAS]
+
+    style A8 fill:#ffcdd2
+    style R1 fill:#fecaca
+            </div>
+
+            <h4 style="color: #16a34a; margin: 30px 0 10px 0;">Proceso con IA - Toma MINUTOS</h4>
+            <div class="mermaid">
+flowchart LR
+    B1[Subir Docs] --> B2[IA extrae datos]
+    B2 --> B3[Guarda en Biblia]
+    B3 --> B4[Filtra a Portafolio]
+    B4 --> B5[Genera Cotizacion]
+    B5 --> R2[Cotizacion: MINUTOS]
+
+    style B5 fill:#c8e6c9
+    style R2 fill:#bbf7d0
+            </div>
+
+            <h4 style="color: #6366f1; margin: 30px 0 10px 0;">Reglas de Curaduria Automatizable</h4>
+            <div class="mermaid">
+flowchart TD
+    R[Rules of Thumb de Diana] --> R1[Si imagen tiene azul X → cambiar a azul Y]
+    R --> R2[Si precio > $X → categoria Premium]
+    R --> R3[Si MOQ < 100 → apto para Retail]
+    R --> R4[Si material = madera → nicho Hospitality]
+
+    R1 --> AI[IA Aprende Patrones]
+    R2 --> AI
+    R3 --> AI
+    R4 --> AI
+
+    AI --> S[Sugerencias Automaticas]
+    S --> H[Diana Aprueba/Ajusta]
+
+    style AI fill:#ddd6fe
+    style H fill:#c8e6c9
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="icon">🤖</span>
+                    <span>OCR para catalogos y tarjetas</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🗄️</span>
+                    <span>Biblia General automatizada</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🎨</span>
+                    <span>Mejora automatica de imagenes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📑</span>
+                    <span>Portafolios dinamicos por nicho</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">🏷️</span>
+                    <span>IA sugiere categorizacion</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📊</span>
+                    <span>Cotizador con formula automatica</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Architecture -->
+        <section id="architecture" class="flowchart-section">
+            <h2>9. Arquitectura del Sistema - Estado Actual vs Propuesto</h2>
+            <h3>Comparacion de herramientas y flujos de informacion</h3>
+
+            <h4 style="color: #dc2626; margin: 20px 0 10px 0;">Estado Actual - Herramientas Fragmentadas</h4>
+            <div class="mermaid">
+flowchart LR
+    AC1[WeChat/Email] -.-> AC2[Google Drive]
+    AC2 -.-> AC3[Excel Productos<br/>Biblia Manual]
+    AC3 -.-> AC4[Excel Cotizador]
+    AC5[Notion CRM] -.-> AC4
+    AC4 -.-> AC6[PowerPoint<br/>Portafolio]
+    AC6 -.-> AC7[PDF Proforma]
+
+    style AC3 fill:#fecaca
+    style AC4 fill:#fecaca
+    style AC6 fill:#fecaca
+            </div>
+
+            <h4 style="color: #16a34a; margin: 30px 0 10px 0;">Estado Propuesto - Sistema Integrado</h4>
+            <div class="mermaid">
+flowchart TD
+    subgraph ENTRADA [Canales de Entrada]
+        I1[WeChat]
+        I2[Email]
+        I3[WhatsApp Bot]
+        I4[Upload Web]
+    end
+
+    subgraph MOTOR [Motor IA]
+        M1[OCR Catalogos]
+        M2[OCR Tarjetas]
+        M3[Clasificador]
+    end
+
+    subgraph DATOS [Bases de Datos]
+        D1[(Proveedores)]
+        D2[(Productos - Biblia)]
+        D3[(Clientes)]
+        D4[(Reglas Curaduria)]
+    end
+
+    subgraph SALIDA [Generadores]
+        S1[Portafolio Hospitality]
+        S2[Portafolio VIS]
+        S3[Cotizador Automatico]
+        S4[Dashboard Metricas]
+    end
+
+    ENTRADA --> MOTOR
+    MOTOR --> DATOS
+    DATOS --> SALIDA
+
+    style M1 fill:#ddd6fe
+    style M2 fill:#ddd6fe
+    style D2 fill:#e3f2fd
+    style S3 fill:#c8e6c9
+            </div>
+        </section>
+
+        <!-- Data Model -->
+        <section class="flowchart-section">
+            <h2>10. Modelo de Datos Propuesto (Actualizado)</h2>
+            <h3>Estructura de bases de datos incluyendo Biblia General y Portafolios</h3>
+            <div class="mermaid">
+erDiagram
+    PROVEEDOR ||--o{ PRODUCTO : tiene
+    PRODUCTO ||--o{ PORTAFOLIO_ITEM : incluido_en
+    PORTAFOLIO ||--o{ PORTAFOLIO_ITEM : contiene
+    CLIENTE ||--o{ COTIZACION : solicita
+    COTIZACION ||--o{ COTIZACION_ITEM : contiene
+    PRODUCTO ||--o{ COTIZACION_ITEM : referencia
+    CLIENTE }o--|| NICHO : pertenece_a
+    PORTAFOLIO }o--|| NICHO : dirigido_a
+    PRODUCTO }o--|| CATEGORIA : clasificado_en
+
+    PROVEEDOR {
+        int id PK
+        string nombre
+        string pais
+        string wechat
+        string email
+        string web
+        date fecha_contacto
+        string feria_origen
+        string notas_voice
+    }
+
+    PRODUCTO {
+        int id PK
+        int proveedor_id FK
+        string sku_referencia
+        string descripcion
+        decimal precio_fob_usd
+        int moq
+        string hs_code
+        string imagen_url
+        int categoria_id FK
+        boolean personalizable
+        string material
+        date fecha_agregado
+    }
+
+    PORTAFOLIO {
+        int id PK
+        string nombre
+        int nicho_id FK
+        date fecha_creacion
+        boolean activo
+    }
+
+    CLIENTE {
+        int id PK
+        string empresa
+        string contacto
+        string email
+        string telefono
+        int nicho_id FK
+        string estado_crm
+        date fecha_proyecto
+    }
+
+    COTIZACION {
+        int id PK
+        int cliente_id FK
+        string incoterm
+        date fecha
+        decimal total_fob_usd
+        decimal aranceles_cop
+        decimal flete_intl_usd
+        decimal flete_nal_cop
+        decimal margen_pct
+        decimal total_cop
+        string estado
+    }
+
+    NICHO {
+        int id PK
+        string nombre
+        string descripcion
+    }
+
+    CATEGORIA {
+        int id PK
+        string nombre
+        string descripcion
+    }
+            </div>
+        </section>
+
+        <!-- Next Steps -->
+        <section class="flowchart-section">
+            <h2>11. Proximos Pasos - Plan de Accion Actualizado</h2>
+            <h3>Acciones acordadas en la llamada del 29 de Enero 2026</h3>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Acceso Inmediato Requerido</h4>
+            <div class="mermaid">
+flowchart LR
+    A1[Ruben Gestiona Internamente] --> A2[Compartir Google Drive]
+    A2 --> A3[Acceso a Notion + API]
+    A3 --> A4[Ejemplos de Catalogos]
+
+    style A1 fill:#fff3e0
+    style A4 fill:#e0f2f1
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Fase 1: Atacar Data Entry</h4>
+            <div class="mermaid">
+flowchart LR
+    F1A[Motor OCR] --> F1B[Extraccion Catalogos]
+    F1B --> F1C[Alimentar Biblia General]
+
+    style F1A fill:#ddd6fe
+    style F1C fill:#c8e6c9
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Fase 2: Automatizar Ferias</h4>
+            <div class="mermaid">
+flowchart LR
+    F2A[WhatsApp Bot] --> F2B[OCR Tarjetas]
+    F2B --> F2C[Auto-Email Proveedores]
+    F2C --> F2D[Notificar Equipo]
+
+    style F2A fill:#ddd6fe
+    style F2D fill:#c8e6c9
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Fase 3: Cotizador Inteligente</h4>
+            <div class="mermaid">
+flowchart LR
+    F3A[Integrar Formula Pricing] --> F3B[Conectar a Biblia]
+    F3B --> F3C[Generar Proforma Auto]
+
+    style F3A fill:#fff3e0
+    style F3C fill:#c8e6c9
+            </div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="icon">1️⃣</span>
+                    <span>Ruben comparte Drive + Notion API</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">2️⃣</span>
+                    <span>AI Huevos construye extractor OCR</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">3️⃣</span>
+                    <span>Bot WhatsApp para ferias</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">4️⃣</span>
+                    <span>Conectar cotizador a biblia</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Team -->
+        <section class="flowchart-section">
+            <h2>12. Equipo y Roles</h2>
+            <h3>Participantes del proyecto</h3>
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Equipo Kompass</h4>
+            <div class="mermaid">
+flowchart LR
+    K1[Ruben - CEO/Founder] --> R1[Sourcing China + Cotizacion]
+    K2[Diana - Dir. Diseno] --> R2[Curaduria + Data Entry]
+    K3[Alejandro - Comercial] --> R3[Ventas + CRM + Excel]
+
+    style K1 fill:#e0f2f1
+    style K2 fill:#e0f2f1
+    style K3 fill:#e0f2f1
+            </div>
+
+            <h4 style="color: #6366f1; margin: 20px 0 10px 0;">Equipo AI Huevos</h4>
+            <div class="mermaid">
+flowchart LR
+    H1[Daniel Cardona - IA/Marketing] --> R4[Solucion Tecnologica]
+    H2[Daniel Restrepo - AI Tech/Dev] --> R4
+
+    style H1 fill:#ddd6fe
+    style H2 fill:#ddd6fe
+    style R4 fill:#c8e6c9
+            </div>
+
+            <h4 style="color: #1e3a5f; margin: 20px 0 10px 0;">Contactos para Accesos</h4>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="icon">📧</span>
+                    <span>Danke@Huevos.ai - Daniel Restrepo</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">📧</span>
+                    <span>Hola@Huevos.ai - Daniel Cardona</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Changelog -->
+        <section class="flowchart-section">
+            <h2>Changelog v1 → v2</h2>
+            <h3>Cambios basados en la llamada de refinamiento del 29 Enero 2026</h3>
+            <div class="feature-list">
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Corregida distribucion tiempo: 25/50/25</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Agregado concepto "Biblia General"</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Separado Portafolios Curados por nicho</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Detallada formula de pricing completa</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Agregado nicho "Hoteles"</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Nueva seccion: Automatizacion Ferias China</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Identificado equipo operativo (2 FTEs)</span>
+                </div>
+                <div class="feature-item success">
+                    <span class="icon">✅</span>
+                    <span>Condiciones de pago: 30% anticipo / 70% llegada</span>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Kompass - China Sourcing & Trading Platform</p>
+            <p>Mobiliario, Decoracion y Acabados para Construccion</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">v2.0 - Actualizado 29 Enero 2026</p>
+            <p style="font-size: 0.8rem;">Basado en llamadas de discovery + refinamiento con Ruben</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 30,
+                nodeSpacing: 50,
+                rankSpacing: 60,
+                wrappingWidth: 200
+            },
+            stateDiagram: {
+                useMaxWidth: false
+            },
+            er: {
+                useMaxWidth: false
+            }
+        });
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

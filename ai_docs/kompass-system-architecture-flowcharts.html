@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kompass System Architecture - Flowcharts</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #1976d2;
+            --secondary: #424242;
+            --success: #2e7d32;
+            --warning: #ed6c02;
+            --error: #d32f2f;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: var(--secondary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary), #1565c0);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav-toc {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-toc h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+        }
+
+        .nav-toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .nav-toc a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 8px 12px;
+            display: block;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .nav-toc a:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        section {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        section h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        section h3 {
+            color: var(--secondary);
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .description {
+            background: #e3f2fd;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), #1565c0);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .phase-badge.sequential { background: var(--warning); }
+        .phase-badge.parallel { background: var(--success); }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            section { padding: 20px; }
+            .mermaid { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kompass Portfolio & Quotation System</h1>
+            <p>System Architecture & Workflow Flowcharts</p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="nav-toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">1. System Overview</a></li>
+                <li><a href="#tech-stack">2. Technology Stack</a></li>
+                <li><a href="#data-model">3. Data Model (ERD)</a></li>
+                <li><a href="#implementation-phases">4. Implementation Phases</a></li>
+                <li><a href="#supplier-workflow">5. Supplier Management Flow</a></li>
+                <li><a href="#product-workflow">6. Product Import Workflow</a></li>
+                <li><a href="#portfolio-workflow">7. Portfolio Creation Flow</a></li>
+                <li><a href="#quotation-workflow">8. Quotation Process Flow</a></li>
+                <li><a href="#pricing-calculation">9. Pricing Calculation</a></li>
+                <li><a href="#api-architecture">10. API Architecture</a></li>
+                <li><a href="#frontend-structure">11. Frontend Structure</a></li>
+                <li><a href="#adw-execution">12. ADW Parallel Execution</a></li>
+            </ul>
+        </nav>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">33</div>
+                <div class="label">GitHub Issues</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">13</div>
+                <div class="label">Phases</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">15</div>
+                <div class="label">Database Tables</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">50+</div>
+                <div class="label">API Endpoints</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">4</div>
+                <div class="label">Max Parallel ADWs</div>
+            </div>
+        </div>
+
+        <!-- Section 1: System Overview -->
+        <section id="overview">
+            <h2>1. System Overview</h2>
+            <div class="description">
+                <p><strong>Kompass</strong> is a portfolio and quotation automation system for a China sourcing/trading business.
+                It manages suppliers, products (Biblia General), curated portfolios, clients, and complex pricing calculations
+                including tariffs, freight, and margins.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Users["Users"]
+        Admin["Admin"]
+        Manager["Manager"]
+        Sales["Sales Rep"]
+    end
+
+    subgraph Frontend["React Frontend (Vercel)"]
+        Dashboard["Dashboard"]
+        Suppliers["Suppliers Module"]
+        Products["Products Catalog"]
+        Portfolios["Portfolio Builder"]
+        Clients["Client Pipeline"]
+        Quotations["Quotation Creator"]
+        Settings["Pricing Config"]
+    end
+
+    subgraph Backend["FastAPI Backend (Render)"]
+        API["REST API"]
+        Auth["JWT Auth"]
+        Services["Business Logic"]
+        AI["AI Extraction"]
+        PDF["PDF Generator"]
+    end
+
+    subgraph Database["PostgreSQL (Supabase)"]
+        Tables["15 Tables"]
+        Storage["File Storage"]
+    end
+
+    subgraph External["External Services"]
+        Claude["Claude Vision API"]
+        RemoveBG["Remove.bg API"]
+        Email["Email Service"]
+    end
+
+    Users --> Frontend
+    Frontend <--> Backend
+    Backend <--> Database
+    Backend --> External
+
+    style Frontend fill:#e3f2fd
+    style Backend fill:#e8f5e9
+    style Database fill:#fff3e0
+    style External fill:#fce4ec
+            </div>
+        </section>
+
+        <!-- Section 2: Technology Stack -->
+        <section id="tech-stack">
+            <h2>2. Technology Stack</h2>
+            <div class="description">
+                <p>Full-stack application following clean architecture principles with clear separation between layers.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart LR
+    subgraph Client["Frontend Stack"]
+        React["React 19"]
+        TS["TypeScript 5"]
+        MUI["Material-UI 5"]
+        RHF["react-hook-form"]
+        RRouter["React Router 6"]
+        Axios["Axios"]
+    end
+
+    subgraph Server["Backend Stack"]
+        FastAPI["FastAPI"]
+        Python["Python 3.11.9"]
+        Pydantic["Pydantic 2"]
+        Jose["python-jose (JWT)"]
+        Passlib["passlib/bcrypt"]
+        Psycopg["psycopg2"]
+    end
+
+    subgraph Infra["Infrastructure"]
+        Vercel["Vercel"]
+        Render["Render"]
+        Supabase["Supabase"]
+    end
+
+    subgraph Tools["AI & Tools"]
+        ClaudeVision["Claude Vision"]
+        WeasyPrint["WeasyPrint"]
+        Rembg["rembg"]
+    end
+
+    React --> TS
+    TS --> MUI
+    MUI --> RHF
+    RHF --> Axios
+
+    FastAPI --> Python
+    Python --> Pydantic
+    Pydantic --> Psycopg
+
+    style React fill:#61dafb
+    style FastAPI fill:#009688
+    style Python fill:#3776ab
+    style Vercel fill:#000
+    style Render fill:#46e3b7
+    style Supabase fill:#3ecf8e
+            </div>
+
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Technology</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Frontend</td>
+                    <td>React 19 + TypeScript + MUI</td>
+                    <td>User interface</td>
+                </tr>
+                <tr>
+                    <td>Backend</td>
+                    <td>FastAPI + Python 3.11.9</td>
+                    <td>REST API & business logic</td>
+                </tr>
+                <tr>
+                    <td>Database</td>
+                    <td>PostgreSQL (Supabase)</td>
+                    <td>Data persistence</td>
+                </tr>
+                <tr>
+                    <td>Auth</td>
+                    <td>Custom JWT + RBAC</td>
+                    <td>Authentication & authorization</td>
+                </tr>
+                <tr>
+                    <td>AI Extraction</td>
+                    <td>Claude/OpenAI Vision</td>
+                    <td>Catalog data extraction</td>
+                </tr>
+                <tr>
+                    <td>PDF Generation</td>
+                    <td>WeasyPrint</td>
+                    <td>Portfolio & quotation exports</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Section 3: Data Model -->
+        <section id="data-model">
+            <h2>3. Data Model (Entity Relationship Diagram)</h2>
+            <div class="description">
+                <p>The system uses 15 database tables organized into core reference data, product catalog,
+                portfolios, client management, and quotation modules.</p>
+            </div>
+
+            <div class="mermaid">
+erDiagram
+    USERS ||--o{ QUOTATIONS : creates
+
+    SUPPLIERS ||--o{ PRODUCTS : supplies
+    SUPPLIERS {
+        uuid id PK
+        string name
+        string code UK
+        string status
+        string contact_name
+        string contact_email
+        string country
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : categorizes
+    CATEGORIES ||--o{ CATEGORIES : parent_of
+    CATEGORIES {
+        uuid id PK
+        string name
+        uuid parent_id FK
+        int sort_order
+    }
+
+    PRODUCTS {
+        uuid id PK
+        string sku UK
+        string name
+        uuid supplier_id FK
+        uuid category_id FK
+        uuid hs_code_id FK
+        decimal unit_cost
+        decimal unit_price
+        string status
+    }
+
+    PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    PRODUCT_IMAGES {
+        uuid id PK
+        uuid product_id FK
+        string url
+        boolean is_primary
+    }
+
+    PRODUCTS ||--o{ PRODUCT_TAGS : tagged
+    TAGS ||--o{ PRODUCT_TAGS : tags
+    TAGS {
+        uuid id PK
+        string name UK
+        string color
+    }
+
+    HS_CODES ||--o{ PRODUCTS : classifies
+    HS_CODES {
+        uuid id PK
+        string code UK
+        string description
+        decimal duty_rate
+    }
+
+    NICHES ||--o{ PORTFOLIOS : targets
+    NICHES ||--o{ CLIENTS : segments
+    NICHES {
+        uuid id PK
+        string name UK
+        string description
+    }
+
+    PORTFOLIOS ||--o{ PORTFOLIO_ITEMS : contains
+    PORTFOLIOS {
+        uuid id PK
+        string name
+        uuid niche_id FK
+        boolean is_active
+    }
+
+    PRODUCTS ||--o{ PORTFOLIO_ITEMS : included_in
+    PORTFOLIO_ITEMS {
+        uuid id PK
+        uuid portfolio_id FK
+        uuid product_id FK
+        int sort_order
+        string notes
+    }
+
+    CLIENTS ||--o{ QUOTATIONS : receives
+    CLIENTS {
+        uuid id PK
+        string company_name
+        string contact_name
+        uuid niche_id FK
+        string status
+    }
+
+    QUOTATIONS ||--o{ QUOTATION_ITEMS : contains
+    QUOTATIONS {
+        uuid id PK
+        string quotation_number UK
+        uuid client_id FK
+        string status
+        string incoterm
+        decimal total
+    }
+
+    PRODUCTS ||--o{ QUOTATION_ITEMS : quoted_in
+    QUOTATION_ITEMS {
+        uuid id PK
+        uuid quotation_id FK
+        uuid product_id FK
+        int quantity
+        decimal unit_price
+        decimal line_total
+    }
+
+    FREIGHT_RATES {
+        uuid id PK
+        string origin
+        string destination
+        string incoterm
+        decimal rate_per_kg
+        boolean is_active
+    }
+
+    PRICING_SETTINGS {
+        uuid id PK
+        string setting_key UK
+        decimal setting_value
+    }
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e3f2fd"></div>
+                    <span>Reference Tables</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e8f5e9"></div>
+                    <span>Product Catalog</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fff3e0"></div>
+                    <span>Portfolio Module</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fce4ec"></div>
+                    <span>Client & Quotation</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Implementation Phases -->
+        <section id="implementation-phases">
+            <h2>4. Implementation Phases</h2>
+            <div class="description">
+                <p>The implementation is divided into 13 phases with 33 GitHub issues.
+                Phases support parallel execution where issues have no dependencies on each other.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph P1["Phase 1: Foundation"]
+        KP001["KP-001<br/>Database Schema & DTOs"]
+    end
+
+    subgraph P2["Phase 2: Backend Core (4 parallel)"]
+        KP002["KP-002<br/>Supplier Service"]
+        KP003["KP-003<br/>Product Service"]
+        KP004["KP-004<br/>Category/Tag Service"]
+        KP005["KP-005<br/>Extraction Service"]
+    end
+
+    subgraph P3["Phase 3: API Routes 1 (4 parallel)"]
+        KP006["KP-006<br/>Supplier Routes"]
+        KP007["KP-007<br/>Product Routes"]
+        KP008["KP-008<br/>Category/Tag Routes"]
+        KP009["KP-009<br/>Extraction Routes"]
+    end
+
+    subgraph P4["Phase 4: Portfolio/Client (3 parallel)"]
+        KP010["KP-010<br/>Portfolio Service"]
+        KP011["KP-011<br/>Client Service"]
+        KP012["KP-012<br/>Niche Service"]
+    end
+
+    subgraph P5["Phase 5: API Routes 2 (3 parallel)"]
+        KP013["KP-013<br/>Portfolio Routes"]
+        KP014["KP-014<br/>Client Routes"]
+        KP015["KP-015<br/>Niche Routes"]
+    end
+
+    subgraph P6["Phase 6: Pricing (Sequential)"]
+        KP016["KP-016<br/>Pricing Service"]
+        KP017["KP-017<br/>Quotation Service"]
+    end
+
+    KP001 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
+    P5 --> P6
+    KP016 --> KP017
+
+    style P1 fill:#ffecb3
+    style P2 fill:#c8e6c9
+    style P3 fill:#c8e6c9
+    style P4 fill:#c8e6c9
+    style P5 fill:#c8e6c9
+    style P6 fill:#ffecb3
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph P7["Phase 7: Pricing Routes (2 parallel)"]
+        KP018["KP-018<br/>Pricing Routes"]
+        KP019["KP-019<br/>Quotation Routes"]
+    end
+
+    subgraph P8["Phase 8: Frontend Foundation"]
+        KP020["KP-020<br/>Types & Service Layer"]
+    end
+
+    subgraph P9["Phase 9: Frontend Core (4 parallel)"]
+        KP021["KP-021<br/>Suppliers Page"]
+        KP022["KP-022<br/>Products Catalog"]
+        KP023["KP-023<br/>Import Wizard"]
+        KP024["KP-024<br/>Categories Page"]
+    end
+
+    subgraph P10["Phase 10: Portfolio/Clients UI (3 parallel)"]
+        KP025["KP-025<br/>Portfolio Builder"]
+        KP026["KP-026<br/>Clients Pipeline"]
+        KP027["KP-027<br/>Niches Config"]
+    end
+
+    subgraph P11["Phase 11: Quotation UI (2 parallel)"]
+        KP028["KP-028<br/>Quotation Creator"]
+        KP029["KP-029<br/>Pricing Config"]
+    end
+
+    subgraph P12["Phase 12: Dashboard (2 parallel)"]
+        KP030["KP-030<br/>Dashboard KPIs"]
+        KP031["KP-031<br/>PDF Generation"]
+    end
+
+    subgraph P13["Phase 13: Final (2 parallel)"]
+        KP032["KP-032<br/>E2E Tests"]
+        KP033["KP-033<br/>Documentation"]
+    end
+
+    P7 --> P8
+    P8 --> P9
+    P9 --> P10
+    P10 --> P11
+    P11 --> P12
+    P12 --> P13
+
+    style P7 fill:#c8e6c9
+    style P8 fill:#ffecb3
+    style P9 fill:#c8e6c9
+    style P10 fill:#c8e6c9
+    style P11 fill:#c8e6c9
+    style P12 fill:#c8e6c9
+    style P13 fill:#c8e6c9
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="phase-badge sequential">Sequential</span>
+                    <span>Must complete before next</span>
+                </div>
+                <div class="legend-item">
+                    <span class="phase-badge parallel">Parallel</span>
+                    <span>Can run simultaneously</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Supplier Workflow -->
+        <section id="supplier-workflow">
+            <h2>5. Supplier Management Flow</h2>
+            <div class="description">
+                <p>Workflow for managing Chinese supplier registry including CRUD operations and product associations.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start]) --> Action{Action?}
+
+    Action -->|Create| CreateForm["Open Supplier Form"]
+    CreateForm --> FillData["Fill Supplier Data:<br/>Name, Country, WeChat,<br/>Email, Contact Person"]
+    FillData --> Validate{Valid?}
+    Validate -->|No| ShowErrors["Show Validation Errors"]
+    ShowErrors --> FillData
+    Validate -->|Yes| SaveSupplier["Save to Database"]
+    SaveSupplier --> Success([Supplier Created])
+
+    Action -->|List| LoadList["Load Suppliers List"]
+    LoadList --> Filters["Apply Filters:<br/>Status, Country, Has Products"]
+    Filters --> DisplayTable["Display Data Table"]
+    DisplayTable --> RowAction{Row Action?}
+
+    RowAction -->|View| ViewDetail["Show Supplier Detail<br/>+ Product Count"]
+    RowAction -->|Edit| EditForm["Open Edit Form"]
+    EditForm --> UpdateData["Update Data"]
+    UpdateData --> Validate
+
+    RowAction -->|Delete| CheckProducts{Has Active<br/>Products?}
+    CheckProducts -->|Yes| BlockDelete["Block Delete<br/>Show Warning"]
+    CheckProducts -->|No| ConfirmDelete["Confirm Delete Dialog"]
+    ConfirmDelete --> SoftDelete["Soft Delete<br/>(Set status=inactive)"]
+    SoftDelete --> Success2([Supplier Deleted])
+
+    Action -->|Search| SearchInput["Enter Search Query"]
+    SearchInput --> SearchAPI["Search by Name,<br/>Email, WeChat"]
+    SearchAPI --> DisplayResults["Display Results"]
+
+    style Start fill:#4caf50,color:white
+    style Success fill:#4caf50,color:white
+    style Success2 fill:#4caf50,color:white
+    style BlockDelete fill:#f44336,color:white
+            </div>
+        </section>
+
+        <!-- Section 6: Product Import Workflow -->
+        <section id="product-workflow">
+            <h2>6. Product Import Workflow (AI-Powered)</h2>
+            <div class="description">
+                <p>Multi-step wizard for importing products from supplier catalogs using AI extraction from PDF, Excel, or images.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start Import]) --> Upload["Step 1: Upload Files"]
+
+    subgraph UploadStep["Upload Step"]
+        Upload --> DragDrop["Drag & Drop Zone"]
+        DragDrop --> ValidateFiles{Valid Files?<br/>PDF/Excel/Images}
+        ValidateFiles -->|No| RejectFiles["Show Error:<br/>Unsupported Format"]
+        ValidateFiles -->|Yes| QueueFiles["Queue for Processing"]
+    end
+
+    QueueFiles --> Process["Step 2: AI Processing"]
+
+    subgraph ProcessStep["Processing Step"]
+        Process --> SendToAI["Send to Claude Vision API"]
+        SendToAI --> Progress["Show Progress Bar"]
+        Progress --> ExtractData["Extract:<br/>- SKU/Reference<br/>- Name/Description<br/>- Price<br/>- MOQ<br/>- Dimensions<br/>- Material"]
+        ExtractData --> SuggestHS["Suggest HS Codes"]
+        SuggestHS --> RemoveBG["Remove Background<br/>(Optional)"]
+    end
+
+    RemoveBG --> Review["Step 3: Review"]
+
+    subgraph ReviewStep["Review Step"]
+        Review --> DisplayTable["Editable Table<br/>of Extracted Products"]
+        DisplayTable --> Edit{Edit Needed?}
+        Edit -->|Yes| EditCell["Edit Cell Values"]
+        EditCell --> ValidateRow["Validate Row"]
+        ValidateRow --> DisplayTable
+        Edit -->|No| SelectProducts["Select Products<br/>to Import"]
+    end
+
+    SelectProducts --> Confirm["Step 4: Confirm"]
+
+    subgraph ConfirmStep["Confirm Step"]
+        Confirm --> SelectSupplier["Select/Create<br/>Supplier"]
+        SelectSupplier --> CheckDuplicates["Check for<br/>Duplicate SKUs"]
+        CheckDuplicates --> ShowSummary["Show Import<br/>Summary"]
+    end
+
+    ShowSummary --> Import{Confirm<br/>Import?}
+    Import -->|Yes| BulkCreate["Bulk Create Products"]
+    BulkCreate --> Success([Products Imported])
+    Import -->|No| Cancel([Cancelled])
+
+    style Start fill:#1976d2,color:white
+    style Success fill:#4caf50,color:white
+    style Cancel fill:#9e9e9e,color:white
+    style SendToAI fill:#9c27b0,color:white
+            </div>
+        </section>
+
+        <!-- Section 7: Portfolio Workflow -->
+        <section id="portfolio-workflow">
+            <h2>7. Portfolio Creation Flow</h2>
+            <div class="description">
+                <p>Interactive portfolio builder for curating product collections targeted at specific client niches (e.g., Hotels, Architects, Retailers).</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start]) --> Create{Create New or<br/>Edit Existing?}
+
+    Create -->|New| NewPortfolio["Create New Portfolio"]
+    NewPortfolio --> SetName["Set Portfolio Name"]
+    Create -->|Edit| SelectPortfolio["Select Existing<br/>Portfolio"]
+    SelectPortfolio --> LoadProducts["Load Current<br/>Products"]
+
+    SetName --> SelectNiche["Select Target Niche:<br/>- Constructoras<br/>- Arquitectos<br/>- Hoteles<br/>- Retailers"]
+    SelectNiche --> Builder["Open Portfolio Builder"]
+    LoadProducts --> Builder
+
+    subgraph BuilderUI["Portfolio Builder (Two-Column Layout)"]
+        Builder --> LeftPanel["LEFT PANEL (40%)<br/>Product Catalog Mini-View"]
+        Builder --> RightPanel["RIGHT PANEL (60%)<br/>Portfolio Products"]
+
+        LeftPanel --> SearchProducts["Search Products"]
+        LeftPanel --> FilterProducts["Filter by:<br/>Category, Supplier,<br/>Price, Tags"]
+
+        SearchProducts --> BrowseProducts["Browse Product<br/>Cards"]
+        FilterProducts --> BrowseProducts
+
+        BrowseProducts -->|Click| AddToPortfolio["Add to Portfolio"]
+        AddToPortfolio --> RightPanel
+
+        RightPanel --> DragReorder["Drag to Reorder"]
+        RightPanel --> AddNotes["Add Curator Notes"]
+        RightPanel --> RemoveProduct["Remove Product"]
+    end
+
+    RightPanel --> Actions{Action?}
+    Actions -->|Save| SaveDraft["Save as Draft"]
+    Actions -->|Publish| SetActive["Set is_active = true"]
+    Actions -->|Preview| GeneratePDF["Generate PDF Preview"]
+    Actions -->|Share| GenerateLink["Generate Share Token"]
+
+    SaveDraft --> Saved([Portfolio Saved])
+    SetActive --> Published([Portfolio Published])
+    GeneratePDF --> ViewPDF["View PDF in Browser"]
+    GenerateLink --> CopyLink["Copy Public Link<br/>/portfolios/share/{token}"]
+
+    style Start fill:#1976d2,color:white
+    style Saved fill:#4caf50,color:white
+    style Published fill:#4caf50,color:white
+            </div>
+        </section>
+
+        <!-- Section 8: Quotation Workflow -->
+        <section id="quotation-workflow">
+            <h2>8. Quotation Process Flow</h2>
+            <div class="description">
+                <p>Complete quotation workflow from client selection through pricing calculation to PDF generation and delivery.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start Quotation]) --> SelectClient["Step 1: Select Client"]
+
+    subgraph ClientSelection["Client Selection"]
+        SelectClient --> SearchClient["Search Existing<br/>Clients"]
+        SearchClient --> FoundClient{Client<br/>Found?}
+        FoundClient -->|Yes| SelectExisting["Select Client"]
+        FoundClient -->|No| CreateClient["Create New Client"]
+        CreateClient --> FillClientData["Fill Client Data:<br/>Company, Contact,<br/>Niche, Project Deadline"]
+        FillClientData --> SelectExisting
+    end
+
+    SelectExisting --> ValidateTiming["Validate Project<br/>Timing Feasibility"]
+    ValidateTiming --> TimingOK{Timing<br/>Feasible?}
+    TimingOK -->|No| ShowWarning["Show Timing<br/>Warning"]
+    TimingOK -->|Yes| ProductSelection
+    ShowWarning --> ProductSelection
+
+    ProductSelection["Step 2: Product Selection"]
+
+    subgraph ProductSelect["Product Selection"]
+        ProductSelection --> Source{Source?}
+        Source -->|Biblia General| BrowseCatalog["Browse Full<br/>Catalog"]
+        Source -->|Portfolio| SelectPortfolio["Select Curated<br/>Portfolio"]
+
+        BrowseCatalog --> AddProducts["Add Products<br/>to Quote"]
+        SelectPortfolio --> ImportPortfolio["Import Portfolio<br/>Products"]
+        ImportPortfolio --> AddProducts
+    end
+
+    AddProducts --> LineItems["Step 3: Line Items"]
+
+    subgraph LineItemMgmt["Line Item Management"]
+        LineItems --> EditQuantity["Edit Quantities"]
+        EditQuantity --> OverridePrice["Override Unit Price<br/>(Optional)"]
+        OverridePrice --> AssignHS["Assign HS Codes"]
+    end
+
+    AssignHS --> Calculate["Step 4: Calculate Pricing"]
+
+    subgraph PricingCalc["Pricing Calculation"]
+        Calculate --> FetchRates["Fetch Current:<br/>- Tariff Rates<br/>- Freight Rates<br/>- Settings"]
+        FetchRates --> ApplyFormula["Apply Pricing<br/>Formula"]
+        ApplyFormula --> DisplayBreakdown["Display Cost<br/>Breakdown"]
+    end
+
+    DisplayBreakdown --> Review["Step 5: Review & Send"]
+
+    subgraph ReviewSend["Review & Send"]
+        Review --> SetTerms["Set Payment Terms<br/>& Validity Period"]
+        SetTerms --> AddNotes["Add Notes"]
+        AddNotes --> FinalAction{Action?}
+
+        FinalAction -->|Save Draft| SaveDraft["Save as Draft"]
+        FinalAction -->|Preview PDF| GenPDF["Generate PDF"]
+        FinalAction -->|Send| SendEmail["Send via Email"]
+        FinalAction -->|Share| GenLink["Generate Share Link"]
+    end
+
+    SaveDraft --> StatusDraft([Status: Draft])
+    SendEmail --> StatusSent([Status: Sent])
+    GenLink --> StatusSent
+
+    StatusSent --> ClientViews["Client Views<br/>Quotation"]
+    ClientViews --> StatusViewed([Status: Viewed])
+    StatusViewed --> Negotiate{Client<br/>Response?}
+    Negotiate -->|Accept| StatusAccepted([Status: Accepted])
+    Negotiate -->|Negotiate| StatusNegotiating([Status: Negotiating])
+    Negotiate -->|Reject| StatusRejected([Status: Rejected])
+
+    style Start fill:#1976d2,color:white
+    style StatusAccepted fill:#4caf50,color:white
+    style StatusRejected fill:#f44336,color:white
+            </div>
+        </section>
+
+        <!-- Section 9: Pricing Calculation -->
+        <section id="pricing-calculation">
+            <h2>9. Pricing Calculation Formula</h2>
+            <div class="description">
+                <p>Detailed breakdown of the quotation pricing formula including all cost components
+                from FOB price to final COP total.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Inputs["Input Values"]
+        FOB["FOB Unit Price (USD)"]
+        QTY["Quantity"]
+        HS["HS Code"]
+        ROUTE["Origin → Destination"]
+    end
+
+    subgraph Lookup["Lookup Values"]
+        TARIFF["Tariff Rate (%)<br/>from HS Code"]
+        FREIGHT_INTL["Int'l Freight Rate<br/>from Route"]
+        SETTINGS["Settings:<br/>- Margin %<br/>- Insurance %<br/>- Inspection USD<br/>- National Freight COP<br/>- Nationalization COP<br/>- Exchange Rate"]
+    end
+
+    subgraph Calculation["Calculation Steps"]
+        STEP1["1. Subtotal FOB USD<br/>= Σ(FOB × Qty)"]
+        STEP2["2. Tariff USD<br/>= Subtotal × Tariff%"]
+        STEP3["3. Freight Int'l USD<br/>= Rate × Weight/CBM"]
+        STEP4["4. Inspection USD<br/>= Fixed Amount"]
+        STEP5["5. Insurance USD<br/>= (FOB + Freight) × %"]
+        STEP6["6. Subtotal USD<br/>= Steps 1-5"]
+        STEP7["7. Convert to COP<br/>= USD × Exchange Rate"]
+        STEP8["8. Add National Costs<br/>+ Freight COP<br/>+ Nationalization COP"]
+        STEP9["9. Apply Margin<br/>× (1 + Margin%)"]
+    end
+
+    subgraph Output["Output"]
+        TOTAL["Grand Total COP"]
+    end
+
+    FOB --> STEP1
+    QTY --> STEP1
+    HS --> TARIFF
+    ROUTE --> FREIGHT_INTL
+    TARIFF --> STEP2
+    STEP1 --> STEP2
+    FREIGHT_INTL --> STEP3
+    SETTINGS --> STEP4
+    STEP1 --> STEP5
+    STEP3 --> STEP5
+    STEP2 --> STEP6
+    STEP3 --> STEP6
+    STEP4 --> STEP6
+    STEP5 --> STEP6
+    STEP6 --> STEP7
+    STEP7 --> STEP8
+    STEP8 --> STEP9
+    STEP9 --> TOTAL
+
+    style Inputs fill:#e3f2fd
+    style Lookup fill:#fff3e0
+    style Calculation fill:#e8f5e9
+    style Output fill:#4caf50,color:white
+            </div>
+
+            <h3>Pricing Formula</h3>
+            <div class="mermaid">
+flowchart LR
+    subgraph Formula["Total COP Formula"]
+        F1["<b>Total COP</b> ="]
+        F2["( FOB + Tariffs + Int'l Freight + Inspection + Insurance )"]
+        F3["× Exchange Rate"]
+        F4["+ National Freight"]
+        F5["+ Nationalization"]
+        F6["× ( 1 + Margin% )"]
+    end
+
+    F1 --> F2 --> F3 --> F4 --> F5 --> F6
+            </div>
+
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Description</th>
+                    <th>Default Value</th>
+                </tr>
+                <tr>
+                    <td>FOB Price</td>
+                    <td>Factory price from supplier</td>
+                    <td>Per product</td>
+                </tr>
+                <tr>
+                    <td>Tariff Rate</td>
+                    <td>Import duty based on HS code</td>
+                    <td>Per HS code</td>
+                </tr>
+                <tr>
+                    <td>Int'l Freight</td>
+                    <td>China to Colombia shipping</td>
+                    <td>Per route/container</td>
+                </tr>
+                <tr>
+                    <td>Inspection</td>
+                    <td>Quality inspection cost</td>
+                    <td>$150 USD</td>
+                </tr>
+                <tr>
+                    <td>Insurance</td>
+                    <td>Cargo insurance</td>
+                    <td>1.5%</td>
+                </tr>
+                <tr>
+                    <td>National Freight</td>
+                    <td>Port to client in Colombia</td>
+                    <td>Per route (COP)</td>
+                </tr>
+                <tr>
+                    <td>Nationalization</td>
+                    <td>Customs clearance costs</td>
+                    <td>$200,000 COP</td>
+                </tr>
+                <tr>
+                    <td>Margin</td>
+                    <td>Profit margin</td>
+                    <td>20%</td>
+                </tr>
+                <tr>
+                    <td>Exchange Rate</td>
+                    <td>USD to COP</td>
+                    <td>~4,200</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Section 10: API Architecture -->
+        <section id="api-architecture">
+            <h2>10. API Architecture</h2>
+            <div class="description">
+                <p>FastAPI backend organized by domain with clean separation between routes, services, and repositories.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Routes["API Routes Layer"]
+        R1["/api/suppliers"]
+        R2["/api/products"]
+        R3["/api/categories"]
+        R4["/api/tags"]
+        R5["/api/portfolios"]
+        R6["/api/clients"]
+        R7["/api/niches"]
+        R8["/api/quotations"]
+        R9["/api/pricing"]
+        R10["/api/extract"]
+    end
+
+    subgraph Services["Service Layer"]
+        S1["SupplierService"]
+        S2["ProductService"]
+        S3["CategoryService"]
+        S4["TagService"]
+        S5["PortfolioService"]
+        S6["ClientService"]
+        S7["NicheService"]
+        S8["QuotationService"]
+        S9["PricingService"]
+        S10["ExtractionService"]
+        S11["PDFService"]
+    end
+
+    subgraph Repository["Repository Layer"]
+        Repo["KompassRepository"]
+    end
+
+    subgraph Database["Database"]
+        DB[(PostgreSQL)]
+    end
+
+    R1 --> S1
+    R2 --> S2
+    R3 --> S3
+    R4 --> S4
+    R5 --> S5
+    R6 --> S6
+    R7 --> S7
+    R8 --> S8
+    R9 --> S9
+    R10 --> S10
+
+    S1 & S2 & S3 & S4 & S5 & S6 & S7 & S8 & S9 --> Repo
+    S10 --> S2
+    S11 --> S5
+    S11 --> S8
+
+    Repo --> DB
+
+    style Routes fill:#e3f2fd
+    style Services fill:#e8f5e9
+    style Repository fill:#fff3e0
+    style Database fill:#bbdefb
+            </div>
+
+            <h3>Key API Endpoints</h3>
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td>/api/products</td>
+                    <td>List products with filters</td>
+                </tr>
+                <tr>
+                    <td><code>POST</code></td>
+                    <td>/api/extract/upload</td>
+                    <td>Upload catalog for AI extraction</td>
+                </tr>
+                <tr>
+                    <td><code>POST</code></td>
+                    <td>/api/portfolios/{id}/items</td>
+                    <td>Add product to portfolio</td>
+                </tr>
+                <tr>
+                    <td><code>POST</code></td>
+                    <td>/api/quotations/{id}/calculate</td>
+                    <td>Calculate quotation pricing</td>
+                </tr>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td>/api/quotations/{id}/export/pdf</td>
+                    <td>Generate proforma PDF</td>
+                </tr>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td>/api/portfolios/share/{token}</td>
+                    <td>Public portfolio view</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Section 11: Frontend Structure -->
+        <section id="frontend-structure">
+            <h2>11. Frontend Structure</h2>
+            <div class="description">
+                <p>React frontend organized into pages and reusable components following clean architecture patterns.</p>
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph App["App.tsx"]
+        Router["React Router"]
+    end
+
+    subgraph Layout["Layout"]
+        Sidebar["Sidebar Navigation"]
+        Header["Header"]
+        Content["Content Area"]
+    end
+
+    subgraph Pages["Kompass Pages"]
+        Dashboard["DashboardPage"]
+        Suppliers["SuppliersPage"]
+        Products["ProductsPage"]
+        Import["ImportWizardPage"]
+        Categories["CategoriesPage"]
+        Portfolios["PortfoliosListPage"]
+        Builder["PortfolioBuilderPage"]
+        Clients["ClientsPage"]
+        Niches["NichesPage"]
+        Quotations["QuotationsListPage"]
+        Creator["QuotationCreatorPage"]
+        Pricing["PricingConfigPage"]
+    end
+
+    subgraph Components["Shared Components"]
+        SupplierForm["SupplierForm"]
+        ProductCard["ProductCard"]
+        ProductForm["ProductForm"]
+        CategoryTree["CategoryTree"]
+        ClientCard["ClientCard"]
+        ClientForm["ClientForm"]
+        TagChip["TagChip"]
+    end
+
+    subgraph Services["Service Layer"]
+        KompassService["kompassService.ts"]
+        Types["kompass.ts (Types)"]
+    end
+
+    Router --> Layout
+    Layout --> Pages
+
+    Suppliers --> SupplierForm
+    Products --> ProductCard
+    Products --> ProductForm
+    Categories --> CategoryTree
+    Categories --> TagChip
+    Clients --> ClientCard
+    Clients --> ClientForm
+    Builder --> ProductCard
+
+    Pages --> KompassService
+    KompassService --> Types
+
+    style App fill:#61dafb
+    style Pages fill:#e8f5e9
+    style Components fill:#fff3e0
+    style Services fill:#e3f2fd
+            </div>
+        </section>
+
+        <!-- Section 12: ADW Execution -->
+        <section id="adw-execution">
+            <h2>12. ADW Parallel Execution</h2>
+            <div class="description">
+                <p>The AI Developer Workflow (ADW) system processes GitHub issues using isolated git worktrees,
+                enabling up to 4 concurrent implementations.</p>
+            </div>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Script as run_kompass_implementation.sh
+    participant ADW1 as ADW Worker 1
+    participant ADW2 as ADW Worker 2
+    participant ADW3 as ADW Worker 3
+    participant ADW4 as ADW Worker 4
+    participant Git as Git Repository
+    participant Main as main branch
+
+    User->>Script: ./run_kompass_implementation.sh
+
+    Note over Script: Phase 1 (Sequential)
+    Script->>ADW1: KP-001 Database Schema
+    ADW1->>Git: Create worktree
+    ADW1->>ADW1: Plan → Build → Test
+    ADW1->>Git: Push branch
+    ADW1->>Main: Merge PR
+    ADW1-->>Script: Complete
+
+    Note over Script: Phase 2 (4 Parallel)
+    par Parallel Execution
+        Script->>ADW1: KP-002 Supplier Service
+        ADW1->>Git: Create worktree (port 9100)
+    and
+        Script->>ADW2: KP-003 Product Service
+        ADW2->>Git: Create worktree (port 9101)
+    and
+        Script->>ADW3: KP-004 Category Service
+        ADW3->>Git: Create worktree (port 9102)
+    and
+        Script->>ADW4: KP-005 Extraction Service
+        ADW4->>Git: Create worktree (port 9103)
+    end
+
+    ADW1->>ADW1: Plan → Build → Test
+    ADW2->>ADW2: Plan → Build → Test
+    ADW3->>ADW3: Plan → Build → Test
+    ADW4->>ADW4: Plan → Build → Test
+
+    ADW1->>Main: Merge PR
+    ADW2->>Main: Merge PR
+    ADW3->>Main: Merge PR
+    ADW4->>Main: Merge PR
+
+    Note over Script: wait for all
+
+    ADW1-->>Script: Complete
+    ADW2-->>Script: Complete
+    ADW3-->>Script: Complete
+    ADW4-->>Script: Complete
+
+    Note over Script: Continue to Phase 3...
+            </div>
+
+            <h3>ADW Worktree Architecture</h3>
+            <div class="mermaid">
+flowchart TB
+    subgraph MainRepo["Main Repository"]
+        Main["main branch"]
+    end
+
+    subgraph Worktrees["Parallel Worktrees (trees/)"]
+        WT1["trees/adw-kp-002/<br/>Port: 9100/9200"]
+        WT2["trees/adw-kp-003/<br/>Port: 9101/9201"]
+        WT3["trees/adw-kp-004/<br/>Port: 9102/9202"]
+        WT4["trees/adw-kp-005/<br/>Port: 9103/9203"]
+    end
+
+    subgraph State["State Files (agents/)"]
+        S1["agents/adw-kp-002/<br/>adw_state.json"]
+        S2["agents/adw-kp-003/<br/>adw_state.json"]
+        S3["agents/adw-kp-004/<br/>adw_state.json"]
+        S4["agents/adw-kp-005/<br/>adw_state.json"]
+    end
+
+    Main -.->|checkout| WT1
+    Main -.->|checkout| WT2
+    Main -.->|checkout| WT3
+    Main -.->|checkout| WT4
+
+    WT1 -->|PR merge| Main
+    WT2 -->|PR merge| Main
+    WT3 -->|PR merge| Main
+    WT4 -->|PR merge| Main
+
+    WT1 --- S1
+    WT2 --- S2
+    WT3 --- S3
+    WT4 --- S4
+
+    style Main fill:#4caf50,color:white
+    style Worktrees fill:#e3f2fd
+    style State fill:#fff3e0
+            </div>
+
+            <h3>Execution Commands</h3>
+            <table>
+                <tr>
+                    <th>Phase</th>
+                    <th>Issues</th>
+                    <th>Parallel</th>
+                    <th>Command</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>KP-001</td>
+                    <td>No</td>
+                    <td><code>uv run adw_plan_build_test_iso.py KP-001</code></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>KP-002 to KP-005</td>
+                    <td>Yes (4)</td>
+                    <td><code>uv run adw_plan_build_test_iso.py KP-00{2,3,4,5} &amp;</code></td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>KP-016, KP-017</td>
+                    <td>No</td>
+                    <td><code>uv run ... KP-016 &amp;&amp; uv run ... KP-017</code></td>
+                </tr>
+            </table>
+        </section>
+
+        <footer style="text-align: center; padding: 40px; color: #666;">
+            <p>Kompass Portfolio & Quotation System - Architecture Documentation</p>
+            <p>Generated: January 31, 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                showSequenceNumbers: false
+            },
+            er: {
+                useMaxWidth: true
+            }
+        });
+    </script>
+</body>
+</html>

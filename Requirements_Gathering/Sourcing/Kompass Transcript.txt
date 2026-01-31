@@ -1,0 +1,657 @@
+
+00:03
+Speaker 1
+Esperemos los dos minutos a ver y ya les doy contexto a todos, ¿Te parece? 
+
+00:08
+Speaker 2
+De una. 
+
+00:11
+Speaker 1
+Diani, te súper recomiendo el favor que te pedí en tu mañana, que necesitamos tener eso urgentísimo, por favor. Gracias por tu ayuda. 
+
+00:21
+Speaker 2
+No, no. 
+
+00:24
+Speaker 1
+Creo que tengo, daniel, perdón que voy a hablar aquí unos temas, pero no molestar. Tengo, tengo una idea para que, para el dilema, nuestras ferias de abril, para que no me toque divorciarme, irme a vivir a China un mes entero. Y descubrí que de pronto la persona que me reemplazó a mí en la oficina comercial que yo manejaba en China, es muy amigo mío, él tiene muchas ganas de seguimos, no pasa nada. Hola daniel, buenos días. 
+
+00:55
+Speaker 3
+¿Quieres esta felicidad de volverte a ver? Ve cosa tan horrible. 
+
+01:00
+Speaker 1
+¿Cómo vas? 
+
+01:01
+Speaker 4
+¿Bien o no? Muy bien. 
+
+01:04
+Speaker 1
+Daniel, te presento aquí al equipo de kompass, a Diana y Alejandro. Daniel, Diana es nuestra directora de Diseño Arquitectura. Alejandro es nuestro Gerente Comercial y bueno, pues Tim, ya les presenté, Daniel y pues aquí también está la leyenda máxima, Daniel Cardona. Ellos dos son de Hay Huevos, nombre peculiar inventado por mi amigo Daniel Cardona, pero es un gran nombre. Los tres trabajamos juntos en Fincargo, los tres conocemos a Tomás. Daniel es un experto en tecnología, digamos que en flujo de trabajo de operación. Y daniel Cardona era el gerente de mercadeo y ahorita pues está muy involucrado en el mundo de inteligencia artificial. No sé, daniel, ambos, si quieren contar un poquito a ellos qué hace Hay Huevos y le damos candela. 
+
+01:54
+Speaker 3
+De una. Yo normalmente hago esto, pero hoy voy a dejar que Daniel haga el intro de lo que hacemos para saber si empezamos a pivotear. 
+
+02:06
+Speaker 5
+¿Qué hacemos? Primero los escuchamos, entendemos cuáles son los temas que necesitan alguna ayuda, aumentando su capacidad a través de tecnología. Luego de eso nos llevamos los insights, mapeamos nuestro entendimiento, lo compartimos con ustedes y posteriormente, una vez estemos bien alineados, esto es muy rápido, la verdad, lo generamos muy rápido, podemos empezar a construir alguna solución que les pueda funcionar. Generalmente inicialmente enfocado hacia procesos más hacia digamos, pronto office, toma de cotización, pero si tiene sentido también temas de back office y operativos de ese tipo. Entonces eso, el esquema que yo manejo es muy bottom up, el esquema de daniel es más top down, pero es complementario en cuanto a llegar a lo que le funcione. ¿Con quien trabajamos para que tenga éxito un proyecto eventual? Eso es. 
+
+03:20
+Speaker 3
+Qué puede pasar de todo. Podemos empezar a hablar de oiga es que mi proceso de cotización se demora cuatro días porque tengo que jalar un montón de información. Alejandro me puede decir como no tengo leads para vender y necesito llegarle a más leads. ¿Y Diana me puede decir oiga es que no mi proceso de diseño son X, Y, Z. Entonces como pueden haber tantos frentes en los cuales podemos nosotros como llegar a generar soluciones? Quisiera es como decantar un poquito el objetivo de esto. En que somos muy buenos en hacer que las empresas, que las personas entiendan cómo usar la tecnología para hacer mejor su trabajo. Nosotros primero ponemos la tecnología y después ponemos a la persona que use la tecnología. Ya a partir de , pues creamos un montón de carajadas y huevonadas que terminan teniendo un montón de efectos. 
+
+04:18
+Speaker 3
+Pero a grandes rasgos nosotros le acercamos la tecnología a usuarios que probablemente no son tan tech y construimos con ellos soluciones que les resuelven problemas del día a día. 
+
+04:30
+Speaker 1
+Eso es un poquito. Perfecto. Yo creo que yo quería, yo te conté un poquito por encima daniel, los problemas que tenemos y pues en realidad es ahorrar tiempo y ser más efectivos en recibir información de China. 
+
+04:44
+Speaker 3
+Calma. ¿Qué significa ahorrar tiempo y ser más efectivos? 
+
+04:50
+Speaker 1
+OK, yo creo algo muy cierto y es que hoy por hoy ir a China es muy fácil y ser trader es muy fácil, intermediar es muy fácil y traer producto de China muy sencillo. Nosotros tenemos miles de valores agregados, pero yo sí quiero que la información que nosotros le pedimos a nuestros proveedores, que son producto, precios y otras especificaciones, sea procesada mucho más rápido, porque hoy en día es un trabajo muy manual. ¿Hoy en día cuál es nuestro modus operandi? Visitamos ferias, buscamos por Internet los algoritmos de nuestras redes, nos traen proveedores de todo lo que buscamos y tenemos contactos de fábricas que nos da portafolio, brochures, productos, precios, cubicajes y otras miles de variables. 
+
+05:36
+Speaker 1
+Nosotros recibimos esos archivos que probablemente vienen en un Excel o en un PDF, hasta en un Word o en un texto de WeChat o de WhatsApp y nosotros tenemos que procesar todo eso y tenemos una matriz gigante en Excel donde empezamos a acumular y empezamos a jalar en un formato de cotización que Alejandro creó. Eso es hoy lo que está pasando en cuanto a cotizaciones. Tarda demasiado porque ese es un frente. Alejo, si quieres contar un poquito a daniel para que entienda más la minucia. 
+
+06:10
+Speaker 4
+Pero Daniel, te cuento un poco. Digamos que ese proceso que nosotros estamos teniendo en este momento con nuestros proveedores, te lo puedo traducir como en dos frentes. Uno pues obviamente son los scouting que se hacen cuando vamos a las ferias. En este caso Rubén fue a la feria de camión en octubre. Él básicamente en esa feria lo que hizo fue digamos que captar una cantidad de empresas que tenían el portafolio del tipo de producto que nosotros necesitamos. Se creó un Excel donde básicamente estaba la empresa, sus datos generales, tenía su página web, si alguno tenía su wechat, su correo electrónico y adicional a eso pues un PDF donde se linkeaba el catálogo de cada una de esas empresas. 
+
+07:00
+Speaker 4
+Con los chinos no es como que tú les digas oye, por favor envíame toda tu lista de unit prices del catálogo que tienes, sino que ellos inicialmente te piden como una curaduría de su propio catálogo. Y bueno, digamos que eso está muy bien y está muy alineado a lo que nosotros también buscamos y es que a través del equipo de arquitectura y diseño de Diana y persona que también soy arquitecto, lograr esa curaduría y escoger los productos que para nosotros son como más interesantes. 
+
+07:29
+Speaker 4
+Yo como lo estoy haciendo en este momento para agilizarlo sobre todo con algunos proveedores que me han llegado a través de redes sociales, es básicamente con el iPad, cojo un lápiz XXX, esto me sirve, se lo devuelvo al proveedor y le envío también un Excel donde básicamente ese Excel tiene imagen de referencia, tiene referencia alfanumérica, tiene MOQ Age Codes y no me acuerdo como características del producto o que incluye o cuáles son sus opciones de personalización, ¿Cierto? Entonces pues digamos que eso ha hecho que el proceso sea un poquito más rápido, pero pues igual es un proceso que requiere tiempo. Entonces ellos toman lo que yo escogí de su catálogo, toman el formato de Excel que les envío y me devuelven la información. 
+
+08:28
+Speaker 4
+Posterior a esto, cuando nosotros ya tenemos este Excel que ellos nos envían de requerimientos, los lo que nosotros hacemos es listo entonces pues tenemos construido un portafolio que básicamente es una presentación de PowerPoint pero de Google Sheets, lo que hacemos es básicamente pues en ese portafolio tenemos las imágenes de los productos, tenemos la referencia alfanumérica y pues construimos como un portafolio muy muy sencillo con el fin de llegarle a los clientes. Entonces, ¿Qué está pasando en este momento y cuál es el cuello de botella que estamos presentando en este momento? 
+
+09:08
+Speaker 4
+En diciembre nos enfocamos full en crear ese portafolio, entonces pues ese portafolio requiere quitar fondos, tomar las imágenes, escoger las imágenes de mejor calidad, si el catálogo que nos envían los chinos no tiene imágenes de buena calidad pues buscar ese mismo producto en Google Lens para poder extraer la imagen y que la imagen quede de buena calidad en el catálogo. 
+
+09:30
+Speaker 4
+Luego toca tomar la referencia y ponérsela pues a cada producto, si quieres ya te comparto pantalla para que veas un poco el portafolio y pues obviamente digamos que muchas veces los portafolios de esos catálogos, perdón de empresas chinas son gigantescos, entonces lo que estamos pensando es tal vez sí podemos tener un muestrario dentro de nuestro portafolio como de diseño por así decirlo y que tengamos un QR que nos redirija a una matriz un poco más técnica donde estén todos los productos de subcategorías, no sé, griferías 50-60 productos de mobiliario, tengamos un muestrario dentro de nuestro portafolio pero que luego el cliente pueda entrar a ese subcatálogo donde está mucho más técnico como no tan de diseño, creo que eso es un poco lo que se me ocurre en este momento. 
+
+10:28
+Speaker 4
+Eso por el lado de digamos que del portafolio y demás, de pronto pues no sé si acá intervenimos o tocamos los otros temas del lado comercial de una vez como ustedes quieran pues enumeremos. 
+
+10:43
+Speaker 5
+Los pasos otra vez, perdón. Entonces primero ustedes levantan la información de estos proveedores para armar un catálogo que luego presentar el cliente, eso se lo presentan ya a modo de cotización ¿No? 
+
+11:05
+Speaker 4
+Nosotros qué es lo que estamos buscando dentro del proceso es básicamente tener ese catálogo pues como retroalimentado para que el cliente, digamos que me devuelvo un poco, vamos a tener tres servicios, un servicio de supplier que básicamente solamente ser proveedores para un proyecto o para una empresa, entonces esta empresa nos dice listo quiero 500 sillas de este tipo, quiero 500 lámparas de este tipo. Eso es solamente suppliers. Importamos, entregamos en proyecto. 
+
+11:35
+Speaker 4
+Luego está suppliers más diseño, que en este caso pues ya entra Diana también dentro del ejercicio y es básicamente con Diana hacer un acompañamiento a la empresa o al proyecto entendiendo cuáles son las necesidades que tiene esto, para qué aplica, sobre todo para empresas que por ejemplo no tienen un equipo de diseño de arquitectura, o de pronto su equipo de arquitectura no tiene el tiempo para hacer el ejercicio, entonces pues Diana se sienta con ellos, cuáles son las paletas de colores que ustedes tienen, que tienen pensado, incluso pues desarrollar un poco más a fondo el tema de diseño. Entonces en temas de supplier, pues es básicamente el cliente escoge el catálogo que tenemos y se monta la cotización, se le devuelve la cotización y se avanza en el cierre del negocio. 
+
+12:22
+Speaker 5
+Entonces ve el catálogo, selecciona, con eso generas la cotización y esa cotización para el negocio. Entonces, un momento daniel, qué pena. Y el cuello botella para ese primer proceso es lo que me decías de extraer todas estas imágenes y referencias para poder armar. 
+
+12:44
+Speaker 4
+Si, la retroalimentación del catálogo creo que es nuestro primer cuello de botella. 
+
+12:49
+Speaker 5
+Dale daniel. 
+
+12:51
+Speaker 3
+Alejo. Señor, esto va a pasar un montón y yo soy así. Entonces le puede preguntar a Rubén, nada. 
+
+13:01
+Speaker 1
+Lo que le diga suene muy raro. 
+
+13:07
+Speaker 3
+Usted necesita uno, una base de proveedores, necesita dos una base de datos de productos de esos proveedores y en su base de datos de productos de esos proveedores hay una imagen, un costo por unidad, de dónde es, cómo lo trae, quién lo trae, hasta estamos claros. 
+
+13:28
+Speaker 2
+Creo que ese es el grueso, más grueso, esa primera parte. 
+
+13:33
+Speaker 3
+Para que esas dos bases de datos se alimenten necesitan hacer dos procesos. Uno, salir a buscar proveedores, recibir las cotizaciones de los productos de los proveedores, pues porque el proveedor te puede decir tengo mil productos, o si el servicio es necesito algo específico, usted tiene que saber cuáles de los proveedores que usted ya tiene que servicios. Estamos alineados. Hay una tercera base de datos que es la base de datos de clientes. Si yo voy a cotizarle a un cliente, si yo le voy a cotizar a un cliente algo, en teoría, ese algo que yo voy a cotizar no debería pasar por usted, ni por sus Exceles, ni por sus PDF ni por mi, pues porque usted hizo un levantamiento con un proveedor de unos productos con unos precios. 
+
+14:23
+Speaker 3
+Entonces cuando yo tengo, es decir, el sistema debería consultar que tengo, decirle a usted, oiga, de los proveedores disponibles que usted ya trabajó, ya gestionó y ya armó, estos son los proveedores que tienen estos productos, ¿Cómo quiere usted armar su oferta comercial? Usted arma su oferta comercial y antes de enviársela al cliente, usted tiene que revalidar con el proveedor para saber si tiene producto en existencia, si se lo puede enviar. Simplemente quiero entender si esa es como la macroestructura, teniendo en cuenta que cuando el proveedor le puede mandar una cotización, se lo puede mandar por WeChat o por PDF o por Excel o por n cantidad de formatos, pero usted tiene que extraer la información de esas cotizaciones, guardarlas dentro de su base de datos de proveedores por producto y luego salir a montar una cotización que es básicamente de cara al cliente. 
+
+15:15
+Speaker 3
+El cliente no sabe cuál es el proveedor, el cliente solamente a kompass mira, estos son mis productos, pero en el back office de kompass esos productos están alineados o están referenciados con estos proveedores, con estas condiciones. 
+
+15:29
+Speaker 4
+Correcto, correcto. Incluso si lo pensamos un poco más allá, parte de lo que podría hacer ese agente de inteligencia artificial es entender también cuál es el cliente. Por ejemplo, esta semana nos presentamos una propuesta comercial a una empresa que se llama Arcos. Esta empresa básicamente solamente se dedica al tema de fachadas, revestimientos, como un tema deX y demás. Entonces, ¿Qué hicimos? Nos tomamos el tiempo de seleccionar algunos productos que ya teníamos preseleccionados de esos catálogos y hacerles a ellos como un pequeño portafolio de todo lo que pueden utilizar como en revestimientos, fachadas y demás y enviárselo a ellos. 
+
+16:12
+Speaker 4
+Entonces, pues también puede ser interesante como que esté dividido en categorías y que esas categorías se alineen un poco también con los nichos de clientes que tenemos, porque ese es otro tema que es muy amplio y es que nosotros tenemos bastantes nichos de clientes muy diferentes, pero que pues digamos que todos en algún punto del ejercicio pues se encontrarán y habrán otros que simplemente son muy específicos. 
+
+16:43
+Speaker 3
+Daniel, dale. Antes de que siga, yo tengo unas preguntas puntuales para más adelante y esto es ¿Hace Cuánto están operando? 
+
+16:56
+Speaker 1
+¿Hace cuánto existimos nosotros? 
+
+17:00
+Speaker 3
+Tres meses. ¿Ustedes ya tienen definido cuál es el cliente donde ustedes son más efectivos? 
+
+17:05
+Speaker 1
+No. 
+
+17:11
+Speaker 3
+OK, Entonces para mí son dos cosas que se alimentan. El proceso, y corregime Rubén si me equivoco, pero el proceso de sourcing es uno. Yo voy donde mis proveedores y así como Daniel al comienzo de la conversación dijo que hay dos maneras de ver esto, es yo voy y analizo un montón de base de proveedores, recojo un montón de productos y luego esos productos voy y se los ofrezco al cliente una línea, línea 2, donde creo que ustedes generan más rentabilidad es yo voy donde un cliente, levanto un requerimiento de información, voy y busco proveedores específicos de ese requerimiento de información y le devuelvo al cliente una oferta personalizada de acuerdo a lo que él mantiene. 
+
+17:52
+Speaker 1
+Ese es nuestro valor agregado, no tener curaduría en ese sourcing. 
+
+17:56
+Speaker 4
+¿Listo? 
+
+17:57
+Speaker 3
+Esto hoy es un proceso que pasa manual. Pero si ustedes se ponen a pensar, cada vez que ustedes cotizan con un proveedor y llegan con productos muy nuevos y ustedes pueden subir eso a una página web o a un sistema de cotización maravilloso, cada vez que usted vaya y consulte con un proveedor, eso debería alimentar su base de productos para que inherentemente usted siempre tenga producto actualizado para que no se pierda. ¿Me hago entender? 
+
+18:24
+Speaker 4
+Tal cual. 
+
+18:26
+Speaker 3
+Y asimismo, cada vez que usted hace una cotización, esa cotización le debería alimentar el qué tipo de proveedores debería usted salir a buscar, con qué categoría de clientes y cada vez que usted cierre un cliente, eso le empieza a dar usted tendencias sobre qué de los productos que ofrecí, con qué márgenes ofrecí, me generaron más becas. 
+
+18:46
+Speaker 4
+Tal cual, es correcto. 
+
+18:49
+Speaker 3
+Ahora bien, todavía no escuchaba Diana. 
+
+18:55
+Speaker 2
+No, pues yo estoy más centrada. Digamos que lo que yo siento que nos está creando más inconveniente es recopilar toda la información de los 800 mil proveedores que tenemos, que eso es lo que más tiempo nos quita, porque hay tanta oferta y tanta variedad en los productos que tenemos que digamos que nos puede llegar un cliente X y un cliente Y, pero lo que ya hemos armado no tenemos que ofrecerle, pero sabemos que en nuestra base de datos tenemos todos esos productos para ofertar. Entonces siento que lo que tenemos que sistematizar o mejorar. Primero es recopilar toda esa base de datos para poder acceder a ella y poder ofertarla más rápido. Ya los procesos que van después de presentar a un cliente, pues es lo que están hablando en este momento. 
+
+19:45
+Speaker 2
+Pero el antes como el back office de todos, es lo que siento que estamos como. 
+
+19:51
+Speaker 1
+Lo que sí vale la pena que toquemos por encima, porque se quedan y me van a regañar por adelantarme, pero eso lo haré con Cardona ahorita en Bucaramanga. Es que yo creo, Dianis, y entiendo que ya está súper inventado, soy ignorante en el tema, pero el siguiente paso sería renderizar nuestros productos en los planos. 
+
+20:12
+Speaker 2
+100%. Totalmente, totalmente de acuerdo. 
+
+20:17
+Speaker 1
+Para que el cliente ya vea la propuesta tuya en un, no sé, en un apartamento de Visa. 
+
+20:25
+Speaker 2
+Total. Eso es otra cosa. Es otra cosa. Siento que tenemos que tener muy fuerte y muy completar. Pero es que completar es tanta vaina, porque siempre, todos los días nos están llegando nuevos proveedores, nuevos productos. Hay un portafolio que nos mostró Alejo hace unos días que tiene 500 productos y pues nosotros ponernos a meter todo eso en un portafolio no tiene sentido. Entonces es donde entra lo que decía Alejo ahorita, que dependiendo del cliente nosotros podemos enfocar qué información se le manda, porque no podemos tener un portafolio de mil páginas con un millón de productos, porque ya se vuelve ineficiente, nadie va a mirar un portafolio de esa magnitud. 
+
+21:11
+Speaker 4
+Digamos que pensándolo un poco en mi cabeza es como listo, tenemos un cliente que es interiorismo, quiere lámparas, quiere camas, quiere esto, podemos hacer clic, clic y se genere un portafolio muy personalizado para tal cual. 
+
+21:29
+Speaker 3
+Listo. Pero entonces acá y nuevamente me encanta, o sea, yo puedo irme a vamos a hacer eso, pero eso no es la realidad. Y para llegar allá a eso que estamos diciendo, pues nos vamos a demorar un montón de tiempo. 
+
+21:39
+Speaker 4
+Exacto. 
+
+21:40
+Speaker 3
+Entonces, dónde siento y si no me quiero meter todavía en cotización clientes, Ruben Show, porque creo que eso es, si no tengo claro lo de sourcing, lo otro huevón. 
+
+21:51
+Speaker 2
+100% totalmente. 
+
+21:52
+Speaker 3
+Voy a vender más y entonces Cuello operativo y Vallejo de tenemos que pasar abriendo PDF y sacando información. Daniel, antes de que vote este run, ¿Tenés algo más que preguntar o validar? 
+
+22:05
+Speaker 5
+Pues es que yo me quiero ir hacia el PIG empezar a hablar un poco del pig hacia abajo, cómo son las cosas, entonces si querés lo hacemos ahorita o después. 
+
+22:20
+Speaker 3
+¿Simplemente quiero como definir, ustedes reciben cotizaciones de los proveedores vía tres canales, WeChat, correo y WhatsApp, hay algún otro, hay algún otro formato en ustedes reciban esas cotizaciones? 
+
+22:43
+Speaker 2
+Hay algunas marcas, muy poquitas, por ejemplo los one stop shops tienen los precios montados, que eso también varía demasiado con volúmenes, entonces para no perder tiempo a veces tomamos esos precios porque nos dicen no pues si usted me está mandando cotizar uno, pues ese es el precio que yo le voy a dar. Ahora lo que nos ha pasado también es que muchas de las cotizaciones que pedimos con X proveedores nos toca escoger qué productos del portafolio de esos queremos una cotización porque ellos en ningún momento nos han mandado una lista de precios completa de sus portafolios porque también es una cosa ineficiente. 
+
+23:25
+Speaker 3
+Pero podríamos preguntarse, no lo hemos hecho, o sea, ellos tienen esas listas completas de precios de todos sus productos. 
+
+23:32
+Speaker 2
+Ese fue el primer paso que hicimos con proveedores, mandamos correos, hola, mándame tu lista de precios completos y todos nos dijeron no, me tienen que decir qué productos quiere y yo le cotizó, hace. 
+
+23:43
+Speaker 4
+Parte como de la forma de negociar. 
+
+23:48
+Speaker 3
+Listo, ustedes reciben esas cotizaciones. Los formatos de esas cotizaciones son PDF, Excel o copiar y pegar en el. 
+
+23:55
+Speaker 2
+Mismo correo todas las anteriores. 
+
+23:59
+Speaker 3
+Hay algo más, un documento de Word les pueden enviar pero no se sale. 
+
+24:04
+Speaker 4
+De pronto si tenemos un requerimiento particular de algo, si he generado unos words. 
+
+24:11
+Speaker 3
+Pero no listo, de abrir, sacar, si tiene fotos y no tiene fotos, si tiene descripción, si no tiene descripción, cumplir como los requerimientos mínimos que ustedes necesitan para hacer una cotización de cada producto que técnicamente es la. Que es técnicamente la que es técnicamente la. Esta vaina se llama guía de producto, orden de compra. Cada producto tiene una descripción específica como la hoja de vida del producto, luego eso ustedes lo desglosan, montan una orden de compra que es una cotización para el cliente, esa cotización de cara al cliente tiene el producto interno de ustedes. 
+
+25:17
+Speaker 4
+¿Quieres que te muestre el formato que tenemos en este momento? 
+
+25:21
+Speaker 3
+Si me lo quieres mandar, si me lo quieres ir montando como una carpetica de Drive con todos los documentos que acabamos de hablar. Tenés la cotización, eso cae algún sistema, es decir, están usando un ERP, están usando cotizador o. El ERP se llama Excel. 
+
+25:39
+Speaker 4
+Excel básicamente es un sistema como de matriz donde el producto entra a una base de datos, esa base de datos está conectada a otra pestaña donde básicamente tú haces una selección de sí, sí, sí, sí, de los productos que te solicita al cliente y pues eso está digamos que jalando todos los datos de precio y pues lo tenemos formulado obviamente con aranceles y otros temas adicionales. 
+
+26:04
+Speaker 3
+Entonces ese Excel también, porfa, póngamelo . Luego ustedes desexcel, hacen sus cálculos, sus mierdas, Luego después se van a otro Excel que ponen foto del producto, nombre del cliente, estructura del cliente y tienen otro Excel, asumo que es el CRM, a quién me está pidiendo que y qué le he enviado o ese todavía. 
+
+26:26
+Speaker 1
+No estamos manejando Notion para seguimiento de clientes. 
+
+26:29
+Speaker 3
+Listo, entonces acceso al Notion también por file, Workspace completo, Listo, Estructuran el Excel, exportar a PDF, lo suben en el correo y lo envían. Hay un back and forth por correo o por WhatsApp con el cliente en donde usted sí de pronto tal vez esto no esta cantidad, este producto no me gustó, este producto si me gustó, vaya al Excel, modifique, exporte en PDF, vuelva y suba. 
+
+27:02
+Speaker 4
+Correcto. 
+
+27:03
+Speaker 3
+Listo. ¿El cliente finalmente acepta, coge el PDF, váyase a su base de proveedores o ustedes ya tienen una cadena de esa cotización con todos los proveedores que se están arrastrando? 
+
+27:16
+Speaker 4
+Pues yo lo que tengo es básicamente una columna en el mismo Excel donde cuando tú jalas y dices sí, este producto, pues ya te bota la descripción, te bota la cantidad, pues obviamente tienes el editable de cantidad, el FO, que es como el precio unitario que te dan los chinos, luego pues tenemos todo el tema de márgenes y demás, y hay otra columna que tiene pues ya la fábrica establecida para ese producto. 
+
+27:42
+Speaker 3
+OK. Y luego yo quiero saber, no, ya, listo. ¿Entonces ya después a quién le entra el chicharrón de salir a comprar con, o sea, salir a negociar, pagar con proveedores? 
+
+28:02
+Speaker 4
+Estamos todavía en ese proceso, pero sería Rubén. Listo. 
+
+28:07
+Speaker 3
+¿Cuántas ventas hemos tenido actualmente? 
+
+28:12
+Speaker 1
+OK, probablemente esta semana llega la primera. 
+
+28:16
+Speaker 3
+¿Cuántas cotizaciones enviadas? 
+
+28:18
+Speaker 1
+Tres. 
+
+28:20
+Speaker 4
+¿Tenemos más o menos cuatro o cinco procesos en marcha en este momento, pero. 
+
+28:24
+Speaker 3
+Cuántas enviadas, o sea, enviadas y de. 
+
+28:28
+Speaker 4
+Vueltas y enviadas y de vueltas o. 
+
+28:30
+Speaker 3
+Simplemente cotizaciones únicas enviadas? 
+
+28:33
+Speaker 4
+5. 
+
+28:34
+Speaker 3
+5, listo. Ojo lo que estoy escuchando, llevan tres meses de operación y han enviado cinco cotizaciones, listo. ¿Cuál es la meta. 
+
+28:45
+Speaker 1
+De cotizaciones enviadas? No tenemos un número claro, Listo. 
+
+28:50
+Speaker 3
+Entonces si estamos hablando de que en los últimos tres meses han enviado cinco cotizaciones, es cero, dos veinticinco por mes, una y mentiras por algo así, o sea, quiero entender como la base, ¿Cuánto tiempo les lleva cada cotización? 
+
+29:10
+Speaker 4
+Realmente la cotización es relativamente ágil, o sea, te demoras un día máximo, lo que nos hemos demorado mucho es sobre todo estos tres meses en el cuello de botella inicial que es seleccionar los productos, no teníamos un portafolio, no teníamos con qué salir a vender y digamos que finalizando diciembre, todo el tema del mes de enero pues ha sido ya sentarnos con los clientes, empezar a cotizar, enviarles como empezar a ese proceso de cierre de ventas. 
+
+29:40
+Speaker 3
+Listo. ¿Base de datos de clientes? 
+
+29:42
+Speaker 4
+Tenemos base de datos, tenemos el CRM Notion, donde básicamente pues está toda la información de los clientes con su número de contacto, su nombre completo, el nombre de la empresa, el proyecto, varias variables. 
+
+29:56
+Speaker 3
+¿Tienen bases de datos de clientes, de prospectos que quieran atacar? 
+
+30:01
+Speaker 4
+Sí, sí, sí, sí, sí, eso los tenemos. El CRM pues también como cualificado sobre posibles clientes queremos atacar, clientes que ya hemos contactado, clientes que son calificados, clientes que tenemos en cotización, clientes que tenemos en diseño, leads ganados, leads perdidos y demás. 
+
+30:21
+Speaker 3
+OK, ya. 
+
+30:28
+Speaker 5
+Rubén, bueno y equipo, lo que me gusta verlo un poquito como en un P Entonces arriba, top line revenue, ¿Ustedes cómo venden? ¿Cómo funciona revenue? 
+
+30:43
+Speaker 1
+Como si Dan, explícame tu pregunta, ¿Cómo funciona el revenue? 
+
+30:47
+Speaker 5
+¿Cómo generas plata? ¿Cómo lo describes? 
+
+30:50
+Speaker 1
+Creando, o sea, nosotros lo que hacemos es que compramos un producto en China, hacemos un markup y le vendemos a un comprador en Colombia o pues ojalá en otros países aquí en Latam, esa es nuestra forma de revenue. 
+
+31:03
+Speaker 5
+¿Y cuál es el Cox? Los productos que apoyan eso, esa actividad. 
+
+31:11
+Speaker 1
+Amplía los o sea, la búsqueda de un proveedor certificado con la calidad correcta, un transporte de una logística internacional impecable, un seguimiento a la calidad post venta y posiblemente una instalación del producto, pero. 
+
+31:28
+Speaker 5
+Solamente haces revenue en la intermediación posterior a la venta. Estoy entendiendo que hay otros acompañamientos, entonces. 
+
+31:38
+Speaker 1
+Van a haber diferentes modalidades en donde podremos ganar. Quizás uno de esos puede ser la logística internacional. Por la experiencia de Tomate, quizás podemos hacer una ganancia pequeña. Y más allá de eso, pues estamos en varios proyectos de vivienda de interés social donde queremos hacer parte de la instalación del PRO que les vendimos y marginaríamos también. 
+
+32:01
+Speaker 5
+Fuentes de renovación. Actividades que apoyen directamente el revenue. Operación general ¿Que requerís para poder hacer eso? Supongo está todo este registro, información, procesos de facturación, supongo, eventualmente contabilidad, obviamente deberían estar manejando. Digamos que el principal en este momento está en el revenue porque no hemos hecho ventas. Y la razón por la cual no hemos hecho ventas es porque el proceso de consolidar la información para poder cotizar tiene cueros de botella. Ese es el chicharrón que ustedes tienen ahorita. 
+
+32:47
+Speaker 1
+Sí, correcto. 
+
+32:48
+Speaker 5
+Y ese fue todo el proceso paso a paso que acaban de escribir. Si nosotros logramos de algún modo colaborarles y en equipo resolvemos el tema del proceso de cotización para que sea mucho más rápido, eventualmente entonces ustedes tendrán. Se estresará la organización en otras partes de CPIG. 
+
+33:13
+Speaker 4
+Correcto. 
+
+33:14
+Speaker 5
+Pero eso no. Digamos que el foco 100% tiene que ser en este momento, que ese proceso de cotización sea eficiente y que tenga un turnaround lo más rápido posible. 
+
+33:25
+Speaker 1
+Yo soy más eficiente, hago más cotizaciones, tengo más revenue y con eso después. 
+
+33:30
+Speaker 5
+Va a tener problemas con la facturación, que son buenos problemas para tener. Para tener problemas en la contabilidad, en back office, todo se va a empezar a estresar y después vas a tener que meter sistemas allá. Bien, pues yo creo que para mí está claro, daniel. No sé, hay varios next steps, pero uno potencialmente, daniel, es mapear todo esto y enviarles una especie de diagnóstico al equipo. No sé si lo quiere manejar así, daniel, o cómo lo ves. 
+
+34:00
+Speaker 3
+Hay una cosa. ¿Cuántas cotiz? Es decir, ¿Cómo están evaluando su proceso de venta? 
+
+34:15
+Speaker 1
+No estamos evaluando, la verdad. OK. 
+
+34:18
+Speaker 3
+¿Cómo es el proceso de venta? 
+
+34:21
+Speaker 1
+Nuestro proceso de venta es hacer un discovery con una posible empresa. Hay varias modalidades que nos interesan, que uno son estructuradores de. Estructuradores de proyectos inmobiliarios, constructoras, no sé cuál sería la otra. 
+
+34:40
+Speaker 4
+Nosotros tenemos, Estamos atacando varios, obviamente es el BB, que son empresas constructoras, estudios de arquitectura, desarrolladores de proyectos propios, operadores de rentas cortas, tenemos también retailers, por eso les decía que hay como muchos nichos con los cuales nosotros estamos atacando. 
+
+35:06
+Speaker 3
+Y pues vamos a hacer una cosa, vamos a hacer esta vaina práctica. Número de industrias, por número de clientes, por número de llamadas, por número de reuniones. Si no tiene ese número en la cabeza, su cabeza tiene que estar enfocada. 
+
+35:21
+Speaker 2
+En eso. 
+
+35:23
+Speaker 3
+Porque así ya no volvemos esto subjetivo, sino objetivo. ¿Si el foco es generar cotizaciones, cuántas a la semana? 
+
+35:33
+Speaker 4
+Yo creo que deberíamos estar sobre las cinco, diez obtenciones semanales para llegar a. 
+
+35:39
+Speaker 3
+Eso, con cuántos clientes tiene que salir, o sea cuántos, con cuántos clientes se tuvo que haber reunido. 
+
+35:47
+Speaker 4
+El doble, casi el doble. 
+
+35:52
+Speaker 3
+¿Listo, eso es una base para que usted tenga eso quiere decir, para tener 5 cotizaciones usted se tuvo que haber sentado con 10 clientes, para tener 10 clientes tuve que haber contactado 20 hoy la base de datos de contactabilidad, en cuántos clientes, cuántos contactos tengo? 
+
+36:08
+Speaker 4
+Tenemos cincuenta y cinco clientes en este momento en nuestra base de datos de CRM. 
+
+36:16
+Speaker 3
+Si quiero llegar a esos números, probablemente yo tendría que tener algo para empezar a contactar a esa gente, pero eso me va a durar dos semanas, entonces eso va a abrir un nuevo proceso que es salir a buscar nuevos clientes. 
+
+36:29
+Speaker 5
+Daniel Yo creo que si el proceso de cotización no está firme, no tiene sentido generar más leads. 
+
+36:36
+Speaker 1
+Es que en nuestro funnel comercial, digamos que si le faltan 14 millones de cosas. Lo que pasa es que nosotros estamos en una industria donde si no pulimos muy bien esos primeros pedidos, la vamos a cagar. Por eso yo no salía a buscar 14.000 clientes, porque me toca. 
+
+36:52
+Speaker 3
+Perfecto, está perfecto. Lo que pasa, lo estoy haciendo el símil es simplemente para entender el objetivo de buenas cotizaciones enviadas a la semana que en algún punto me van a empezar a dar ese ritmo. Como que ese tiene que ser baseline, de para atrás. 
+
+37:07
+Speaker 4
+Sí, por ejemplo nosotros en nuestra cabeza tenemos para el Q como plan de trabajo, obviamente después primero generar nuestra página web, tener nuestras redes sociales y a partir de ya poder empezar a generar pauta para que lleguen otro tipo de leads diferentes. ¿Por qué? Porque nuestra base de datos de leads en este momento se compone de un tema de networking, el networking que tiene Rubén, el networking que tiene Diana, el networking que tengo yo. ¿Después claramente digamos que, y pues nos encontramos digamos que con el primer mes donde no teníamos insumos para salir a vender, o sea, no había portafolio, no había nada, entonces pues ha sido como. 
+
+37:44
+Speaker 1
+Un proceso escalonado, no? 
+
+37:48
+Speaker 3
+Está perfecto, yo estoy sufriendo lo mismo, entonces tampoco les puedo decir nada, me. 
+
+37:53
+Speaker 4
+Lo estoy diciendo a mí también, pero. 
+
+37:56
+Speaker 3
+Listo, bien, súper claro. Bueno. 
+
+38:03
+Speaker 1
+¿Cuáles son los pasos a seguir? 
+
+38:04
+Speaker 5
+Lo documentamos, Rubencho, le mandamos unos flujos, vemos que podemos montar con daniel hablamos, qué soluciones, a ver, se me ocurre un par de approaches, daniel, pero pues lo revisamos y la idea es literar, uno puede ir construyendo para descubrir lo que realmente necesitan, porque ustedes tienen en mente algo, pero de pronto ese algo no es realmente lo que más funciona. Momento del uso, Si, tenemos que irlo pivoteando, pero creo daniel, que el proceso es así, mandamos ese diagnóstico, yo mando. 
+
+38:49
+Speaker 1
+Aquí estamos para hacer caso, así que lo que digan, vamos de sumisos, aprovechen. 
+
+38:57
+Speaker 3
+Hay una cosa que me encantaría si me los pueden mandar, es decir, piénsenlo así, si yo entrara voy a trabajar a kompass. ¿Qué información y qué documentos y qué archivos debería tener acceso para no tenerlos que interrumpir todo el día preguntándoles dónde está qué cosas? ¿Con esa pregunta y si cada uno de ustedes la resuelve, afortunadamente son tres personas, todos ustedes van a tener unos drives en unos documentos, en unas cosas específicas? Móntenlo dentro de la carpeta drive que nos van a compartir una carpeta por cada una de sus cabezas y monten los documentos que ustedes creen que son los relevantes a entender. La operación, ¿Eso qué significa? 
+
+39:48
+Speaker 3
+Cotizaciones, proveedores, productos, porque ya hicieron todo ese levantamiento, pues estamos, ya hay un reguero de piezas de Lego que podemos empezar a armar, lo que significa que si ustedes ya mandaron una cotización específica para un servicio específico, para un tipo de cliente específico, pues podrían hacerlo más rápido en otra industria similar. 
+
+40:17
+Speaker 4
+¿No? 
+
+40:19
+Speaker 1
+Sí, y lo bacano es que como viste en Bucaramanga, pues esto no se va a centrar solamente en esta industria, entonces tiene que ser replicable. 
+
+40:30
+Speaker 3
+Lo más importante, consejo que nos están dando nosotros, escojan un nicho, uno, o sea en este momento tienes venta cero, concéntrate en uno. 
+
+40:44
+Speaker 1
+El 85% de sus esfuerzos están en. 
+
+40:47
+Speaker 3
+Un nicho, es construcción bis. 
+
+40:52
+Speaker 1
+Mobiliario para decoración y acabados, no importa el estrato. Perfecto. 
+
+40:59
+Speaker 3
+Bien, ustedes tienen página web, pero. 
+
+41:02
+Speaker 1
+Estamos esperando nuestro branding que ya casi. 
+
+41:04
+Speaker 4
+Está listo. 
+
+41:07
+Speaker 1
+Porque el loguito que hice yo, el chat GPT, fue rechazado por. 
+
+41:14
+Speaker 3
+Listo, bien, me queda súper claro. 
+
+41:17
+Speaker 1
+Listo. Oigan, muchas gracias. Quedamos pendientes entonces. 
+
+41:20
+Speaker 5
+Te toca probar enano, banana, de pronto. 
+
+41:26
+Speaker 1
+Algo bien jalado y además esto es una industria que tiene mucho diseñador, arquitecto, entonces tiene que entrar por los ojos. Muy bien, entonces tenemos que tener cuidado. 
+
+41:34
+Speaker 3
+Listo. ¿Cuándo nos pueden enviar esa carpeta? 
+
+41:46
+Speaker 5
+Los corazas de ustedes traen invitación de los tres, ¿Cierto. 
+
+41:52
+Speaker 1
+Muchacho? 
+
+41:52
+Speaker 3
+¿Dani, te quedas? 
+
+41:54
+Speaker 1
+Mil gracias. 
+   Transcribed by https://fireflies.ai/

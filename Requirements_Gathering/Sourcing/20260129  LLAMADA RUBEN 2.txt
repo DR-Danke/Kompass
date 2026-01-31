@@ -1,0 +1,666 @@
+Speaker 1 - 00:00
+Dejar todo ordenado, avanzar, ese es el task. ¿Vamos a montar un canal de YouTube?
+Speaker 2 - 00:27
+¿Polis listos?
+Speaker 3 - 00:35
+¿Sí, pero pues.
+Speaker 1 - 00:39
+Ya que los viste, qué pensás con los flujos? ¿Es decir, revisaste esa y qué onda?
+Speaker 3 - 00:49
+¿No, pero no que yo te digo así mi detalle así paso a paso.
+Speaker 1 - 00:53
+No, o sea cualquier cosa para vos.
+Speaker 2 - 01:00
+Ha visto?
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+1 / 29
+Speaker 3 - 01:05
+¿O sea la primera parte me pareció que estaba muy detallada y está bien pero en la parte del excel ya.
+Speaker 2 - 01:10
+Me empiezo a enredar Listo, la parte del Excel.
+Speaker 1 - 01:16
+Cuál es?
+Speaker 3 - 01:17
+¿La primera, abrir los catálogos en los diferentes formatos mire muy al detalle, muy al detalle Proceso de servicing
+de proveedores, el paso 1, los demás.
+Speaker 1 - 01:29
+No porque es el paso que sabes.
+Speaker 3 - 01:33
+Correcto, quizás en lo demás me enredo más y quiero más profundidad eso no.
+Speaker 1 - 01:38
+Necesaria es decir vos tenés en tu cabeza lo que hace tu gente pero no sabes realmente qué es lo que hace tu
+gente.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+2 / 29
+Speaker 3 - 01:46
+No? Sí, porque lo hago con ellos ahora meto en todo.
+Speaker 1 - 01:54
+¿Ok.
+Speaker 2 - 01:56
+Listo.
+Speaker 3 - 01:59
+Entonces Netlify se llama esto? 800, hagámosle, soy todo 800 ¿Qué eso? ¿No pues proveedores en base según lo.
+Speaker 2 - 02:19
+Que pusieron Listo, entonces dice acá iniciar búsqueda de proveedores solo para ver que esto esté bien entendido
+Ferias digital, referidos, visitar feria en China, búsqueda de Internet, contactos existentes, eso está claro cierto?
+¿Recopilar tarjetas de catálogos, algoritmos, pues no decía algoritmos pero pues operan en red de una forma
+organizada para traer la información Solicitar portafolio, creas el Excel registrar datos de los proveedores, te trae
+información desde websites, wechat, email, linkear, catálogo, PDF, bueno lista de precios, todo eso te suena a que
+sal algo que haces hoy en día?
+Speaker 3 - 03:05
+¿Sí, correcto.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+3 / 29
+Speaker 2 - 03:07
+Pero envía lista, no pasa el proveedor a veces muy raro envía la lista completa, realmente dice qué es lo querés
+saber? Si no te dice y entonces vos seleccionas producto del catálogo, se envía la selección del proveedor, el
+proveedor cotiza solo selección y agregas a base de productos y tenés registrado proveedores catálogo, aquí hay
+más detalles, el catálogo, formato es PDF, Excel, conversaciones, words, revisión, manual de productos, es decir
+imágenes y demás referencias pues toda la curaduría aquí productos interesantes Excel, columnas en excel con
+referencia moq. Mx proveedor para completar información, no sé si eso lo estén haciendo para double check que
+toda la información esté bien.
+Speaker 3 - 04:10
+De pronto ese paso sobra, pero digamos que de pronto mandamos a pedir algún dato que no tengamos de lo que
+estaba en imagen, referencia, MOQHS, code, pero enviar a proveedor para eso, para pedir.
+Speaker 2 - 04:22
+Un dato adicional, lo que hace falta. Bien, listo. Pero no es el Excel. Tirame estos datos. Calidad de la imagen, Esto
+es una parte crítica. Entiendo buena. OK, pues se usan, ¿No? Entonces toca hacerle todo, organizarlo, quitar el
+fondo, agregar en sus materiales y repetir esto. Por cuántos productos estés curating por su completo y esto está
+listo para cliente. Esto suena súper pesado, pero eso bien largo, no sé si me equivoqué. Listo, la cotización,
+correcto, te escucho.
+Speaker 3 - 05:07
+¿No, no es correcto el proceso dónde vamos?
+Speaker 2 - 05:11
+Bien, cotización. Ustedes han cotizado, eran cinco veces.
+Speaker 3 - 05:18
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+4 / 29
+Cinco cotizaciones.
+Speaker 2 - 05:23
+Tipo de servicio, cliente solicita cotización o ustedes van como esta parte de pronto está un poquito adelantada,
+¿Como enviaron ese proceso de enviar la cotización a los cinco clientes? ¿Fue, tocaste la puerta de varios y les
+dijiste tengo esto y te dijo cotizame o cómo fue?
+Speaker 3 - 05:45
+Sí, o sea, digamos que hay un proceso adicional que es sentarse con el cliente, entender de qué nicho es y saber
+que nuestro portafolio hace match con las necesidades de ellos y nos sentamos y les mostramos el portafolio
+completo. Y lo primero para cotizar yo que es el timing del que nos sentamos con el cliente en cuanto a su
+proyecto. ¿A qué me refiero? Estamos a tiempo de producción, tránsito marítimo y que el producto llegue a tiempo
+para cuando ellos quieren lanzar su proyecto. Si llegamos tarde y no le servimos, no estamos en nada. Cuando
+eso es así, el cliente escoge el número de ítems por SKU en nuestro portafolio y nos dice quiero esto. Vamos
+nosotros a armar la cotización dependiendo del Incoterm y le entregamos un documento que es una forma, una
+cotización oficial.
+Speaker 2 - 06:38
+Y ustedes venden a plazo.
+Speaker 3 - 06:43
+Sí. Entonces ¿Qué pasa? Nosotros vendemos dependiendo el Incoterm y lo que sea, el cliente dice listo, confirmo
+la orden, que es lo que esperemos que pase esta semana con la primera Y tenemos diferentes métodos de pago y
+idealmente es que el cliente un 30% anticipo y pague lo demás cuando la mercancía llegue a Colombia. ¿Si
+financiamos al cliente, esa es tu pregunta?
+Speaker 2 - 07:06
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+5 / 29
+Listo. Diana aseguraduría Después de todo ese tema que no está aquí identificado, digamos que para esto esta
+llamada, porque aquí hay un primer corte de procesos, pero eso no son, entonces aquí nos estamos enterando de
+lo que no se tocó en la primera llamada. Tiene tipo de servicio, curaduría, entender necesidades del proyecto,
+definir paleta, estilo, no sé, seleccionar productos apropiados, Excel, maestro o cliente escoge del catálogo, recibir
+selección del cliente en esa llamada es como una llamada de hey usted que necesita o esas reuniones, ustedes
+que necesita, OK, más o menos esto, entonces ustedes van, preparan esto y se lo envían.
+Speaker 3 - 07:54
+Si, digamos que es una mezcla de las dos cosas ¿No? Y por eso existe Diana, porque Diana se va a entender muy
+bien con la directora, arquitectura o diseño interior de la contraparte del cliente, entonces sientan ellas dos, eso
+idealmente sea presencial y empiezan a hablar de todo lo que necesitan, esto sí, esto no, oye te aconsejo esto,
+mira tengo esto, bueno, oye casualidad tienes esto, sí, y empiezan a hacer como digamos que esa selección en
+conjunto y seleccionan lo que necesitan de nuestro portafolio y en muchos casos dicen hey estos dos o tres ítems
+no los tienen, si los tienen sería más completo para este paquete y para esta orden y salimos a buscarlos, nos
+demoramos mucho, agregamos y completamos ese pedido.
+Speaker 2 - 08:38
+¿Bien, seleccionan los productos de esta base de datos de productos, sistema jala datos automáticamente? ¿No
+creo que un sistema ahorita que jale datos automáticamente, entonces hay que ir y traer los datos, cierto o tiene
+algún sistema?
+Speaker 3 - 08:55
+No, digamos que Alejo de alguna manera tiene como unos condicionales en el Excel que armamos donde tiene
+todos los ítems y uno va poniendo sí, no y va jalando los que uno pone. Sí, y va jalando la imagen y el SKV, el precio
+del archivo master, pero pulirlo mucho.
+Speaker 1 - 09:13
+Bien.
+Speaker 2 - 09:16
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+6 / 29
+Descripción, cantidad, valor, FOV, aplicar fórmulas de pricing. ¿Tienen fórmula de pricing?
+Speaker 3 - 09:24
+Pues tenemos digamos que un Excel con todo muy formulado, Sí, si, es una fórmula de pricing, sí.
+Speaker 2 - 09:32
+Aranceles más logística más margen, precio final, COP, asociar fábrica por producto, revisar cotización, el cliente
+aprueba o no, exportar a PDF y se le envía por correo WhatsApp, cotización enviada, correcto. Entonces ustedes
+básicamente generan una cotización de ese excel proceso de excel, PDF y listo. ¿Cuáles son los valores? Bueno,
+estos son los assumptions aquí que no sé si tengamos que mirar, pero bueno, de aquí hay como todos unos
+flujitos de ciclo de vida que podemos saltarnos. Quería por ahora, estos son los nichos de clientes, constructoras,
+estudios de arquitectura, desarrolladores, estructuradores de rentas cortas, retailers. Si, más o menos eso.
+Speaker 3 - 10:35
+Sí, digamos. ¿Que faltaría ? Hoteles sería lo único que faltaría.
+Speaker 2 - 10:41
+Listo. Entonces en base a ese entendimiento, estos son los cuellos de botella que hay identificados por ahora.
+Entonces el 1, extracción de datos, entonces catálogos en múltiples formatos, PDF, Excel, Word, wechat,
+extracción manual del infortable form. Entonces pues tenés , no sé quién es, si Diana o Alejandro tienen que
+agarrar eso y empezar manualmente, alimentar la base. Ese es el dolor. Primero, identificado. Es el más grande.
+Speaker 3 - 11:09
+Sí, cómo Sí, hoy es el más.
+Speaker 2 - 11:14
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+7 / 29
+Grande presionando imágenes, imágenes de mala calidad, Entonces toca meterle la mano con Google Lens.
+Armado de portafolio. Es un volumen alto lo que está entrando por proveedor de esos. Esos listados, por decir.
+Speaker 3 - 11:38
+Sí, digamos que el armado del portafolio si tiene que ser algo muy manual, porque al fin y al cabo es algo curado,
+¿No? Entonces no creo que podamos automatizar mucho. Es porque está, donde entra Diana, Alejandro, que en
+base a su conocimiento filtran de lo que los proveedores nos muestran en cuanto al gusto de ellos y lo de lo que
+los clientes nuestros necesitan y lo meten en un portafolio nuestro.
+Speaker 2 - 12:05
+Pero uno podría ir. Ese comportamiento, ese gusto, no se puede volver un algoritmo.
+Speaker 3 - 12:12
+Sí, sí. Como si no entrena a la AI para que entienda el gusto de estos personajes o de los nichos, o esto es más
+para Bic, esto es más para Interiorismo, eso es más para hoteles y no se puede entrenar.
+Speaker 1 - 12:25
+Sí, y ponete a pensar esto. Esto es si vos querés que tu proceso de venta sea solamente Diana y Alejandro en la
+calle, pero vos podés, una vez ya estás digitalizando el producto, ¿Cierto? Los productos, el usuario o el cliente
+puede subir una foto de un espacio, seleccionar los diferentes productos y setear lo que el man quiera comprar.
+Speaker 3 - 13:02
+Si, lo que pasa es que yo estoy pensando, cuando usted me hablan de armar portafolio, el filtro de lo que me
+mandan las fábricas versus lo que yo le quiero mostrar a mis clientes. Exacto. Estoy equivocado.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+8 / 29
+Speaker 1 - 13:14
+Está bien, pero finalmente eso es una base de datos que vos decidís al front, decir marica, muestre 5, muestre
+100.
+Speaker 3 - 13:26
+Es un ecommerce.
+Speaker 1 - 13:28
+Es un ecommerce. Me interesa zapatos grises, azules, moradas. En vez de zapatos, pues va a ser la ventana de la
+marquesina, va a ser de tal. ¿Mi acabado es así, si me entiendes? Lo mismo que le mostraste a Huevos Kike, pero
+en vez de que sea una presentación, el man llega a una página, sube su casa modelo y va cambiando ítems. Y vos
+decís tengo disponible, no tengo disponible, pero en fin, estoy en rato. Sigamos.
+Speaker 2 - 14:01
+Bien, digamos, la reunión aquí es para afinar entendimientos, eso es todo. Este es el entendimiento inicial.
+Distribución de tiempo, entonces. Tiempo actual, supuestamente según nuestra reunión de hoy, 80% armando el
+portafolio, 15% cotizando, 5% vendiendo. Más o menos, ¿Te suena?
+Speaker 3 - 14:22
+¿Dónde estás con esos porcentajes?
+Speaker 2 - 14:25
+En la página, en la sección 5.
+Speaker 3 - 14:28
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+9 / 29
+Yo estoy viendo.
+Speaker 2 - 14:32
+¿Y distribución de tiempo, si lo ves? 80%.
+Speaker 3 - 14:40
+No, tampoco tan animal. No creo que Armando Portafolio fue el 80% el primer mes de trabajo. Yo que hoy por hoy
+no es así. OK, ya podría ser un. 25. 50.
+Speaker 1 - 15:00
+25.
+Speaker 2 - 15:01
+25 en portafolio, 50 cotizando y 50-25 vendiendo, lo tenemos. ¿Pero igual ese 25 sigue siendo alto o te parece
+normal?
+Speaker 3 - 15:19
+¿El 25 de portafolio, decís vos?
+Speaker 2 - 15:21
+Sí, correcto.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+10 / 29
+Speaker 3 - 15:24
+Sí, sí, es un poquito alto, pero no me parece escandaloso.
+Speaker 2 - 15:27
+¿Cincuenta por ciento cotización, decís? ¿Cincuenta por Ciento cotización?
+Speaker 3 - 15:32
+Sí. Eso es demasiado tiempo.
+Speaker 2 - 15:34
+Y por. OK, bien. Eso es lo que. Entonces el proceso es la cotización, no el portafolio.
+Speaker 3 - 15:43
+Esas dos juntas. Y hoy por hoy la cotización lo es porque estamos puliendo todo el tema de la matriz financiera, de
+cómo atinarle al número correcto, involucrando partidas arancelarias, el margen queremos para no pagarla con el
+cliente, meter fletes internacionales, fletes nacionales, meter digamos que todos los costos de las inspecciones.
+Estamos identificando todas las variables para llegar a un número correcto. Hemos gastado volquetas, una
+integra, obvio, 100%.
+Speaker 2 - 16:17
+Sino que consorte, o sea, además van y curan, es mejor que Integra.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+11 / 29
+Speaker 1 - 16:23
+Es una integra en esteroides.
+Speaker 3 - 16:26
+Exacto, 100% total. Lo que pasa es que tiene mil variables con las que yo no puedo cometer un error para cotizar,
+porque donde la embarre perdemos plata, o dos, le cotizó muy alto al cliente, o tres, tiré muy bajito, ¿Si me
+entiendes?
+Speaker 2 - 16:44
+Entonces, tu tema de cotización hoy en día es el mayor dolor de cabeza. Pero en la reunión de esta mañana no
+sonaba así, sonaba más la curaduría. Pero bueno.
+Speaker 3 - 17:01
+Pero digamos que para Diana su dolor de cabeza más grande es recibir información de fábricas, curar, armar
+portafolio. Para mí, por ejemplo, es la cotización, porque no quiero cagarla con el cliente y para lejos son las dos
+cosas.
+Speaker 2 - 17:16
+Entonces esta mañana, como ellos pueden participar más, vimos más sus dolores que el que vos estás
+comunicando ahorita.
+Speaker 3 - 17:23
+Pero bueno, lo que pasa es que yo voy a llegar a tener un Excel perfeccionado, esa cotización y eso ya empieza a
+fluir y yo suelto.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+12 / 29
+Speaker 2 - 17:33
+Entonces aquí tenemos el pipeline, listo. Entonces, entrada, listo, PDF, excel, wechat, motor ocr, extracción sería
+útil. ¿Que le meto? Una base de datos, genera portafolio más cotización, resultado, cotización en minutos, eso es
+el ideal. Actualmente esto toma días. Recibís PDF, abrís manual, seleccionadas copias extra, buscas imágenes,
+quitas fondos, creas slides, repetir aquí por 500. Bueno, es una exageración. Portafolio manual.
+Speaker 1 - 18:05
+Creo que algo importante a revisar, Dani, es decir, arriba sé que son los pasos, pero creo que cada uno de esos
+pasos tiene subpasos para generar, es decir, la cotización y el portafolio. Como que siento que lo de arriba está
+perfecto como proceso. Debajo de esto hay ciertos checkpoints que se tienen que hacer.
+Speaker 3 - 18:31
+OK, Pero va.
+Speaker 2 - 18:35
+De acuerdo. Ahora, ¿Cómo sería con AI? Sí sería en teoría, subís documentos, imágenes, conversaciones,
+extraemos los datos, guardamos en base de datos, tenemos el portafolio por ejemplo, todo lo que haga Diana de
+editar y ajustar, eso seguro tiene unas. ¿Ella podría meterle o documentar las reglas, Rules of thumb, pues que
+sigue para eso? Si una imagen que tenga este azul, yo lo cambio por este, no sé, este otro azul, en fin, no tengo ni
+idea, pero lo que hagan en curaduría probablemente tenga sentido. Habrá cosas que no se pueden estandarizar,
+pero habrá cosas que. Portafolio automático. Entonces, lo que yo estoy viendo es el portafolio. Esto suena como a
+los. El tema de las SS, Dani.
+Speaker 2 - 19:33
+Entonces, portafolio es lo que te cae del proveedor, luego él hace su lo pagas por tu excel y te da la cotización,
+pero si vos, si tu portafolio no está con la información en tiempo, no puedes empezar a cotizar. ¿Entonces la
+pregunta es donde atacar primero? ¿Si se ataca por acá todo este tema o entrar en este tema aquí específico de
+cotización que estás mencionando? ¿Pareciera que fuera la cota.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+13 / 29
+Speaker 3 - 20:10
+Para vos portafolio qué significa? Analizando lo que nosotros hacemos es tu.
+Speaker 2 - 20:15
+Portafolio de productos marica, todo este proceso es recibir la información, curarla y guardarla en tu base de
+datos con referencias, moq, imágenes.
+Speaker 3 - 20:30
+O sea es que lo que yo quiero y lo que yo me sueño para que a ver si me entienden, es lo siguiente, nosotros puede
+que día de por medio recibamos información de fábricas nuevas, esas fábricas nuevas nos mandan todo lo que
+ellos tienen para.
+Speaker 1 - 20:47
+Vender, o sea si les mandan los productos.
+Speaker 3 - 20:51
+Sí, sí, la mayoría sí. Sí, muchos también dicen no, escoge tú y te cotizo las mediodivas, pero digamos que yo recibo
+productos nuevos y brochures de fábricas semanalmente varios, yo quiero tener en un documento biblia general
+todo eso en un portafolio todo. Sí, pero es que la palabra portafolio, digamos que en este mundo lo que venía
+aprendiendo es que ya tenemos dos portafolios, te doy el ejemplo, unos portafolios de hospitality para rentas
+cortas y hotelería y un portafolio para vivienda de interés social que es los que hemos venido curando respecto los
+nichos y clientes que no lo piden. Yo no le puedo mandar todo de.
+Speaker 1 - 21:38
+Reguero, o sea es un portafolio.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+14 / 29
+Speaker 3 - 21:42
+Exacto, Lo que quiero explicar es que mi sueño es que todo lo que llega con información de una fábrica,
+productos, precios y demás, llegue a esa biblia general automatizado y nosotros podamos ir haciendo nuestros
+portafolios curados después que seguramente también se puede con ella dándole unos pronto unas
+especificaciones de lo que quiero que me filtre.
+Speaker 1 - 22:10
+OK.
+Speaker 2 - 22:15
+Si, entonces vos decís la información base para crear la base de datos grande, de salen que es filtrarla para
+algunos perfiles, que eso es portafolio filtrado para los casos de uso que dijiste y en base a eso cotizas, agarras
+eso que es el portafolio supongo eso es lo que te sentas hablar o Diana se sienta hablar o alejándose sentado con
+cliente que crees y de hay una selección y vos decís, OK, te cotizo. Ese proceso de te cotizo, agarras el portafolio,
+le opera algo y algo sale. Eso que opera son aranceles, no sé, fate todos los temas. El all in cost pues de traerlo de
+origen hasta acá, más tu markup.
+Speaker 3 - 23:10
+Correcto.
+Speaker 2 - 23:12
+Esa fórmula es la que vos estás organizando en tu Excel. ¿Eso no te preocupa? Porque lo que estoy entendiendo,
+porque lo clave es que esta vaina esté bien para habilitar ese proceso.
+Speaker 3 - 23:24
+Correcto.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+15 / 29
+Speaker 2 - 23:26
+Listo. Entonces ya terminando creo, tenemos arquitectura del sistema actual, WeChat, email, Google Drive, Excel,
+productos, Notion, Excel cotizador, PowerPoint, portafolio que se le envía pues al prospecto propuesto. Entonces
+tenemos un motor AI, bases de datos de proveedores y productos, Generador de portafolios. Eso sería la base de
+datos que vos decís de pronto es una. Correcto, son dos, puede ser proveedores de un lado y del otro lado un ID de
+proveedor que mapea todos sus productos y alguna vaina supongo, estilo Jason, Dani o no sé cuál es el esquema
+que guarda las imágenes. Generador de portafolios, B de clientes. Entonces yo llamo el cliente, combino esto, aquí
+hay unas reglas de todo lo que hablamos del sur, del all in cost y te da la cotización.
+Speaker 2 - 24:24
+Entonces tendrías que tener un maestro de clientes, tu maestro de proveedores, maestro de productos,
+proveedores, condiciones, no sé, específicas de clientes, como que manejarlo y listo. De aquí para. Creo que son
+todas las temas técnicos más o menos pues es el entendimiento que tenemos sumándole lo que vos estás aquí
+precisando. ¿Pero cómo ves nuestro entendimiento? ¿Cómo lo ves hasta ahora?
+Speaker 3 - 24:51
+¿Lo veo bien? Sí, lo veo perfecto. Claro, tiene sentido.
+Speaker 2 - 24:59
+Listo. El dolor es montar este motor de acá hasta acá, de aquí hasta acá. Eso es lo que. Lo que vos está
+necesitando ahorita este pedazo de acá, digamos que es primero tener tantos clientes en este momento o
+prospectos para cotizar. Y este tema.
+Speaker 3 - 25:18
+Hay una cosa, hay una cosa adicional que yo creo que debe ser muy fácil y como raro Dani me va a decir papitas,
+eso ya se ha inventado, pero yo sé que vale la pena mencionarlo y es que yo, digamos que pierdo probablemente
+una semana cuando estoy en China. Yo sé que hay mil apps de lectores de business cards y me gustaría conectar
+esas apps a la extracción de información y a nuestro mail, porque yo siempre como que les va a contar lo arcaico
+que es toda la feria. Yo mi cuadernito, como lo hecho toda mi vida, cuando veo ferias chinas, me siento en casa,
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+16 / 29
+llegó con 120 tarjetas chinas, cada tarjeta tiene al lado todo lo que hablé con el proveedor y toda la información.
+Speaker 3 - 26:03
+Pero si yo logro tener apenas, yo voy tomándole foto a cada business card de cada tarjeta en la feria y eso va
+llegando a mi mail y le va mandando un mail al correo que está en la tarjeta de Hello, remember, we met in China,
+bla, bla. My name is Rubén, please send me all of your brochures and products. Eso lo voy adelantando y la
+persona que esté en Colombia y mi equipo le va llegando todo lo que yo voy conociendo en China. ¿Qué pasa? Yo
+llego a Colombia y yo tengo todos los brochures y toda la información desde que voy viajando en ese avión y gane
+tiempo.
+Speaker 3 - 26:34
+No, tengo que llegar a Colombia, sentarme, abrir mi cuaderno, ver proveedor por proveedor, meterlo en el Excel, me
+gano una volqueta de tiempo y mi equipo empieza a ver toda la información que yo voy recopilando.
+Speaker 1 - 26:43
+Ya.
+Speaker 3 - 26:47
+Hace sentido.
+Speaker 1 - 26:48
+Hace sentido a una misma conversación de WhatsApp, vos subís la tarjeta del proveedor, las fotos y un voice note
+del producto, de lo que tiene que ir el correo. Eso por detrás coge todo ese paquete, en teoría, las fotos ya te van
+dando más o menos una idea de ese proveedor, qué tipo de productos maneja, tienes toda la información para
+actualizar la base de datos de proveedores y el sistema coge esa información y le manda un correo o lo guarda
+directamente en drive a tu equipo y después les manda un correo como equipo acaba de visitar tal usuario, tal
+persona tiene esto es lo que quiero que vean, estos son los productos que hay enviar. Ya eso.
+Speaker 3 - 27:28
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+17 / 29
+Sí, fantástico.
+Speaker 2 - 27:30
+Pero eso es una. Eso es una. Eso es un flujo de estos de. Para llenar. Eso es lo que es.
+Speaker 3 - 27:39
+Sí, exacto.
+Speaker 2 - 27:41
+Listo. Bien, pues la idea era tener una primera conversación, sacar un primer entendimiento, una segunda
+conversión para afinarlo y aquí entonces ver qué se podría montar. Entonces más o menos algunos ejemplos si
+podemos tener acceso.
+Speaker 3 - 28:01
+Claro, 100%.
+Speaker 2 - 28:04
+Listo, esto lo hemos venido como ya adelantando. Toca definir que lo que quieres hacer, ya más específico en
+base a estas conversaciones de lo que nosotros podemos proponerte, pues. Pero básicamente sería a grandes
+rasgos este esquema que aquí, este pedazo de acá de extracción. ¿Básicamente el problema que vos tenés
+ahorita es extracción y registro.
+Speaker 3 - 28:34
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+18 / 29
+Correcto?
+Speaker 2 - 28:34
+Entonces es data entry. El data entry que está haciendo en día es manual, un cinomático llenando campos.
+Speaker 1 - 28:42
+¿Cuánto le estás pagando al equipo?
+Speaker 3 - 28:46
+¿Cómo así?
+Speaker 1 - 28:47
+¿Cuánto ganan salario?
+Speaker 3 - 28:50
+Marica, ocho y medio y cinco, o.
+Speaker 1 - 28:55
+Sea, eso prestacional son diecisiete, dieciocho, poquito más.
+Speaker 2 - 29:02
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+19 / 29
+Y se va mucho tiempo haciendo data entry.
+Speaker 3 - 29:07
+Votando plata de tiempo valioso.
+Speaker 2 - 29:10
+OK, firme.
+Speaker 3 - 29:16
+Me imagino que Alejo no les ha mandado nada. ¿Como organizamos lo de la información para que tengan acceso
+ustedes?
+Speaker 1 - 29:23
+Es que vos sos el stakeholder interno del proyecto, entonces vos tenés que arreglar a tu gente, a nosotros danos
+un acceso con drive, en un drive y todo bien, nosotros nos encargamos de para atrás, pero de en, o sea, de tu
+puerta para adentro, a los dos, a dan que Dani ya tiene los dos, tenemos correo, danke y hola, están en el meet.
+Listo. ¿Puedes compartir de una vez y dar acceso al Notion para entender la estructura? Y nos tenemos que
+sentar a hacer una ¿Le podemos sacar Dani a ese Notion un access de API para colgar el MCP?
+Speaker 3 - 30:11
+¿Hago eso entonces? Perfecto.
+Speaker 1 - 30:14
+Listo pues.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+20 / 29
+Speaker 3 - 30:16
+Bueno, señores, muchas gracias.
+Speaker 1 - 30:17
+Chao, rey.
+Speaker 2 - 30:21
+Dani, ¿Que te voy a decir? Este tema aquí de 5 y 30. Cs tag, yo ya estoy en teoría trayendo el dato desde el web
+service, pero no sé cómo validarlo. Entonces este tema aquí, por ejemplo, el cumpleaños.
+Speaker 1 - 30:56
+Bueno, pero yo veré, yo estoy muy gordo, marica, entonces a mí me van a llevar un bol, si me entiendes, pero con
+lechuguita y con marica, un carbohidrato, Daniel. Y yo soy resi corrígido, no me vaya a traer otra mierda.
+Speaker 2 - 31:16
+Entonces, ¿Cómo se ve esto? Temas que no sé, No sé si realmente le estoy pegando al número. Ingresar render, sí
+que se.
+Speaker 1 - 31:39
+¿Vos estás usando el mío, no?
+Speaker 2 - 31:40
+Sí, no, este. Estaba teniendo problemas con esto de las cuentas y los accesos, entonces lo abrí con mi correo
+porque no me dejaba hacer commits.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+21 / 29
+Speaker 1 - 31:54
+Ya, a la puta mierda.
+Speaker 2 - 31:58
+Espérate que se despierte. Entonces aquí no ha cotización. Listo, siguiente. Bogotá, medellín, Esto no se. Después.
+Siguiente. ¿Bogotá? ¿Tipo de vehículo, esto creo que toca ajustarlo tipo de vehículo, carrocería, tipo de carga, 31
+toneladas, 150 millones de pesos, no, 50 millones de pesos, listo, entonces siguiente, estoy intentando agregar la
+última parte, siguiente aquí, entonces esta mierda de aquí es mock, esto me toca y la vaina es que esto no se
+puede sacar por API, la parte de toca.
+Speaker 1 - 33:19
+Desarrollarlo en algún lado son Excel, hay.
+Speaker 2 - 33:23
+Que bajar un Excel y a eso hacerle el análisis estadístico, eso es lo del robot que toca que entre y baje la data, pero
+este es el.
+Speaker 1 - 33:32
+Sisetag, supuestamente eso es lo que tendríamos que entrar a validar, este es el.
+Speaker 2 - 33:37
+Mínimo supuestamente para esta ruta con este tipo de vehículo y ese peso o lo que sea entonces me voy acá, me
+puse a mirar, supongo que aquí es donde no hace ese cálculo, creo que de pronto me toca cambiar el formulario,
+que sea tal cual, este camión, tres ejes, cargado, no sé qué tipo de carga, Bogotá, Medellín, horas de carga, esta
+vaina me faltó, no sé, ya ni me acuerdo, esto se.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+22 / 29
+Speaker 1 - 34:07
+Mencionó creo, si eso se mencionó en la última conversación de Juan David y eso entra como lo mínimo y lo
+máximo en cada descargue para tener ellos.
+Speaker 2 - 34:16
+El pan duet y luego, OK, y luego aquí dice costo total del viaje, 2 6 30 es el mínimo, cierto? Este es el mínimo, el
+sisetaco va a tocar preguntarles a ellos, este es.
+Speaker 1 - 34:34
+El floor, ese es el floor, correcto.
+Speaker 2 - 34:38
+Entonces yo tengo este dato, está mal, la API está respondiendo, pero está trayendo.
+Speaker 1 - 34:44
+Este dato, bueno, es decir, es una máquina weón.
+Speaker 2 - 34:54
+Pero pues huevón ya gana datos, ya es carpintería y pintura.
+Speaker 1 - 35:01
+Y.
+Speaker 2 - 35:01
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+23 / 29
+Bueno, entonces aquí está el man pone su margen, calcular cotización, margen sobre el piso, supuestamente el
+piso esto.
+Speaker 1 - 35:15
+Toca entrar como hacer, pero huevón, como NVP está, esto ya está mucho más adelantado.
+Speaker 2 - 35:20
+Que en Vivi y aquí ver proforma, esto toca ajustarlo, pero está, costo base de transporte, servicios adicionales,
+subtotal, margen comercial, obviamente este manejo comercial hay que quitarlo, aquí se lo vamos a dar al cliente,
+12%, OK, y ya, entonces estoy intentando solucionar el tema del de cómo sería ese análisis gaussiano y queda
+pues todo el tema de cotización, o sea, ese módulo sería afinarlo y listo, aquí está tu primerito por. To come to a
+meterle cariño .
+Speaker 1 - 36:06
+A un par de cosas del UI, pero huevón, yo creo que estamos, el.
+Speaker 2 - 36:10
+Comercial le encantó esto. El comercial entró, cuando me vio fue como.
+Speaker 1 - 36:20
+Denis, listo, bien chimba. Tengo tres cosas importantes que. Que pedirte o que bajar con vos. Ya. Sobre todo para
+conversar. Yo creo que esto como producto está. Y para cerrar esto confie. ¿Cuánto le vamos a pedir a este weón?
+Yo no me voy a bajar de cuatro lucas.
+Speaker 2 - 36:38
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+24 / 29
+Cuatro lucas es cuatro mil dólares.
+Speaker 1 - 36:43
+Y es como vea weón, le entrego el brazo extensivo desarrollo a esta velocidad definimos Scope of Work. Esto es
+más o menos. No tengo ni idea cuántos tokens te chupaste con esto y cuántas horas tuyas.
+Speaker 2 - 36:57
+¿Cuántos tokens? No hay ni idea.
+Speaker 1 - 36:59
+Ni puta idea.
+Speaker 2 - 37:00
+Usando Cloud Code, Cloud Max.
+Speaker 1 - 37:04
+OK.
+Speaker 2 - 37:05
+Y horas mías pues. Pues no sé, no la contabilicé la verdad.
+Speaker 1 - 37:10
+Bien, para que vayas tomándote. Yo no sé si ya lo pensaste, pero en el momento en que te den de baja de fin
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+25 / 29
+cargo, tu cuenta de fin cargo, tus proyectos, tus prompts y esas mierdas. Yo no hice el miedo de export.
+Speaker 2 - 37:22
+Data y un fucked pues mi Cloud Code es con mi cuenta de Gmail, marica, bien jugada.
+Speaker 1 - 37:31
+Yo si no lo hice así.
+Speaker 2 - 37:33
+Lo que pasa es que yo pago mi Cloud Max. Ya no lo pagas en cargo.
+Speaker 1 - 37:37
+Ya, listo. OK, listo, perfecto.
+Speaker 2 - 37:44
+De conversa, ¿Que es de conversa?
+Speaker 1 - 37:48
+¿Es muy difícil meterle un lado de sign up o creamos los usuarios desde base de datos por detrás?
+Speaker 2 - 37:54
+No pues lo más rápido es meterle los usuarios ya cuales son y los subimos.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+26 / 29
+Speaker 1 - 37:59
+Eso está en su pabei, ¿Cierto?
+Speaker 2 - 38:01
+Correcto.
+Speaker 1 - 38:02
+Listo. Bien. Entonces eso es uno. Dos, correr los ajustes de esta pelada de contratos que nos pidió. OK, Estoy
+organizando. Básicamente lo que estoy haciendo esto. ¿Qué fue lo que se ha vendido? Cada uno de los servicios
+vendidos en Doria Medina, cuánto se cobró, qué cantidad, cuál es el costo total, en qué estado está, cuál es el
+impacto, cuál fue el esfuerzo, cuánto tiempo me tomó, cuál era el objetivo, cuáles entregables claves, fechas,
+límites de compromiso, avance, si está, si se involucra un externo o no, si está y acá le va a determinar otro si está
+apagado o no está apagado. Como para tener una visión completa de huevón, que se ha pagado, que no, que se
+recibió y qué demás. Pero esto es básicamente todo lo que se está trabajando con estos maricas.
+Speaker 2 - 38:55
+Listo. Es el backlog. Perfecto.
+Speaker 1 - 38:57
+Listo. ¿Sobre backlog entonces hoy estoy atorado en los dashboards y en los KPIs antes de que este marica se
+vaya, OBM con Tomás me dijo, marica, yo quiero tener los KPIs de mi empresa, me dijo que me los iba a
+solucionar y yo le mostré a Samuel, le había mostrado? ¿Este una versión de esto y me dijo si usted es capaz de
+que yo pueda ver a mi empresa así ya si yo soy capaz de ver cuáles son los problemas que tiene mi gente así, de
+una manera en la que yo pueda decirle clic y después tomar una pantalla de llamar a la persona encargada y
+decirle esto todavía sigue pasando o no? Ya para es ganancia.
+Speaker 2 - 39:49
+OK, ¿Cómo hacemos eso entonces?
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+27 / 29
+Speaker 1 - 39:53
+¿Que voy avanzando yo de ese lado? No todo está caído. Yo le estoy metiendo acá, estoy haciendo un par de
+iteraciones, ya esto está en vivo, ya está conectado a lápiz, ya está consumiendo la información. Y lo que empecé
+a encontrar es, hay diferentes maneras de ver esta. Hay tipos de entidades que me dan una patología y la
+patología normalmente son unos dolores. Abro SAP no sincroniza, tengo un porcentaje de confianza y tengo un
+impacto promedio de la base de datos de dónde estoy sacando esa información y a qué está conectado. Yo por el
+lado de sistemas estoy camellándole a eso cuando ya tenga un prototipo medianamente funcional, pero esto ya
+está conectado con backend y demás, es entrar cómo a solucionarlo. Contratos, hacerle todo el feedback de
+contratos.
+Speaker 1 - 40:46
+Service desk es darle acceso que estos maricas jueguen, jodan, suban los tomen pantallazos, esto si funciona, no
+funciona y después volverlo a correr. Sin embargo, voy a poner un hold . Hoy me senté con estos manes de contl
+es voice AI y agentes y aplicación enfocada en restaurantes. Esos maricas llevan haciendo tecnología para
+restaurantes 8 años. La aplicación del pelado tiene app interna, agente con search AI code para reservas.
+Nosotros de qué nos tendríamos que integrar, hacer la integración con Ópera como PMS y ponemos a andar esa
+mierda huevón, en dos, tres semanas. Entonces necesitamos poner a correr la integración con el motor de
+reservas que utiliza Marriott a nivel global. Este mismo marica trabaja con hoteles Hilton. Entonces si logramos
+hacer esa integración de ventas de backoffice y le dije finalmente yo le puedo meter productos de revenue a usted
+me da un.
+Speaker 1 - 41:47
+Hay un partnership agreement , él me da más o menos el 12 al 14, creo que le podemos llegar por a sacar el 20%
+del revenue de clientes de partnership que yo le empiece a meter. Y ya empezamos a jalarnos Mr. Por llamada, por
+implementación y por estructura con un partner que especializado en hoteles.
+Speaker 2 - 42:08
+Ese era el backlog de Convers.
+Speaker 1 - 42:11
+Eso es call center 1, call center 2. Estoy trabajando automatización de inbox en instagram, facebook, WhatsApp de
+los diferentes restaurantes. Eso lo estoy trabajando con un externo, eso también ya está avanzando. Pero vamos a
+tener que desarrollar un agente que responda preguntas frecuentes con una base específica y con una lógica con
+automatizado. Pero vamos de la mano con alguien que puede implementar. Nosotros hacemos la lógica, ellos
+implementan en la herramienta.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+28 / 29
+Speaker 2 - 42:41
+¿Está 100% confiado que es un buen proveedor? Sí, hagamos una cosa, dame 15 minutos y si queremos volvemos
+a conectar y hablamos de todo.
+Speaker 1 - 42:51
+Hágale peso.
+Meeting Title: 20260128 LLAMADA CON RUBEN
+PARA AFINAR WORKFLOW AU...
+Meeting created at: 29th Jan, 2026 - 4:37 AM
+Transcribed by https://fireflies.ai/ 29 / 29

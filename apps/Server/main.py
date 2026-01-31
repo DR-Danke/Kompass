@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.api.health import router as health_router
 from app.api.auth_routes import router as auth_router
 from app.api.supplier_routes import router as supplier_router
+from app.api.product_routes import router as products_router
 from database.init_db import init_database
 
 
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/api")
     app.include_router(auth_router, prefix="/api/auth")
     app.include_router(supplier_router, prefix="/api/suppliers")
+    app.include_router(products_router, prefix="/api/products")
 
     print(f"INFO [Main]: Application configured with CORS origins: {settings.get_cors_origins()}")
 
