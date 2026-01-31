@@ -1199,3 +1199,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with niches, categories, tags, or HS codes
     - When implementing pricing with freight rates or pricing settings
     - When troubleshooting Kompass data layer or repository issues
+
+- app_docs/feature-0a08fee5-category-tag-management-service.md
+  - Conditions:
+    - When working with CategoryService or TagService in Kompass
+    - When implementing hierarchical category tree operations
+    - When working with category CRUD, reparenting, or descendant retrieval
+    - When working with tag CRUD, product counts, or search functionality
+    - When using CategoryTreeNode or TagWithCountDTO
+    - When implementing API routes for categories or tags
+    - When troubleshooting category cycle prevention or delete validation
