@@ -1199,3 +1199,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with niches, categories, tags, or HS codes
     - When implementing pricing with freight rates or pricing settings
     - When troubleshooting Kompass data layer or repository issues
+
+- app_docs/feature-02b42491-supplier-service-crud.md
+  - Conditions:
+    - When working with supplier service or supplier_service singleton
+    - When implementing supplier CRUD operations in Kompass
+    - When working with apps/Server/app/services/supplier_service.py
+    - When implementing supplier filtering by status, country, or has_products
+    - When implementing supplier search functionality
+    - When working with supplier soft-delete or active products protection
+    - When troubleshooting supplier service business logic
+    - When implementing API routes that consume the supplier service
