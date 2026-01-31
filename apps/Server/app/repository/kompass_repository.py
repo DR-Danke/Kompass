@@ -1162,6 +1162,160 @@ class SupplierRepository:
             "updated_at": row[13],
         }
 
+    def count_products_by_supplier(self, supplier_id: UUID) -> int:
+        """Count products for a specific supplier.
+
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Number of products for this supplier
+        """
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM products WHERE supplier_id = %s",
+                    (str(supplier_id),),
+                )
+                return cur.fetchone()[0]
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to count products: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+    def get_all_with_filters(
+        self,
+        page: int = 1,
+        limit: int = 20,
+        status: Optional[str] = None,
+        country: Optional[str] = None,
+        has_products: Optional[bool] = None,
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """Get all suppliers with extended filtering options.
+
+        Args:
+            page: Page number (1-indexed)
+            limit: Items per page
+            status: Filter by supplier status
+            country: Filter by country
+            has_products: Filter by whether supplier has products
+
+        Returns:
+            Tuple of (list of suppliers, total count)
+        """
+        conn = get_database_connection()
+        if not conn:
+            return [], 0
+
+        try:
+            with conn.cursor() as cur:
+                conditions = []
+                params: List[Any] = []
+
+                if status:
+                    conditions.append("s.status = %s")
+                    params.append(status)
+                if country:
+                    conditions.append("s.country = %s")
+                    params.append(country)
+
+                # Handle has_products filter using subquery
+                if has_products is True:
+                    conditions.append(
+                        "EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
+                    )
+                elif has_products is False:
+                    conditions.append(
+                        "NOT EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
+                    )
+
+                where_clause = (
+                    "WHERE " + " AND ".join(conditions) if conditions else ""
+                )
+
+                # Count query
+                cur.execute(
+                    f"SELECT COUNT(*) FROM suppliers s {where_clause}",
+                    params,
+                )
+                total = cur.fetchone()[0]
+
+                offset = (page - 1) * limit
+                params.extend([limit, offset])
+
+                # Main query
+                cur.execute(
+                    f"""
+                    SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
+                           s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
+                           s.created_at, s.updated_at
+                    FROM suppliers s
+                    {where_clause}
+                    ORDER BY s.name
+                    LIMIT %s OFFSET %s
+                    """,
+                    params,
+                )
+                rows = cur.fetchall()
+
+                items = [self._row_to_dict(row) for row in rows]
+                return items, total
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get suppliers with filters: {e}")
+            return [], 0
+        finally:
+            close_database_connection(conn)
+
+    def search(
+        self,
+        query: str,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """Search suppliers by name, email, or contact phone.
+
+        Args:
+            query: Search query string
+            limit: Maximum number of results
+
+        Returns:
+            List of matching suppliers
+        """
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                search_pattern = f"%{query}%"
+                cur.execute(
+                    """
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           created_at, updated_at
+                    FROM suppliers
+                    WHERE name ILIKE %s
+                       OR contact_email ILIKE %s
+                       OR contact_phone ILIKE %s
+                       OR code ILIKE %s
+                    ORDER BY name
+                    LIMIT %s
+                    """,
+                    (search_pattern, search_pattern, search_pattern, search_pattern, limit),
+                )
+                rows = cur.fetchall()
+
+                return [self._row_to_dict(row) for row in rows]
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to search suppliers: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # PRODUCT REPOSITORY
