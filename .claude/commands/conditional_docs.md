@@ -1231,3 +1231,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When using CategoryTreeNode or TagWithCountDTO
     - When implementing API routes for categories or tags
     - When troubleshooting category cycle prevention or delete validation
+
+- app_docs/feature-dc759ae8-ai-data-extraction-service.md
+  - Conditions:
+    - When working with AI-powered data extraction from supplier catalogs
+    - When implementing or modifying apps/Server/app/services/extraction_service.py
+    - When working with apps/Server/app/models/extraction_dto.py
+    - When processing PDF, Excel, or image files for product data extraction
+    - When implementing HS code suggestion or classification features
+    - When working with Claude or OpenAI Vision APIs for document processing
+    - When implementing background removal or image resizing functionality
+    - When configuring ANTHROPIC_API_KEY, OPENAI_API_KEY, or REMOVEBG_API_KEY settings
+    - When troubleshooting AI extraction or batch processing issues
+    - When working with ExtractedProduct, ExtractionResult, or HsCodeSuggestion DTOs
