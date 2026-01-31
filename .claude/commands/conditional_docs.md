@@ -1244,3 +1244,49 @@ This prompt helps you determine what documentation you should read based on the 
     - When configuring ANTHROPIC_API_KEY, OPENAI_API_KEY, or REMOVEBG_API_KEY settings
     - When troubleshooting AI extraction or batch processing issues
     - When working with ExtractedProduct, ExtractionResult, or HsCodeSuggestion DTOs
+
+- app_docs/feature-98d1d93c-supplier-api-routes.md
+  - Conditions:
+    - When working with supplier API endpoints in Kompass
+    - When implementing or modifying apps/Server/app/api/supplier_routes.py
+    - When working with /api/suppliers/* endpoints
+    - When implementing supplier CRUD operations via REST API
+    - When troubleshooting supplier API authentication or authorization issues
+    - When implementing supplier search or filtering via API
+    - When working with supplier products listing endpoint
+
+- app_docs/feature-e7062de8-product-api-routes.md
+  - Conditions:
+    - When working with product API endpoints (/api/products/*)
+    - When implementing or modifying apps/Server/app/api/product_routes.py
+    - When implementing product CRUD operations via REST API
+    - When implementing product image management endpoints
+    - When implementing product tag management endpoints
+    - When implementing product search or filtering endpoints
+    - When troubleshooting product API authentication or authorization
+    - When adding new product-related routes to the Kompass backend
+
+- app_docs/feature-c58228ec-category-tag-api-routes.md
+  - Conditions:
+    - When working with /api/categories or /api/tags endpoints
+    - When implementing or modifying apps/Server/app/api/category_routes.py
+    - When implementing or modifying apps/Server/app/api/tag_routes.py
+    - When working with category tree structure or hierarchical categories
+    - When implementing category move or reparenting functionality via API
+    - When implementing tag search autocomplete endpoints
+    - When troubleshooting category or tag API authentication/authorization
+    - When adding new category or tag API endpoints
+    - When working with CategoryMoveDTO or category/tag route tests
+
+- app_docs/feature-1ee9c0ae-data-extraction-api-routes.md
+  - Conditions:
+    - When working with data extraction API endpoints (/api/extract/*)
+    - When implementing or modifying apps/Server/app/api/extraction_routes.py
+    - When working with apps/Server/app/models/extraction_job_dto.py
+    - When implementing file upload for product data extraction
+    - When working with extraction job status polling or progress tracking
+    - When implementing confirm import for extracted products
+    - When working with single-image background removal API
+    - When working with HS code suggestion API
+    - When troubleshooting extraction job state management
+    - When working with ExtractionJobDTO, ConfirmImportRequestDTO, or UploadResponseDTO
