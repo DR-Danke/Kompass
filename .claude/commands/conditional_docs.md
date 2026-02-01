@@ -1501,3 +1501,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing niche card display or client count badges
     - When troubleshooting niche delete validation (409 Conflict handling)
     - When adding navigation to niches or modifying niche routes
+
+- app_docs/feature-82b52f99-pricing-config-page.md
+  - Conditions:
+    - When working with the Pricing Configuration page
+    - When implementing or modifying apps/Client/src/pages/kompass/PricingConfigPage.tsx
+    - When working with HS code management UI (HSCodeTable, HSCodeForm components)
+    - When working with freight rate management UI (FreightRateTable, FreightRateForm components)
+    - When working with pricing settings form (PricingSettingsForm component)
+    - When implementing tabbed interfaces for configuration pages
+    - When troubleshooting expired freight rate highlighting or delete validation
+    - When adding navigation to pricing or modifying the /pricing route
