@@ -9,24 +9,14 @@ This service provides business logic for portfolio management including:
 - PDF export generation
 """
 
-import io
 import math
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
 
 from jose import JWTError, jwt
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    Paragraph,
-    SimpleDocTemplate,
-    Spacer,
-    Table,
-    TableStyle,
-)
+
+from app.services.pdf_service import generate_portfolio_pdf
 
 from app.config.settings import get_settings
 from app.models.kompass_dto import (
@@ -709,12 +699,13 @@ class PortfolioService:
     # =========================================================================
 
     def generate_pdf(self, portfolio_id: UUID) -> Optional[bytes]:
-        """Generate a PDF document for a portfolio.
+        """Generate an enhanced PDF document for a portfolio.
 
         Creates a formatted PDF with:
-        - Portfolio name and description
-        - List of products with names, SKUs, and pricing
-        - Generation timestamp
+        - Cover page with portfolio name, niche, and Kompass branding
+        - Product listing pages with name, SKU, description
+        - QR code linking to share URL
+        - Page numbers on all pages
 
         Args:
             portfolio_id: Portfolio UUID
@@ -728,128 +719,25 @@ class PortfolioService:
             print(f"INFO [PortfolioService]: Portfolio {portfolio_id} not found for PDF export")
             return None
 
-        # Create PDF buffer
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            rightMargin=0.75 * inch,
-            leftMargin=0.75 * inch,
-            topMargin=0.75 * inch,
-            bottomMargin=0.75 * inch,
-        )
+        # Generate share URL for QR code
+        share_url = None
+        try:
+            share_token_response = self.get_share_token(portfolio_id)
+            if share_token_response:
+                # Construct share URL using CORS origins as frontend base URL
+                cors_origins = self._settings.get_cors_origins()
+                if cors_origins:
+                    base_url = cors_origins[0].rstrip("/")
+                    share_url = f"{base_url}/portfolios/share/{share_token_response.token}"
+        except Exception as e:
+            print(f"WARN [PortfolioService]: Could not generate share URL for PDF: {e}")
 
-        # Get styles
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            "CustomTitle",
-            parent=styles["Heading1"],
-            fontSize=24,
-            spaceAfter=12,
-            textColor=colors.HexColor("#1976d2"),
-        )
-        subtitle_style = ParagraphStyle(
-            "CustomSubtitle",
-            parent=styles["Normal"],
-            fontSize=12,
-            spaceAfter=6,
-            textColor=colors.grey,
-        )
-        description_style = ParagraphStyle(
-            "Description",
-            parent=styles["Normal"],
-            fontSize=11,
-            spaceAfter=20,
-        )
-
-        # Build document elements
-        elements = []
-
-        # Title
-        elements.append(Paragraph(portfolio["name"], title_style))
-
-        # Niche name if available
-        if portfolio.get("niche_name"):
-            elements.append(Paragraph(f"Niche: {portfolio['niche_name']}", subtitle_style))
-
-        # Description
-        if portfolio.get("description"):
-            elements.append(Spacer(1, 12))
-            elements.append(Paragraph(portfolio["description"], description_style))
-
-        elements.append(Spacer(1, 20))
-
-        # Products table
-        items = portfolio.get("items", [])
-        if items:
-            # Table header
-            table_data = [["#", "Product Name", "SKU", "Notes"]]
-
-            # Table rows
-            for idx, item in enumerate(items, 1):
-                product_name = item.get("product_name", "N/A")
-                product_sku = item.get("product_sku", "N/A")
-                notes = item.get("notes", "-")
-                table_data.append([str(idx), product_name, product_sku, notes or "-"])
-
-            # Create table
-            col_widths = [0.5 * inch, 3 * inch, 1.5 * inch, 2 * inch]
-            table = Table(table_data, colWidths=col_widths)
-            table.setStyle(
-                TableStyle(
-                    [
-                        # Header styling
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1976d2")),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("FONTSIZE", (0, 0), (-1, 0), 11),
-                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                        ("TOPPADDING", (0, 0), (-1, 0), 12),
-                        # Data row styling
-                        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
-                        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                        ("FONTSIZE", (0, 1), (-1, -1), 10),
-                        ("BOTTOMPADDING", (0, 1), (-1, -1), 8),
-                        ("TOPPADDING", (0, 1), (-1, -1), 8),
-                        # Alternating row colors
-                        *[
-                            ("BACKGROUND", (0, i), (-1, i), colors.HexColor("#f5f5f5"))
-                            for i in range(2, len(table_data), 2)
-                        ],
-                        # Grid
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e0e0e0")),
-                        # Alignment
-                        ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                        ("ALIGN", (2, 0), (2, -1), "CENTER"),
-                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ]
-                )
-            )
-            elements.append(table)
-        else:
-            elements.append(Paragraph("No products in this portfolio.", styles["Normal"]))
-
-        # Footer with timestamp
-        elements.append(Spacer(1, 30))
-        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        footer_style = ParagraphStyle(
-            "Footer",
-            parent=styles["Normal"],
-            fontSize=9,
-            textColor=colors.grey,
-        )
-        elements.append(
-            Paragraph(f"Generated on {timestamp} | {len(items)} product(s)", footer_style)
-        )
-
-        # Build PDF
-        doc.build(elements)
-        pdf_bytes = buffer.getvalue()
-        buffer.close()
+        # Generate enhanced PDF using pdf_service
+        pdf_bytes = generate_portfolio_pdf(portfolio, share_url)
 
         print(
             f"INFO [PortfolioService]: Generated PDF for portfolio {portfolio_id} "
-            f"({len(pdf_bytes)} bytes, {len(items)} products)"
+            f"({len(pdf_bytes)} bytes, {len(portfolio.get('items', []))} products)"
         )
 
         return pdf_bytes

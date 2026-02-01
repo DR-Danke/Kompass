@@ -1525,3 +1525,26 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing tabbed interfaces for configuration pages
     - When troubleshooting expired freight rate highlighting or delete validation
     - When adding navigation to pricing or modifying the /pricing route
+
+- app_docs/feature-d4653965-dashboard-kpi-charts.md
+  - Conditions:
+    - When working with the Dashboard page or /dashboard route
+    - When implementing or modifying apps/Client/src/pages/DashboardPage.tsx
+    - When working with KPICard, ActivityFeed, or QuickActions components
+    - When using useDashboard hook for dashboard state management
+    - When working with Recharts charts (PieChart, LineChart, BarChart)
+    - When implementing or modifying apps/Server/app/api/dashboard_routes.py
+    - When implementing or modifying apps/Server/app/services/dashboard_service.py
+    - When working with dashboard KPIs or statistics aggregation
+    - When troubleshooting dashboard data loading or chart rendering issues
+    - When adding new KPI cards or charts to the dashboard
+
+- app_docs/feature-5d18ddf7-pdf-generation-service.md
+  - Conditions:
+    - When working with PDF generation for portfolios or quotations
+    - When modifying apps/Server/app/services/pdf_service.py
+    - When working with portfolio or quotation PDF export endpoints
+    - When customizing PDF branding, colors, or layout
+    - When implementing QR codes in PDF documents
+    - When troubleshooting PDF generation issues or performance
+    - When extending PDF functionality with new document types

@@ -92,6 +92,8 @@ import type {
   UploadResponseDTO,
   ConfirmImportRequestDTO,
   ConfirmImportResponseDTO,
+  // Dashboard types
+  DashboardStats,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -800,5 +802,108 @@ export const extractionService = {
       request
     );
     return response.data;
+  },
+};
+
+// =============================================================================
+// DASHBOARD SERVICE
+// =============================================================================
+
+interface DashboardStatsApiResponse {
+  kpis: {
+    total_products: number;
+    products_added_this_month: number;
+    active_suppliers: number;
+    quotations_sent_this_week: number;
+    pipeline_value: number | string;
+  };
+  quotations_by_status: {
+    draft: number;
+    sent: number;
+    viewed: number;
+    negotiating: number;
+    accepted: number;
+    rejected: number;
+    expired: number;
+  };
+  quotation_trend: Array<{
+    date: string;
+    sent: number;
+    accepted: number;
+  }>;
+  top_quoted_products: Array<{
+    id: string;
+    name: string;
+    sku: string;
+    quote_count: number;
+  }>;
+  recent_products: Array<{
+    id: string;
+    name: string;
+    sku: string;
+    supplier_name: string | null;
+    created_at: string;
+  }>;
+  recent_quotations: Array<{
+    id: string;
+    quotation_number: string;
+    client_name: string | null;
+    status: string;
+    grand_total: number | string;
+    created_at: string;
+  }>;
+  recent_clients: Array<{
+    id: string;
+    company_name: string;
+    status: string;
+    created_at: string;
+  }>;
+}
+
+export const dashboardService = {
+  async getStats(): Promise<DashboardStats> {
+    console.log('INFO [dashboardService]: Fetching dashboard stats');
+    const response = await apiClient.get<DashboardStatsApiResponse>('/dashboard');
+    const data = response.data;
+
+    // Transform snake_case API response to camelCase frontend types
+    return {
+      kpis: {
+        totalProducts: data.kpis.total_products,
+        productsAddedThisMonth: data.kpis.products_added_this_month,
+        activeSuppliers: data.kpis.active_suppliers,
+        quotationsSentThisWeek: data.kpis.quotations_sent_this_week,
+        pipelineValue: data.kpis.pipeline_value,
+      },
+      quotationsByStatus: data.quotations_by_status,
+      quotationTrend: data.quotation_trend,
+      topQuotedProducts: data.top_quoted_products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        quoteCount: p.quote_count,
+      })),
+      recentProducts: data.recent_products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        supplierName: p.supplier_name,
+        createdAt: p.created_at,
+      })),
+      recentQuotations: data.recent_quotations.map((q) => ({
+        id: q.id,
+        quotationNumber: q.quotation_number,
+        clientName: q.client_name,
+        status: q.status as DashboardStats['recentQuotations'][0]['status'],
+        grandTotal: q.grand_total,
+        createdAt: q.created_at,
+      })),
+      recentClients: data.recent_clients.map((c) => ({
+        id: c.id,
+        companyName: c.company_name,
+        status: c.status as DashboardStats['recentClients'][0]['status'],
+        createdAt: c.created_at,
+      })),
+    };
   },
 };

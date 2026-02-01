@@ -5,7 +5,6 @@ including CRUD operations, pricing calculations, line item management, status wo
 transitions, quotation cloning, PDF generation, share tokens, and email functionality.
 """
 
-import io
 import math
 import os
 from datetime import datetime, timedelta
@@ -14,17 +13,8 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from jose import JWTError, jwt
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    Paragraph,
-    SimpleDocTemplate,
-    Spacer,
-    Table,
-    TableStyle,
-)
+
+from app.services.pdf_service import generate_quotation_pdf
 
 from app.config.settings import get_settings
 from app.models.kompass_dto import (
@@ -1011,14 +1001,17 @@ class QuotationService:
     # =========================================================================
 
     def generate_pdf(self, quotation_id: UUID) -> Optional[bytes]:
-        """Generate a PDF proforma document for a quotation.
+        """Generate an enhanced PDF proforma document for a quotation.
 
         Creates a formatted PDF with:
-        - Quotation header (number, date, client info)
-        - Line items table with quantities and prices
-        - Totals section (subtotal, freight, insurance, grand total)
-        - Terms and conditions
-        - Validity period
+        - Professional header with company branding
+        - Client information section
+        - Quotation metadata (number, date, validity)
+        - Product table with quantities and prices
+        - Pricing breakdown (subtotal, freight, insurance, total)
+        - Terms and conditions section
+        - Footer with contact information and timestamp
+        - Page numbers on all pages
 
         Args:
             quotation_id: UUID of the quotation
@@ -1032,215 +1025,12 @@ class QuotationService:
             print(f"INFO [QuotationService]: Quotation {quotation_id} not found for PDF export")
             return None
 
-        # Create PDF buffer
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            rightMargin=0.75 * inch,
-            leftMargin=0.75 * inch,
-            topMargin=0.75 * inch,
-            bottomMargin=0.75 * inch,
-        )
-
-        # Get styles
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            "CustomTitle",
-            parent=styles["Heading1"],
-            fontSize=24,
-            spaceAfter=12,
-            textColor=colors.HexColor("#1976d2"),
-        )
-        subtitle_style = ParagraphStyle(
-            "CustomSubtitle",
-            parent=styles["Normal"],
-            fontSize=12,
-            spaceAfter=6,
-            textColor=colors.grey,
-        )
-        heading_style = ParagraphStyle(
-            "CustomHeading",
-            parent=styles["Heading2"],
-            fontSize=14,
-            spaceBefore=20,
-            spaceAfter=10,
-            textColor=colors.HexColor("#333333"),
-        )
-        normal_style = ParagraphStyle(
-            "CustomNormal",
-            parent=styles["Normal"],
-            fontSize=10,
-            spaceAfter=6,
-        )
-
-        # Build document elements
-        elements = []
-
-        # Title
-        elements.append(Paragraph(f"Quotation: {quotation['quotation_number']}", title_style))
-
-        # Client info
-        if quotation.get("client_name"):
-            elements.append(Paragraph(f"Client: {quotation['client_name']}", subtitle_style))
-
-        # Status and dates
-        elements.append(Paragraph(f"Status: {quotation['status'].title()}", subtitle_style))
-
-        if quotation.get("valid_from") and quotation.get("valid_until"):
-            elements.append(
-                Paragraph(
-                    f"Valid: {quotation['valid_from']} to {quotation['valid_until']}",
-                    subtitle_style,
-                )
-            )
-
-        elements.append(Spacer(1, 20))
-
-        # Line items table
-        items = quotation.get("items", [])
-        if items:
-            elements.append(Paragraph("Line Items", heading_style))
-
-            # Table header
-            table_data = [["#", "Product", "Qty", "Unit", "Unit Price", "Total"]]
-
-            # Table rows
-            currency = quotation.get("currency", "USD")
-            for idx, item in enumerate(items, 1):
-                product_name = item.get("product_name", "N/A")
-                quantity = item.get("quantity", 0)
-                unit = item.get("unit_of_measure", "piece")
-                unit_price = item.get("unit_price", Decimal("0.00"))
-                line_total = item.get("line_total", Decimal("0.00"))
-                table_data.append([
-                    str(idx),
-                    product_name[:40],  # Truncate long names
-                    str(quantity),
-                    unit,
-                    f"{currency} {unit_price:,.2f}",
-                    f"{currency} {line_total:,.2f}",
-                ])
-
-            # Create table
-            col_widths = [0.4 * inch, 2.5 * inch, 0.6 * inch, 0.7 * inch, 1.2 * inch, 1.2 * inch]
-            table = Table(table_data, colWidths=col_widths)
-            table.setStyle(
-                TableStyle(
-                    [
-                        # Header styling
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1976d2")),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("FONTSIZE", (0, 0), (-1, 0), 10),
-                        ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
-                        ("TOPPADDING", (0, 0), (-1, 0), 10),
-                        # Data row styling
-                        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
-                        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                        ("FONTSIZE", (0, 1), (-1, -1), 9),
-                        ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-                        ("TOPPADDING", (0, 1), (-1, -1), 6),
-                        # Alternating row colors
-                        *[
-                            ("BACKGROUND", (0, i), (-1, i), colors.HexColor("#f5f5f5"))
-                            for i in range(2, len(table_data), 2)
-                        ],
-                        # Grid
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e0e0e0")),
-                        # Alignment
-                        ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                        ("ALIGN", (2, 0), (2, -1), "CENTER"),
-                        ("ALIGN", (4, 0), (-1, -1), "RIGHT"),
-                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ]
-                )
-            )
-            elements.append(table)
-        else:
-            elements.append(Paragraph("No line items in this quotation.", normal_style))
-
-        elements.append(Spacer(1, 20))
-
-        # Totals section
-        elements.append(Paragraph("Totals", heading_style))
-
-        currency = quotation.get("currency", "USD")
-        subtotal = quotation.get("subtotal", Decimal("0.00"))
-        freight = quotation.get("freight_cost", Decimal("0.00"))
-        insurance = quotation.get("insurance_cost", Decimal("0.00"))
-        other = quotation.get("other_costs", Decimal("0.00"))
-        total = quotation.get("total", Decimal("0.00"))
-        discount_percent = quotation.get("discount_percent", Decimal("0.00"))
-        discount_amount = quotation.get("discount_amount", Decimal("0.00"))
-        grand_total = quotation.get("grand_total", Decimal("0.00"))
-
-        totals_data = [
-            ["Subtotal:", f"{currency} {subtotal:,.2f}"],
-            ["Freight:", f"{currency} {freight:,.2f}"],
-            ["Insurance:", f"{currency} {insurance:,.2f}"],
-            ["Other Costs:", f"{currency} {other:,.2f}"],
-            ["Total:", f"{currency} {total:,.2f}"],
-        ]
-
-        if discount_percent > 0:
-            totals_data.append([f"Discount ({discount_percent}%):", f"-{currency} {discount_amount:,.2f}"])
-
-        totals_data.append(["Grand Total:", f"{currency} {grand_total:,.2f}"])
-
-        totals_table = Table(totals_data, colWidths=[2 * inch, 2 * inch])
-        totals_table.setStyle(
-            TableStyle(
-                [
-                    ("FONTNAME", (0, 0), (-1, -2), "Helvetica"),
-                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
-                    ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                    ("TOPPADDING", (0, 0), (-1, -1), 4),
-                    ("LINEABOVE", (0, -1), (-1, -1), 1, colors.HexColor("#333333")),
-                ]
-            )
-        )
-        elements.append(totals_table)
-
-        # Terms and conditions
-        if quotation.get("terms_and_conditions"):
-            elements.append(Spacer(1, 20))
-            elements.append(Paragraph("Terms and Conditions", heading_style))
-            elements.append(Paragraph(quotation["terms_and_conditions"], normal_style))
-
-        # Notes
-        if quotation.get("notes"):
-            elements.append(Spacer(1, 20))
-            elements.append(Paragraph("Notes", heading_style))
-            elements.append(Paragraph(quotation["notes"], normal_style))
-
-        # Footer with timestamp
-        elements.append(Spacer(1, 30))
-        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        footer_style = ParagraphStyle(
-            "Footer",
-            parent=styles["Normal"],
-            fontSize=9,
-            textColor=colors.grey,
-        )
-        elements.append(
-            Paragraph(
-                f"Generated on {timestamp} | Incoterm: {quotation['incoterm']} | {len(items)} item(s)",
-                footer_style,
-            )
-        )
-
-        # Build PDF
-        doc.build(elements)
-        pdf_bytes = buffer.getvalue()
-        buffer.close()
+        # Generate enhanced PDF using pdf_service
+        pdf_bytes = generate_quotation_pdf(quotation)
 
         print(
             f"INFO [QuotationService]: Generated PDF for quotation {quotation_id} "
-            f"({len(pdf_bytes)} bytes, {len(items)} items)"
+            f"({len(pdf_bytes)} bytes, {len(quotation.get('items', []))} items)"
         )
 
         return pdf_bytes
