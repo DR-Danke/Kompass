@@ -1419,3 +1419,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding new Kompass routes or navigation items
     - When troubleshooting Kompass frontend API communication
     - When implementing type-safe API calls for Kompass entities
+
+- app_docs/feature-d5237c66-product-import-wizard.md
+  - Conditions:
+    - When working with the product import wizard or ImportWizardPage
+    - When implementing AI-powered document extraction features
+    - When modifying apps/Client/src/pages/kompass/ImportWizardPage.tsx
+    - When working with ExtractedProductTable component
+    - When using useExtractionJob hook or extractionService
+    - When implementing file upload or drag-and-drop functionality
+    - When working with extraction job polling or progress tracking
+    - When troubleshooting product extraction or import issues
+    - When implementing bulk product import from supplier catalogs
