@@ -236,6 +236,10 @@ CREATE TABLE IF NOT EXISTS clients (
     niche_id UUID REFERENCES niches(id) ON DELETE SET NULL,
     status VARCHAR(20) DEFAULT 'prospect' NOT NULL CHECK (status IN ('active', 'inactive', 'prospect')),
     notes TEXT,
+    -- CRM-specific fields
+    assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+    source VARCHAR(50) CHECK (source IS NULL OR source IN ('website', 'referral', 'cold_call', 'trade_show', 'linkedin', 'other')),
+    project_deadline DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -244,6 +248,23 @@ CREATE INDEX IF NOT EXISTS idx_clients_status ON clients(status);
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
 CREATE INDEX IF NOT EXISTS idx_clients_company_name ON clients(company_name);
 CREATE INDEX IF NOT EXISTS idx_clients_niche_id ON clients(niche_id);
+CREATE INDEX IF NOT EXISTS idx_clients_assigned_to ON clients(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_clients_source ON clients(source);
+CREATE INDEX IF NOT EXISTS idx_clients_project_deadline ON clients(project_deadline);
+
+-- Client Status History: Track status changes for CRM audit trail
+CREATE TABLE IF NOT EXISTS client_status_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20) NOT NULL,
+    notes TEXT,
+    changed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_client_status_history_client_id ON client_status_history(client_id);
+CREATE INDEX IF NOT EXISTS idx_client_status_history_created_at ON client_status_history(created_at);
 
 -- Freight Rates: Origin/destination shipping rates
 CREATE TABLE IF NOT EXISTS freight_rates (

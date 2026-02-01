@@ -39,6 +39,17 @@ class ClientStatus(str, Enum):
     PROSPECT = "prospect"
 
 
+class ClientSource(str, Enum):
+    """Source options for tracking lead origin."""
+
+    WEBSITE = "website"
+    REFERRAL = "referral"
+    COLD_CALL = "cold_call"
+    TRADE_SHOW = "trade_show"
+    LINKEDIN = "linkedin"
+    OTHER = "other"
+
+
 class QuotationStatus(str, Enum):
     """Status options for quotations."""
 
@@ -568,6 +579,10 @@ class ClientCreateDTO(BaseModel):
     niche_id: Optional[UUID] = None
     status: ClientStatus = ClientStatus.PROSPECT
     notes: Optional[str] = None
+    # CRM-specific fields
+    assigned_to: Optional[UUID] = None
+    source: Optional[ClientSource] = None
+    project_deadline: Optional[date] = None
 
 
 class ClientUpdateDTO(BaseModel):
@@ -585,6 +600,10 @@ class ClientUpdateDTO(BaseModel):
     niche_id: Optional[UUID] = None
     status: Optional[ClientStatus] = None
     notes: Optional[str] = None
+    # CRM-specific fields
+    assigned_to: Optional[UUID] = None
+    source: Optional[ClientSource] = None
+    project_deadline: Optional[date] = None
 
 
 class ClientResponseDTO(BaseModel):
@@ -604,6 +623,11 @@ class ClientResponseDTO(BaseModel):
     niche_name: Optional[str] = None
     status: ClientStatus
     notes: Optional[str] = None
+    # CRM-specific fields
+    assigned_to: Optional[UUID] = None
+    assigned_to_name: Optional[str] = None
+    source: Optional[ClientSource] = None
+    project_deadline: Optional[date] = None
     created_at: datetime
     updated_at: datetime
 
@@ -615,6 +639,89 @@ class ClientListResponseDTO(BaseModel):
 
     items: List[ClientResponseDTO]
     pagination: PaginationDTO
+
+
+class ClientStatusChangeDTO(BaseModel):
+    """Request model for changing client status with notes."""
+
+    new_status: ClientStatus
+    notes: Optional[str] = None
+
+
+class StatusHistoryResponseDTO(BaseModel):
+    """Response model for status history entry."""
+
+    id: UUID
+    client_id: UUID
+    old_status: Optional[ClientStatus] = None
+    new_status: ClientStatus
+    notes: Optional[str] = None
+    changed_by: Optional[UUID] = None
+    changed_by_name: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class QuotationSummaryDTO(BaseModel):
+    """Summary of quotations for a client."""
+
+    total_quotations: int = 0
+    draft_count: int = 0
+    sent_count: int = 0
+    accepted_count: int = 0
+    rejected_count: int = 0
+    expired_count: int = 0
+    total_value: Decimal = Decimal("0.00")
+
+
+class ClientWithQuotationsDTO(BaseModel):
+    """Client response with quotation history summary."""
+
+    id: UUID
+    company_name: str
+    contact_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
+    niche_id: Optional[UUID] = None
+    niche_name: Optional[str] = None
+    status: ClientStatus
+    notes: Optional[str] = None
+    assigned_to: Optional[UUID] = None
+    assigned_to_name: Optional[str] = None
+    source: Optional[ClientSource] = None
+    project_deadline: Optional[date] = None
+    created_at: datetime
+    updated_at: datetime
+    quotation_summary: QuotationSummaryDTO
+
+    model_config = {"from_attributes": True}
+
+
+class PipelineResponseDTO(BaseModel):
+    """Response for pipeline view grouped by status."""
+
+    prospect: List[ClientResponseDTO] = []
+    active: List[ClientResponseDTO] = []
+    inactive: List[ClientResponseDTO] = []
+
+
+class TimingFeasibilityDTO(BaseModel):
+    """Response for timing feasibility calculation."""
+
+    is_feasible: bool
+    project_deadline: Optional[date] = None
+    production_lead_time_days: int = 0
+    shipping_transit_days: int = 0
+    total_lead_time_days: int = 0
+    days_until_deadline: Optional[int] = None
+    buffer_days: Optional[int] = None
+    message: str = ""
 
 
 # =============================================================================
