@@ -32,11 +32,14 @@ class ProductStatus(str, Enum):
 
 
 class ClientStatus(str, Enum):
-    """Status options for clients."""
+    """Status options for clients representing pipeline stages."""
 
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    PROSPECT = "prospect"
+    LEAD = "lead"
+    QUALIFIED = "qualified"
+    QUOTING = "quoting"
+    NEGOTIATING = "negotiating"
+    WON = "won"
+    LOST = "lost"
 
 
 class ClientSource(str, Enum):
@@ -654,18 +657,21 @@ class ClientCreateDTO(BaseModel):
     contact_name: Optional[str] = Field(default=None, max_length=200)
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=50)
+    whatsapp: Optional[str] = Field(default=None, max_length=50)
     address: Optional[str] = None
     city: Optional[str] = Field(default=None, max_length=100)
     state: Optional[str] = Field(default=None, max_length=100)
     country: Optional[str] = Field(default=None, max_length=100)
     postal_code: Optional[str] = Field(default=None, max_length=20)
     niche_id: Optional[UUID] = None
-    status: ClientStatus = ClientStatus.PROSPECT
+    status: ClientStatus = ClientStatus.LEAD
     notes: Optional[str] = None
     # CRM-specific fields
     assigned_to: Optional[UUID] = None
     source: Optional[ClientSource] = None
     project_deadline: Optional[date] = None
+    project_name: Optional[str] = Field(default=None, max_length=255)
+    incoterm_preference: Optional[Incoterm] = None
 
 
 class ClientUpdateDTO(BaseModel):
@@ -675,6 +681,7 @@ class ClientUpdateDTO(BaseModel):
     contact_name: Optional[str] = Field(default=None, max_length=200)
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=50)
+    whatsapp: Optional[str] = Field(default=None, max_length=50)
     address: Optional[str] = None
     city: Optional[str] = Field(default=None, max_length=100)
     state: Optional[str] = Field(default=None, max_length=100)
@@ -687,6 +694,8 @@ class ClientUpdateDTO(BaseModel):
     assigned_to: Optional[UUID] = None
     source: Optional[ClientSource] = None
     project_deadline: Optional[date] = None
+    project_name: Optional[str] = Field(default=None, max_length=255)
+    incoterm_preference: Optional[Incoterm] = None
 
 
 class ClientResponseDTO(BaseModel):
@@ -697,6 +706,7 @@ class ClientResponseDTO(BaseModel):
     contact_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    whatsapp: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
@@ -711,6 +721,8 @@ class ClientResponseDTO(BaseModel):
     assigned_to_name: Optional[str] = None
     source: Optional[ClientSource] = None
     project_deadline: Optional[date] = None
+    project_name: Optional[str] = None
+    incoterm_preference: Optional[Incoterm] = None
     created_at: datetime
     updated_at: datetime
 
@@ -766,6 +778,7 @@ class ClientWithQuotationsDTO(BaseModel):
     contact_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    whatsapp: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
@@ -779,6 +792,8 @@ class ClientWithQuotationsDTO(BaseModel):
     assigned_to_name: Optional[str] = None
     source: Optional[ClientSource] = None
     project_deadline: Optional[date] = None
+    project_name: Optional[str] = None
+    incoterm_preference: Optional[Incoterm] = None
     created_at: datetime
     updated_at: datetime
     quotation_summary: QuotationSummaryDTO
@@ -787,11 +802,14 @@ class ClientWithQuotationsDTO(BaseModel):
 
 
 class PipelineResponseDTO(BaseModel):
-    """Response for pipeline view grouped by status."""
+    """Response for pipeline view grouped by status (Kanban columns)."""
 
-    prospect: List[ClientResponseDTO] = []
-    active: List[ClientResponseDTO] = []
-    inactive: List[ClientResponseDTO] = []
+    lead: List[ClientResponseDTO] = []
+    qualified: List[ClientResponseDTO] = []
+    quoting: List[ClientResponseDTO] = []
+    negotiating: List[ClientResponseDTO] = []
+    won: List[ClientResponseDTO] = []
+    lost: List[ClientResponseDTO] = []
 
 
 class TimingFeasibilityDTO(BaseModel):

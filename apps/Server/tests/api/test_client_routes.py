@@ -68,7 +68,7 @@ def mock_client_data():
         "phone": "+1234567890",
         "country": "USA",
         "city": "New York",
-        "status": "active",
+        "status": "lead",
         "source": "website",
         "niche_id": uuid4(),
         "assigned_to": uuid4(),
@@ -105,9 +105,12 @@ def mock_pipeline_response(mock_client_response):
     from app.models.kompass_dto import PipelineResponseDTO
 
     return PipelineResponseDTO(
-        prospect=[],
-        active=[mock_client_response],
-        inactive=[],
+        lead=[mock_client_response],
+        qualified=[],
+        quoting=[],
+        negotiating=[],
+        won=[],
+        lost=[],
     )
 
 
@@ -120,9 +123,9 @@ def mock_status_history():
         StatusHistoryResponseDTO(
             id=uuid4(),
             client_id=uuid4(),
-            old_status="prospect",
-            new_status="active",
-            notes="Converted to active",
+            old_status="lead",
+            new_status="qualified",
+            notes="Converted to qualified",
             changed_by=uuid4(),
             created_at=datetime.now(),
         )
@@ -220,7 +223,7 @@ class TestListClients:
         mock_client_service.list_clients.return_value = mock_client_list_response
 
         response = client.get(
-            "/api/clients?status=active",
+            "/api/clients?status=lead",
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -632,9 +635,12 @@ class TestGetPipeline:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert "prospect" in data
-        assert "active" in data
-        assert "inactive" in data
+        assert "lead" in data
+        assert "qualified" in data
+        assert "quoting" in data
+        assert "negotiating" in data
+        assert "won" in data
+        assert "lost" in data
 
     @patch("app.api.client_routes.client_service")
     @patch("app.api.dependencies.auth_service")
@@ -653,7 +659,7 @@ class TestGetPipeline:
         mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
         mock_user_repo.get_user_by_id.return_value = mock_user
         mock_client_service.get_pipeline.return_value = PipelineResponseDTO(
-            prospect=[], active=[], inactive=[]
+            lead=[], qualified=[], quoting=[], negotiating=[], won=[], lost=[]
         )
 
         response = client.get(
@@ -663,9 +669,12 @@ class TestGetPipeline:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["prospect"] == []
-        assert data["active"] == []
-        assert data["inactive"] == []
+        assert data["lead"] == []
+        assert data["qualified"] == []
+        assert data["quoting"] == []
+        assert data["negotiating"] == []
+        assert data["won"] == []
+        assert data["lost"] == []
 
 
 class TestUpdateClientStatus:
@@ -690,7 +699,7 @@ class TestUpdateClientStatus:
 
         response = client.put(
             f"/api/clients/{mock_client_response.id}/status",
-            json={"new_status": "active", "notes": "Converted to active"},
+            json={"new_status": "qualified", "notes": "Converted to qualified"},
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -714,7 +723,7 @@ class TestUpdateClientStatus:
 
         response = client.put(
             f"/api/clients/{uuid4()}/status",
-            json={"new_status": "active"},
+            json={"new_status": "qualified"},
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -738,7 +747,7 @@ class TestUpdateClientStatus:
 
         response = client.put(
             f"/api/clients/{uuid4()}/status",
-            json={"new_status": "active"},
+            json={"new_status": "qualified"},
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -775,7 +784,7 @@ class TestGetStatusHistory:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == 1
-        assert data[0]["new_status"] == "active"
+        assert data[0]["new_status"] == "qualified"
 
     @patch("app.api.client_routes.client_service")
     @patch("app.api.dependencies.auth_service")

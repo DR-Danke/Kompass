@@ -62,6 +62,7 @@ import type {
   StatusHistoryResponse,
   PipelineResponse,
   TimingFeasibility,
+  ClientWithQuotations,
   // Quotation types
   QuotationCreate,
   QuotationUpdate,
@@ -529,9 +530,17 @@ export const clientService = {
     return response.data;
   },
 
-  async checkTimingFeasibility(id: string): Promise<TimingFeasibility> {
+  async getClientWithQuotations(id: string): Promise<ClientWithQuotations> {
+    console.log(`INFO [clientService]: Fetching client ${id} with quotations`);
+    const response = await apiClient.get<ClientWithQuotations>(`/clients/${id}/quotations`);
+    return response.data;
+  },
+
+  async checkTimingFeasibility(id: string, productLeadTimeDays: number): Promise<TimingFeasibility> {
     console.log(`INFO [clientService]: Checking timing feasibility for client ${id}`);
-    const response = await apiClient.get<TimingFeasibility>(`/clients/${id}/timing-feasibility`);
+    const response = await apiClient.get<TimingFeasibility>(`/clients/${id}/timing-feasibility`, {
+      params: { product_lead_time_days: productLeadTimeDays },
+    });
     return response.data;
   },
 };
