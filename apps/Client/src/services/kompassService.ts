@@ -764,7 +764,7 @@ export const extractionService = {
     for (let i = 0; i < files.length; i++) {
       formData.append('files', files[i]);
     }
-    const response = await apiClient.post<UploadResponseDTO>('/extraction/upload', formData, {
+    const response = await apiClient.post<UploadResponseDTO>('/extract/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -774,20 +774,20 @@ export const extractionService = {
 
   async getJobStatus(jobId: string): Promise<ExtractionJobDTO> {
     console.log(`INFO [extractionService]: Fetching job status for ${jobId}`);
-    const response = await apiClient.get<ExtractionJobDTO>(`/extraction/${jobId}`);
+    const response = await apiClient.get<ExtractionJobDTO>(`/extract/${jobId}`);
     return response.data;
   },
 
   async getJobResults(jobId: string): Promise<ExtractionJobDTO> {
     console.log(`INFO [extractionService]: Fetching job results for ${jobId}`);
-    const response = await apiClient.get<ExtractionJobDTO>(`/extraction/${jobId}/results`);
+    const response = await apiClient.get<ExtractionJobDTO>(`/extract/${jobId}/results`);
     return response.data;
   },
 
   async confirmImport(request: ConfirmImportRequestDTO): Promise<ConfirmImportResponseDTO> {
     console.log(`INFO [extractionService]: Confirming import for job ${request.job_id}`);
     const response = await apiClient.post<ConfirmImportResponseDTO>(
-      `/extraction/${request.job_id}/confirm`,
+      `/extract/${request.job_id}/confirm`,
       request
     );
     return response.data;
