@@ -16,6 +16,7 @@ import QuotationCreatorPage from './pages/kompass/QuotationCreatorPage';
 import SettingsPage from './pages/kompass/SettingsPage';
 import ImportWizardPage from './pages/kompass/ImportWizardPage';
 import NichesPage from './pages/kompass/NichesPage';
+import PricingConfigPage from './pages/kompass/PricingConfigPage';
 
 function App() {
   const { isLoading } = useAuth();
@@ -53,6 +54,7 @@ function App() {
                 <Route path="quotations/new" element={<QuotationCreatorPage />} />
                 <Route path="quotations/:id" element={<QuotationCreatorPage />} />
                 <Route path="niches" element={<NichesPage />} />
+                <Route path="pricing" element={<PricingConfigPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Routes>
             </MainLayout>
