@@ -548,6 +548,66 @@ class PortfolioListResponseDTO(BaseModel):
     pagination: PaginationDTO
 
 
+class PortfolioFilterDTO(BaseModel):
+    """Filtering parameters for portfolio queries."""
+
+    niche_id: Optional[UUID] = None
+    is_active: Optional[bool] = None
+    search: Optional[str] = None
+
+
+class PortfolioShareTokenResponseDTO(BaseModel):
+    """Response model for portfolio share token."""
+
+    token: str
+    portfolio_id: UUID
+    expires_at: Optional[datetime] = None
+
+
+class PortfolioPublicResponseDTO(BaseModel):
+    """Response model for public portfolio access via share token.
+
+    Omits sensitive internal fields like is_active for public viewing.
+    """
+
+    id: UUID
+    name: str
+    description: Optional[str] = None
+    niche_name: Optional[str] = None
+    items: List[PortfolioItemResponseDTO] = []
+    item_count: int = 0
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ReorderProductsRequestDTO(BaseModel):
+    """Request model for reordering products in a portfolio."""
+
+    product_ids: List[UUID] = Field(min_length=1)
+
+
+class PortfolioDuplicateRequestDTO(BaseModel):
+    """Request model for duplicating a portfolio."""
+
+    new_name: str = Field(min_length=1, max_length=255)
+
+
+class PortfolioAddProductRequestDTO(BaseModel):
+    """Request model for adding a product to a portfolio."""
+
+    curator_notes: Optional[str] = None
+
+
+class PortfolioFromFiltersRequestDTO(BaseModel):
+    """Request model for creating a portfolio from product filters."""
+
+    name: str = Field(min_length=1, max_length=255)
+    description: Optional[str] = None
+    niche_id: Optional[UUID] = None
+    filters: ProductFilterDTO
+
+
 # =============================================================================
 # CLIENT DTOs
 # =============================================================================

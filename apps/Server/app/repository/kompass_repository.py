@@ -2468,6 +2468,135 @@ class PortfolioRepository:
             "item_count": 0,
         }
 
+    def get_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get portfolio by name (for checking duplicates)."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT p.id, p.name, p.description, p.niche_id, p.is_active,
+                           p.created_at, p.updated_at, n.name as niche_name
+                    FROM portfolios p
+                    LEFT JOIN niches n ON p.niche_id = n.id
+                    WHERE p.name = %s
+                    """,
+                    (name,),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_with_niche(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to get portfolio by name: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def search(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Search portfolios by name or description."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                search_pattern = f"%{query}%"
+                cur.execute(
+                    """
+                    SELECT p.id, p.name, p.description, p.niche_id, p.is_active,
+                           p.created_at, p.updated_at, n.name as niche_name
+                    FROM portfolios p
+                    LEFT JOIN niches n ON p.niche_id = n.id
+                    WHERE p.name ILIKE %s OR p.description ILIKE %s
+                    ORDER BY p.name
+                    LIMIT %s
+                    """,
+                    (search_pattern, search_pattern, limit),
+                )
+                rows = cur.fetchall()
+
+                items = []
+                for row in rows:
+                    portfolio = self._row_to_dict_with_niche(row)
+                    portfolio["items"] = self._get_portfolio_items(cur, portfolio["id"])
+                    portfolio["item_count"] = len(portfolio["items"])
+                    items.append(portfolio)
+
+                return items
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to search portfolios: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def update_items_sort_orders(
+        self, portfolio_id: UUID, items: List[Tuple[UUID, int]]
+    ) -> bool:
+        """Update sort_order for multiple portfolio items in batch.
+
+        Args:
+            portfolio_id: Portfolio UUID
+            items: List of tuples (product_id, sort_order)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not items:
+            return True
+
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                for product_id, sort_order in items:
+                    cur.execute(
+                        """
+                        UPDATE portfolio_items
+                        SET sort_order = %s
+                        WHERE portfolio_id = %s AND product_id = %s
+                        """,
+                        (sort_order, str(portfolio_id), str(product_id)),
+                    )
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to update sort orders: {e}")
+            conn.rollback()
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def get_item_product_ids(self, portfolio_id: UUID) -> List[UUID]:
+        """Get list of product IDs in a portfolio."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT product_id FROM portfolio_items
+                    WHERE portfolio_id = %s
+                    ORDER BY sort_order
+                    """,
+                    (str(portfolio_id),),
+                )
+                rows = cur.fetchall()
+                return [row[0] for row in rows]
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to get item product IDs: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # CLIENT REPOSITORY
