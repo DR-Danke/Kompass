@@ -304,7 +304,7 @@ async def delete_client(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{client_id}/status", response_model=ClientResponseDTO)
+@router.put("/{client_id}/status", response_model=ClientResponseDTO)
 async def update_client_status(
     client_id: UUID,
     request: ClientStatusChangeDTO,
@@ -374,6 +374,26 @@ async def get_status_history(
     history = client_service.get_status_history(client_id)
     print(f"INFO [ClientRoutes]: Found {len(history)} status history entries")
     return history
+
+
+@router.get("/{client_id}/history", response_model=List[StatusHistoryResponseDTO])
+async def get_client_history(
+    client_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> List[StatusHistoryResponseDTO]:
+    """Get status change history for a client (alias for /status-history).
+
+    Args:
+        client_id: UUID of the client
+        current_user: Authenticated user (injected)
+
+    Returns:
+        List of status history entries
+
+    Raises:
+        HTTPException 404: If client not found
+    """
+    return await get_status_history(client_id, current_user)
 
 
 @router.get("/{client_id}/timing-feasibility", response_model=TimingFeasibilityDTO)
