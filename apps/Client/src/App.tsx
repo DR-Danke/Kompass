@@ -9,6 +9,7 @@ import SuppliersPage from './pages/kompass/SuppliersPage';
 import ProductsPage from './pages/kompass/ProductsPage';
 import CategoriesPage from './pages/kompass/CategoriesPage';
 import PortfoliosPage from './pages/kompass/PortfoliosPage';
+import PortfolioBuilderPage from './pages/kompass/PortfolioBuilderPage';
 import ClientsPage from './pages/kompass/ClientsPage';
 import QuotationsPage from './pages/kompass/QuotationsPage';
 import SettingsPage from './pages/kompass/SettingsPage';
@@ -44,6 +45,7 @@ function App() {
                 <Route path="import-wizard" element={<ImportWizardPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="portfolios" element={<PortfoliosPage />} />
+                <Route path="portfolios/:id" element={<PortfolioBuilderPage />} />
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="quotations" element={<QuotationsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
