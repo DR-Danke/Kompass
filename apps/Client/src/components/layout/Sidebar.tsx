@@ -24,6 +24,7 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import CollectionsIcon from '@mui/icons-material/Collections';
 import PeopleIcon from '@mui/icons-material/People';
 import DescriptionIcon from '@mui/icons-material/Description';
+import CategoryIcon from '@mui/icons-material/Category';
 import { useAuth } from '@/hooks/useAuth';
 
 const SIDEBAR_BG = '#1a1d21';
@@ -39,6 +40,7 @@ const navItems: NavItem[] = [
   { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { title: 'Suppliers', icon: <FactoryIcon />, path: '/suppliers' },
   { title: 'Biblia General', icon: <InventoryIcon />, path: '/products' },
+  { title: 'Categories', icon: <CategoryIcon />, path: '/categories' },
   { title: 'Portfolios', icon: <CollectionsIcon />, path: '/portfolios' },
   { title: 'Clients', icon: <PeopleIcon />, path: '/clients' },
   { title: 'Quotations', icon: <DescriptionIcon />, path: '/quotations' },
