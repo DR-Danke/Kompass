@@ -1290,3 +1290,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with HS code suggestion API
     - When troubleshooting extraction job state management
     - When working with ExtractionJobDTO, ConfirmImportRequestDTO, or UploadResponseDTO
+
+- app_docs/feature-eb16007c-client-service-crm.md
+  - Conditions:
+    - When working with client CRM functionality in Kompass
+    - When implementing or modifying apps/Server/app/services/client_service.py
+    - When implementing or modifying apps/Server/app/api/client_routes.py
+    - When working with client pipeline views or status grouping
+    - When implementing client status history tracking
+    - When working with timing feasibility calculations for project deadlines
+    - When working with client source tracking (lead origin)
+    - When working with /api/clients/* endpoints
+    - When modifying client_status_history database table
+    - When troubleshooting client CRUD or pipeline issues
