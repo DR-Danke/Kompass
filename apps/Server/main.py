@@ -19,6 +19,7 @@ from app.api.extraction_routes import router as extraction_router
 from app.api.portfolio_routes import router as portfolio_router
 from app.api.client_routes import router as client_router
 from app.api.quotation_routes import router as quotation_router
+from app.api.pricing_routes import router as pricing_router
 from database.init_db import init_database
 
 
@@ -78,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(portfolio_router, prefix="/api/portfolios")
     app.include_router(client_router, prefix="/api/clients")
     app.include_router(quotation_router, prefix="/api/quotations")
+    app.include_router(pricing_router, prefix="/api/pricing")
 
     print(f"INFO [Main]: Application configured with CORS origins: {settings.get_cors_origins()}")
 

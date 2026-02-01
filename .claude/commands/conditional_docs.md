@@ -1382,3 +1382,29 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing quotation cloning functionality
     - When troubleshooting quotation service or pricing engine issues
     - When working with QuotationPricingDTO, QuotationStatusTransitionDTO, or QuotationCloneDTO
+
+- app_docs/feature-b6ca4629-pricing-config-api-routes.md
+  - Conditions:
+    - When working with pricing configuration API routes
+    - When implementing or modifying apps/Server/app/api/pricing_routes.py
+    - When working with /api/pricing/* endpoints
+    - When implementing HS code CRUD operations via REST API
+    - When implementing freight rate CRUD operations via REST API
+    - When implementing pricing settings get/update endpoints
+    - When working with active freight rate lookup by route
+    - When troubleshooting pricing API authentication or authorization
+    - When adding new pricing-related routes to the Kompass backend
+
+- app_docs/feature-0884e820-quotation-api-routes.md
+  - Conditions:
+    - When working with quotation PDF export or proforma generation
+    - When implementing quotation email sending functionality
+    - When working with quotation share tokens or public access
+    - When implementing POST /api/quotations/{id}/calculate endpoint
+    - When implementing GET /api/quotations/{id}/export/pdf endpoint
+    - When implementing POST /api/quotations/{id}/send endpoint
+    - When implementing GET /api/quotations/share/{token} endpoint
+    - When working with QuotationShareTokenResponseDTO or QuotationPublicResponseDTO
+    - When working with QuotationSendEmailRequestDTO or QuotationSendEmailResponseDTO
+    - When troubleshooting quotation PDF generation or email issues
+    - When implementing nested line item routes /{quotation_id}/items/{item_id}

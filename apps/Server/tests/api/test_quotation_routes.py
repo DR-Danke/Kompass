@@ -163,6 +163,61 @@ def mock_pricing_response(mock_quotation_data):
     )
 
 
+@pytest.fixture
+def mock_share_token_response(mock_quotation_data):
+    """Sample share token response."""
+    from app.models.kompass_dto import QuotationShareTokenResponseDTO
+
+    return QuotationShareTokenResponseDTO(
+        token="test-jwt-token",
+        quotation_id=mock_quotation_data["id"],
+        expires_at=datetime.now(),
+    )
+
+
+@pytest.fixture
+def mock_public_quotation_response(mock_quotation_data):
+    """Sample public quotation response."""
+    from app.models.kompass_dto import QuotationPublicResponseDTO
+
+    return QuotationPublicResponseDTO(
+        id=mock_quotation_data["id"],
+        quotation_number=mock_quotation_data["quotation_number"],
+        client_name=mock_quotation_data["client_name"],
+        status=mock_quotation_data["status"],
+        incoterm=mock_quotation_data["incoterm"],
+        currency=mock_quotation_data["currency"],
+        subtotal=mock_quotation_data["subtotal"],
+        freight_cost=mock_quotation_data["freight_cost"],
+        insurance_cost=mock_quotation_data["insurance_cost"],
+        other_costs=mock_quotation_data["other_costs"],
+        total=mock_quotation_data["total"],
+        discount_percent=mock_quotation_data["discount_percent"],
+        grand_total=mock_quotation_data["grand_total"],
+        notes=mock_quotation_data["notes"],
+        terms_and_conditions=mock_quotation_data["terms_and_conditions"],
+        valid_from=mock_quotation_data["valid_from"],
+        valid_until=mock_quotation_data["valid_until"],
+        items=[],
+        item_count=0,
+        created_at=mock_quotation_data["created_at"],
+    )
+
+
+@pytest.fixture
+def mock_send_email_response():
+    """Sample email send response."""
+    from app.models.kompass_dto import QuotationSendEmailResponseDTO
+
+    return QuotationSendEmailResponseDTO(
+        success=True,
+        message="Email sent successfully (mock mode)",
+        sent_at=datetime.now(),
+        recipient_email="test@example.com",
+        mock_mode=True,
+    )
+
+
 # =============================================================================
 # LIST QUOTATIONS TESTS
 # =============================================================================
@@ -786,7 +841,7 @@ class TestAddItem:
 
 
 class TestUpdateItem:
-    """Tests for PUT /api/quotations/items/{item_id}."""
+    """Tests for PUT /api/quotations/{quotation_id}/items/{item_id}."""
 
     @patch("app.api.quotation_routes.quotation_service")
     @patch("app.api.dependencies.auth_service")
@@ -803,10 +858,11 @@ class TestUpdateItem:
         """Test updating an item successfully."""
         mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
         mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = True
         mock_quotation_service.update_item.return_value = mock_item_response
 
         response = client.put(
-            f"/api/quotations/items/{mock_item_response.id}",
+            f"/api/quotations/{mock_item_response.quotation_id}/items/{mock_item_response.id}",
             json={"quantity": 20},
             headers={"Authorization": "Bearer test-token"},
         )
@@ -827,10 +883,11 @@ class TestUpdateItem:
         """Test updating non-existent item returns 404."""
         mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
         mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = True
         mock_quotation_service.update_item.return_value = None
 
         response = client.put(
-            f"/api/quotations/items/{uuid4()}",
+            f"/api/quotations/{uuid4()}/items/{uuid4()}",
             json={"quantity": 20},
             headers={"Authorization": "Bearer test-token"},
         )
@@ -839,7 +896,7 @@ class TestUpdateItem:
 
 
 class TestRemoveItem:
-    """Tests for DELETE /api/quotations/items/{item_id}."""
+    """Tests for DELETE /api/quotations/{quotation_id}/items/{item_id}."""
 
     @patch("app.api.quotation_routes.quotation_service")
     @patch("app.api.dependencies.auth_service")
@@ -856,10 +913,11 @@ class TestRemoveItem:
         """Test removing an item successfully."""
         mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
         mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = True
         mock_quotation_service.remove_item.return_value = True
 
         response = client.delete(
-            f"/api/quotations/items/{mock_item_response.id}",
+            f"/api/quotations/{mock_item_response.quotation_id}/items/{mock_item_response.id}",
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -881,10 +939,398 @@ class TestRemoveItem:
         """Test removing non-existent item returns 404."""
         mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
         mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = True
         mock_quotation_service.remove_item.return_value = False
 
         response = client.delete(
-            f"/api/quotations/items/{uuid4()}",
+            f"/api/quotations/{uuid4()}/items/{uuid4()}",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# =============================================================================
+# RECALCULATE AND PERSIST TESTS
+# =============================================================================
+
+
+class TestRecalculateAndPersist:
+    """Tests for POST /api/quotations/{quotation_id}/calculate."""
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_recalculate_and_persist_success(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+        mock_pricing_response,
+    ):
+        """Test recalculating pricing successfully."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.recalculate_and_persist.return_value = mock_pricing_response
+
+        response = client.post(
+            f"/api/quotations/{mock_pricing_response.quotation_id}/calculate",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "subtotal_fob_usd" in data
+        assert "total_cop" in data
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_recalculate_and_persist_not_found_returns_404(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+    ):
+        """Test recalculating pricing for non-existent quotation returns 404."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.recalculate_and_persist.return_value = None
+
+        response = client.post(
+            f"/api/quotations/{uuid4()}/calculate",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# =============================================================================
+# PDF EXPORT TESTS
+# =============================================================================
+
+
+class TestExportPDF:
+    """Tests for GET /api/quotations/{quotation_id}/export/pdf."""
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_export_pdf_success(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+        mock_quotation_response,
+    ):
+        """Test exporting PDF successfully."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.generate_pdf.return_value = b"%PDF-1.4 test content"
+        mock_quotation_service.get_quotation.return_value = mock_quotation_response
+
+        response = client.get(
+            f"/api/quotations/{mock_quotation_response.id}/export/pdf",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.headers["content-type"] == "application/pdf"
+        assert "Content-Disposition" in response.headers
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_export_pdf_not_found_returns_404(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+    ):
+        """Test exporting PDF for non-existent quotation returns 404."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.generate_pdf.return_value = None
+
+        response = client.get(
+            f"/api/quotations/{uuid4()}/export/pdf",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# =============================================================================
+# SEND EMAIL TESTS
+# =============================================================================
+
+
+class TestSendEmail:
+    """Tests for POST /api/quotations/{quotation_id}/send."""
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_send_email_success(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+        mock_quotation_response,
+        mock_send_email_response,
+    ):
+        """Test sending email successfully."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.send_email.return_value = mock_send_email_response
+
+        response = client.post(
+            f"/api/quotations/{mock_quotation_response.id}/send",
+            json={
+                "recipient_email": "test@example.com",
+                "subject": "Test Quotation",
+                "message": "Please review",
+            },
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["recipient_email"] == "test@example.com"
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_send_email_not_found_returns_404(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+    ):
+        """Test sending email for non-existent quotation returns 404."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.send_email.return_value = None
+
+        response = client.post(
+            f"/api/quotations/{uuid4()}/send",
+            json={"recipient_email": "test@example.com"},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# =============================================================================
+# SHARE TOKEN TESTS
+# =============================================================================
+
+
+class TestShareToken:
+    """Tests for share token endpoints."""
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_generate_share_token_success(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+        mock_share_token_response,
+    ):
+        """Test generating share token successfully."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.get_share_token.return_value = mock_share_token_response
+
+        response = client.post(
+            f"/api/quotations/{mock_share_token_response.quotation_id}/share",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "token" in data
+        assert "expires_at" in data
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_generate_share_token_not_found_returns_404(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+    ):
+        """Test generating share token for non-existent quotation returns 404."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.get_share_token.return_value = None
+
+        response = client.post(
+            f"/api/quotations/{uuid4()}/share",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestPublicShareEndpoint:
+    """Tests for GET /api/quotations/share/{token} (public endpoint)."""
+
+    @patch("app.api.quotation_routes.quotation_service")
+    def test_get_by_share_token_success(
+        self,
+        mock_quotation_service,
+        client,
+        mock_public_quotation_response,
+    ):
+        """Test accessing quotation via share token (no auth required)."""
+        mock_quotation_service.get_by_share_token.return_value = mock_public_quotation_response
+
+        response = client.get("/api/quotations/share/valid-token")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["quotation_number"] == "QT-000001"
+
+    @patch("app.api.quotation_routes.quotation_service")
+    def test_get_by_share_token_invalid_returns_404(
+        self,
+        mock_quotation_service,
+        client,
+    ):
+        """Test accessing quotation via invalid share token returns 404."""
+        mock_quotation_service.get_by_share_token.return_value = None
+
+        response = client.get("/api/quotations/share/invalid-token")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# =============================================================================
+# NESTED LINE ITEM ROUTE TESTS
+# =============================================================================
+
+
+class TestNestedLineItemRoutes:
+    """Tests for nested line item routes /{quotation_id}/items/{item_id}."""
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_update_item_nested_route_success(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+        mock_quotation_response,
+        mock_item_response,
+    ):
+        """Test updating an item via nested route successfully."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = True
+        mock_quotation_service.update_item.return_value = mock_item_response
+
+        response = client.put(
+            f"/api/quotations/{mock_quotation_response.id}/items/{mock_item_response.id}",
+            json={"quantity": 20},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_update_item_wrong_quotation_returns_404(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+    ):
+        """Test updating item with wrong quotation ID returns 404."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = False
+
+        response = client.put(
+            f"/api/quotations/{uuid4()}/items/{uuid4()}",
+            json={"quantity": 20},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_remove_item_nested_route_success(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+        mock_quotation_response,
+        mock_item_response,
+    ):
+        """Test removing an item via nested route successfully."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = True
+        mock_quotation_service.remove_item.return_value = True
+
+        response = client.delete(
+            f"/api/quotations/{mock_quotation_response.id}/items/{mock_item_response.id}",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["message"] == "Item removed successfully"
+
+    @patch("app.api.quotation_routes.quotation_service")
+    @patch("app.api.dependencies.auth_service")
+    @patch("app.api.dependencies.user_repository")
+    def test_remove_item_wrong_quotation_returns_404(
+        self,
+        mock_user_repo,
+        mock_auth_service,
+        mock_quotation_service,
+        client,
+        mock_user,
+    ):
+        """Test removing item with wrong quotation ID returns 404."""
+        mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
+        mock_user_repo.get_user_by_id.return_value = mock_user
+        mock_quotation_service.validate_item_belongs_to_quotation.return_value = False
+
+        response = client.delete(
+            f"/api/quotations/{uuid4()}/items/{uuid4()}",
             headers={"Authorization": "Bearer test-token"},
         )
 

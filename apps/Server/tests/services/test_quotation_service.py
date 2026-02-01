@@ -13,6 +13,7 @@ from app.models.kompass_dto import (
     QuotationCreateDTO,
     QuotationFilterDTO,
     QuotationItemCreateDTO,
+    QuotationSendEmailRequestDTO,
     QuotationStatus,
     QuotationStatusTransitionDTO,
     QuotationUpdateDTO,
@@ -651,3 +652,345 @@ class TestStatusTransitionsConstant:
     def test_terminal_states_transitions(self):
         """Test that terminal states have limited transitions."""
         assert STATUS_TRANSITIONS["expired"] == []
+
+
+# =============================================================================
+# RECALCULATE AND PERSIST TESTS
+# =============================================================================
+
+
+class TestRecalculateAndPersist:
+    """Tests for recalculate_and_persist method."""
+
+    @patch("app.services.quotation_service.pricing_service")
+    def test_recalculate_and_persist_success(
+        self, mock_pricing_service, quotation_service, mock_quotation_with_items
+    ):
+        """Test recalculate_and_persist successfully calculates and persists."""
+        quotation_service.repository.get_by_id.return_value = mock_quotation_with_items
+        quotation_service.repository.recalculate_totals.return_value = mock_quotation_with_items
+
+        mock_pricing_service.get_all_settings.return_value = {
+            "exchange_rate_usd_cop": Decimal("4200.0"),
+            "default_margin_percentage": Decimal("20.0"),
+            "insurance_percentage": Decimal("1.5"),
+            "inspection_cost_usd": Decimal("150.0"),
+            "nationalization_cost_cop": Decimal("200000.0"),
+        }
+
+        result = quotation_service.recalculate_and_persist(mock_quotation_with_items["id"])
+
+        assert result is not None
+        assert result.total_cop > 0
+        quotation_service.repository.recalculate_totals.assert_called_once()
+
+    def test_recalculate_and_persist_not_found(self, quotation_service):
+        """Test recalculate_and_persist for non-existent quotation."""
+        quotation_service.repository.get_by_id.return_value = None
+
+        result = quotation_service.recalculate_and_persist(uuid4())
+
+        assert result is None
+
+
+# =============================================================================
+# PDF GENERATION TESTS
+# =============================================================================
+
+
+class TestGeneratePDF:
+    """Tests for PDF generation."""
+
+    def test_generate_pdf_success(self, quotation_service, mock_quotation_with_items):
+        """Test generating PDF successfully."""
+        quotation_service.repository.get_by_id.return_value = mock_quotation_with_items
+
+        result = quotation_service.generate_pdf(mock_quotation_with_items["id"])
+
+        assert result is not None
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+        # PDF should start with PDF header
+        assert result[:4] == b"%PDF"
+
+    def test_generate_pdf_empty_quotation(self, quotation_service, mock_quotation):
+        """Test generating PDF for quotation with no items."""
+        quotation_service.repository.get_by_id.return_value = mock_quotation
+
+        result = quotation_service.generate_pdf(mock_quotation["id"])
+
+        assert result is not None
+        assert isinstance(result, bytes)
+        assert result[:4] == b"%PDF"
+
+    def test_generate_pdf_not_found(self, quotation_service):
+        """Test generating PDF for non-existent quotation."""
+        quotation_service.repository.get_by_id.return_value = None
+
+        result = quotation_service.generate_pdf(uuid4())
+
+        assert result is None
+
+
+# =============================================================================
+# SHARE TOKEN TESTS
+# =============================================================================
+
+
+class TestShareToken:
+    """Tests for share token functionality."""
+
+    @patch("app.services.quotation_service.get_settings")
+    def test_get_share_token_success(self, mock_settings, mock_quotation):
+        """Test generating share token successfully."""
+        mock_settings.return_value = MagicMock(
+            JWT_SECRET_KEY="test-secret-key-with-at-least-32-chars",
+            JWT_ALGORITHM="HS256",
+        )
+        service = QuotationService()
+        service.repository = MagicMock()
+        service.repository.get_by_id.return_value = mock_quotation
+
+        result = service.get_share_token(mock_quotation["id"])
+
+        assert result is not None
+        assert result.token is not None
+        assert len(result.token) > 0
+        assert result.quotation_id == mock_quotation["id"]
+        assert result.expires_at is not None
+
+    @patch("app.services.quotation_service.get_settings")
+    def test_get_share_token_not_found(self, mock_settings):
+        """Test generating share token for non-existent quotation."""
+        mock_settings.return_value = MagicMock(
+            JWT_SECRET_KEY="test-secret-key-with-at-least-32-chars",
+            JWT_ALGORITHM="HS256",
+        )
+        service = QuotationService()
+        service.repository = MagicMock()
+        service.repository.get_by_id.return_value = None
+
+        result = service.get_share_token(uuid4())
+
+        assert result is None
+
+    @patch("app.services.quotation_service.get_settings")
+    def test_get_by_share_token_success(self, mock_settings, mock_quotation):
+        """Test accessing quotation via valid share token."""
+        mock_settings.return_value = MagicMock(
+            JWT_SECRET_KEY="test-secret-key-with-at-least-32-chars",
+            JWT_ALGORITHM="HS256",
+        )
+        service = QuotationService()
+        service.repository = MagicMock()
+        service.repository.get_by_id.return_value = mock_quotation
+
+        # Generate a token first
+        token_result = service.get_share_token(mock_quotation["id"])
+        assert token_result is not None
+
+        # Now access via that token
+        result = service.get_by_share_token(token_result.token)
+
+        assert result is not None
+        assert result.id == mock_quotation["id"]
+        assert result.quotation_number == mock_quotation["quotation_number"]
+
+    @patch("app.services.quotation_service.get_settings")
+    def test_get_by_share_token_invalid(self, mock_settings):
+        """Test accessing quotation via invalid share token."""
+        mock_settings.return_value = MagicMock(
+            JWT_SECRET_KEY="test-secret-key-with-at-least-32-chars",
+            JWT_ALGORITHM="HS256",
+        )
+        service = QuotationService()
+        service.repository = MagicMock()
+
+        result = service.get_by_share_token("invalid-token")
+
+        assert result is None
+
+    @patch("app.services.quotation_service.get_settings")
+    def test_get_by_share_token_quotation_deleted(self, mock_settings, mock_quotation):
+        """Test accessing quotation that was deleted after token generation."""
+        mock_settings.return_value = MagicMock(
+            JWT_SECRET_KEY="test-secret-key-with-at-least-32-chars",
+            JWT_ALGORITHM="HS256",
+        )
+        service = QuotationService()
+        service.repository = MagicMock()
+        service.repository.get_by_id.side_effect = [mock_quotation, None]
+
+        # Generate token
+        token_result = service.get_share_token(mock_quotation["id"])
+
+        # Now quotation is deleted
+        result = service.get_by_share_token(token_result.token)
+
+        assert result is None
+
+
+# =============================================================================
+# EMAIL FUNCTIONALITY TESTS
+# =============================================================================
+
+
+class TestSendEmail:
+    """Tests for email sending functionality."""
+
+    @patch.dict("os.environ", {"EMAIL_MOCK_MODE": "true"})
+    def test_send_email_mock_mode(self, quotation_service, mock_quotation):
+        """Test sending email in mock mode."""
+        quotation_service.repository.get_by_id.return_value = mock_quotation
+
+        request = QuotationSendEmailRequestDTO(
+            recipient_email="test@example.com",
+            recipient_name="Test User",
+            subject="Test Quotation",
+            message="Please review",
+            include_pdf=True,
+        )
+
+        result = quotation_service.send_email(mock_quotation["id"], request)
+
+        assert result is not None
+        assert result.success is True
+        assert result.mock_mode is True
+        assert result.recipient_email == "test@example.com"
+
+    @patch.dict("os.environ", {"EMAIL_MOCK_MODE": "true"})
+    def test_send_email_not_found(self, quotation_service):
+        """Test sending email for non-existent quotation."""
+        quotation_service.repository.get_by_id.return_value = None
+
+        request = QuotationSendEmailRequestDTO(
+            recipient_email="test@example.com",
+        )
+
+        result = quotation_service.send_email(uuid4(), request)
+
+        assert result is None
+
+    @patch.dict("os.environ", {"EMAIL_MOCK_MODE": "true"})
+    def test_send_email_without_pdf(self, quotation_service, mock_quotation):
+        """Test sending email without PDF attachment."""
+        quotation_service.repository.get_by_id.return_value = mock_quotation
+
+        request = QuotationSendEmailRequestDTO(
+            recipient_email="test@example.com",
+            include_pdf=False,
+        )
+
+        result = quotation_service.send_email(mock_quotation["id"], request)
+
+        assert result is not None
+        assert result.success is True
+
+
+# =============================================================================
+# ITEM VALIDATION TESTS
+# =============================================================================
+
+
+class TestItemValidation:
+    """Tests for item validation methods."""
+
+    @patch("app.config.database.get_database_connection")
+    @patch("app.config.database.close_database_connection")
+    def test_validate_item_belongs_to_quotation_success(
+        self, mock_close, mock_get_conn, quotation_service, mock_item
+    ):
+        """Test validating item belongs to correct quotation."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+
+        # Return a row with matching quotation_id
+        quotation_id = uuid4()
+        mock_cursor.fetchone.return_value = (
+            mock_item["id"],
+            quotation_id,  # quotation_id
+            None,  # product_id
+            "SKU001",
+            "Widget A",
+            "Description",
+            10,
+            "piece",
+            Decimal("50.00"),
+            Decimal("100.00"),
+            Decimal("100.00"),
+            Decimal("10.00"),
+            Decimal("100.00"),
+            Decimal("0.00"),
+            Decimal("1100.00"),
+            0,
+            None,
+            datetime.now(),
+            datetime.now(),
+        )
+        mock_get_conn.return_value = mock_conn
+
+        result = quotation_service.validate_item_belongs_to_quotation(
+            quotation_id, mock_item["id"]
+        )
+
+        assert result is True
+
+    @patch("app.config.database.get_database_connection")
+    @patch("app.config.database.close_database_connection")
+    def test_validate_item_belongs_to_quotation_wrong_quotation(
+        self, mock_close, mock_get_conn, quotation_service, mock_item
+    ):
+        """Test validating item belongs to wrong quotation."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+
+        # Return a row with different quotation_id
+        mock_cursor.fetchone.return_value = (
+            mock_item["id"],
+            uuid4(),  # Different quotation_id
+            None,
+            "SKU001",
+            "Widget A",
+            "Description",
+            10,
+            "piece",
+            Decimal("50.00"),
+            Decimal("100.00"),
+            Decimal("100.00"),
+            Decimal("10.00"),
+            Decimal("100.00"),
+            Decimal("0.00"),
+            Decimal("1100.00"),
+            0,
+            None,
+            datetime.now(),
+            datetime.now(),
+        )
+        mock_get_conn.return_value = mock_conn
+
+        result = quotation_service.validate_item_belongs_to_quotation(
+            uuid4(), mock_item["id"]
+        )
+
+        assert result is False
+
+    @patch("app.config.database.get_database_connection")
+    @patch("app.config.database.close_database_connection")
+    def test_validate_item_belongs_to_quotation_item_not_found(
+        self, mock_close, mock_get_conn, quotation_service
+    ):
+        """Test validating non-existent item."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_cursor.fetchone.return_value = None
+        mock_get_conn.return_value = mock_conn
+
+        result = quotation_service.validate_item_belongs_to_quotation(uuid4(), uuid4())
+
+        assert result is False
