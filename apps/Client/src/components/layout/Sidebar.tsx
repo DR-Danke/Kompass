@@ -27,6 +27,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CategoryIcon from '@mui/icons-material/Category';
 import LabelIcon from '@mui/icons-material/Label';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useAuth } from '@/hooks/useAuth';
 
 const SIDEBAR_BG = '#1a1d21';
@@ -48,6 +49,7 @@ const navItems: NavItem[] = [
   { title: 'Clients', icon: <PeopleIcon />, path: '/clients' },
   { title: 'Quotations', icon: <DescriptionIcon />, path: '/quotations' },
   { title: 'Niches', icon: <LabelIcon />, path: '/niches' },
+  { title: 'Pricing', icon: <AttachMoneyIcon />, path: '/pricing' },
   { title: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
