@@ -72,9 +72,10 @@ export function usePortfolios(initialPageSize = 12): UsePortfoliosReturn {
         apiFilters
       );
 
-      setPortfolios(response.items);
+      const items = response.items || [];
+      setPortfolios(items);
       setPagination(response.pagination);
-      console.log(`INFO [usePortfolios]: Fetched ${response.items.length} portfolios`);
+      console.log(`INFO [usePortfolios]: Fetched ${items.length} portfolios`);
     } catch (err) {
       console.error('ERROR [usePortfolios]: Failed to fetch portfolios:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch portfolios');

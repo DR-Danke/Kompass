@@ -125,41 +125,48 @@ class TestListTags:
     @patch("app.services.tag_service.tag_repository")
     def test_list_tags_with_counts(self, mock_repo, tag_service):
         """Test listing all tags with product counts."""
-        mock_repo.get_all_with_counts.return_value = [
-            {
-                "id": uuid4(),
-                "name": "Popular",
-                "color": "#FF0000",
-                "product_count": 15,
-                "created_at": datetime.now(),
-                "updated_at": datetime.now(),
-            },
-            {
-                "id": uuid4(),
-                "name": "New",
-                "color": "#00FF00",
-                "product_count": 3,
-                "created_at": datetime.now(),
-                "updated_at": datetime.now(),
-            },
-        ]
+        mock_repo.get_all_with_counts_paginated.return_value = (
+            [
+                {
+                    "id": uuid4(),
+                    "name": "Popular",
+                    "color": "#FF0000",
+                    "product_count": 15,
+                    "created_at": datetime.now(),
+                    "updated_at": datetime.now(),
+                },
+                {
+                    "id": uuid4(),
+                    "name": "New",
+                    "color": "#00FF00",
+                    "product_count": 3,
+                    "created_at": datetime.now(),
+                    "updated_at": datetime.now(),
+                },
+            ],
+            2  # total count
+        )
 
-        result = tag_service.list_tags()
+        result = tag_service.list_tags(page=1, limit=20)
 
-        assert len(result) == 2
-        assert result[0].name == "Popular"
-        assert result[0].product_count == 15
-        assert result[1].name == "New"
-        assert result[1].product_count == 3
+        assert len(result.items) == 2
+        assert result.items[0].name == "Popular"
+        assert result.items[0].product_count == 15
+        assert result.items[1].name == "New"
+        assert result.items[1].product_count == 3
+        assert result.pagination.total == 2
+        assert result.pagination.page == 1
+        assert result.pagination.pages == 1
 
     @patch("app.services.tag_service.tag_repository")
     def test_list_tags_empty(self, mock_repo, tag_service):
         """Test listing tags when none exist."""
-        mock_repo.get_all_with_counts.return_value = []
+        mock_repo.get_all_with_counts_paginated.return_value = ([], 0)
 
-        result = tag_service.list_tags()
+        result = tag_service.list_tags(page=1, limit=20)
 
-        assert result == []
+        assert result.items == []
+        assert result.pagination.total == 0
 
 
 class TestUpdateTag:

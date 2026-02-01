@@ -89,9 +89,10 @@ const PricingConfigPage: React.FC = () => {
 
     try {
       console.log('INFO [PricingConfigPage]: Fetching HS codes');
-      const response = await pricingService.listHsCodes(1, 1000);
-      setHsCodes(response.items);
-      console.log(`INFO [PricingConfigPage]: Fetched ${response.items.length} HS codes`);
+      const response = await pricingService.listHsCodes(1, 100);
+      const items = response.items || [];
+      setHsCodes(items);
+      console.log(`INFO [PricingConfigPage]: Fetched ${items.length} HS codes`);
     } catch (err) {
       console.log('ERROR [PricingConfigPage]: Failed to fetch HS codes', err);
       setHsCodesError(err instanceof Error ? err.message : 'Failed to load HS codes');
@@ -107,9 +108,10 @@ const PricingConfigPage: React.FC = () => {
 
     try {
       console.log('INFO [PricingConfigPage]: Fetching freight rates');
-      const response = await pricingService.listFreightRates(1, 1000);
-      setFreightRates(response.items);
-      console.log(`INFO [PricingConfigPage]: Fetched ${response.items.length} freight rates`);
+      const response = await pricingService.listFreightRates(1, 100);
+      const items = response.items || [];
+      setFreightRates(items);
+      console.log(`INFO [PricingConfigPage]: Fetched ${items.length} freight rates`);
     } catch (err) {
       console.log('ERROR [PricingConfigPage]: Failed to fetch freight rates', err);
       setFreightRatesError(err instanceof Error ? err.message : 'Failed to load freight rates');

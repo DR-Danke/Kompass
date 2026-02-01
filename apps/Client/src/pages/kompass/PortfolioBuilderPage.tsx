@@ -77,7 +77,7 @@ const PortfolioBuilderPage: React.FC = () => {
     const fetchNiches = async () => {
       try {
         const response = await nicheService.list(1, 100);
-        setNiches(response.items);
+        setNiches(response.items || []);
       } catch (err) {
         console.error('ERROR [PortfolioBuilderPage]: Failed to fetch niches:', err);
       }

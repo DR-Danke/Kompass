@@ -82,9 +82,10 @@ export function useQuotations(initialPageSize = 20): UseQuotationsReturn {
         apiFilters
       );
 
-      setQuotations(response.items);
+      const items = response.items || [];
+      setQuotations(items);
       setPagination(response.pagination);
-      console.log(`INFO [useQuotations]: Fetched ${response.items.length} quotations`);
+      console.log(`INFO [useQuotations]: Fetched ${items.length} quotations`);
     } catch (err) {
       console.error('ERROR [useQuotations]: Failed to fetch quotations:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch quotations');

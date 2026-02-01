@@ -116,9 +116,10 @@ const SuppliersPage: React.FC = () => {
       }
 
       const response = await supplierService.list(page + 1, limit, filters);
-      setSuppliers(response.items);
-      setTotal(response.pagination.total);
-      console.log(`INFO [SuppliersPage]: Fetched ${response.items.length} suppliers`);
+      const items = response.items || [];
+      setSuppliers(items);
+      setTotal(response.pagination?.total || 0);
+      console.log(`INFO [SuppliersPage]: Fetched ${items.length} suppliers`);
     } catch (err) {
       console.log('ERROR [SuppliersPage]: Failed to fetch suppliers', err);
       setError(err instanceof Error ? err.message : 'Failed to load suppliers');

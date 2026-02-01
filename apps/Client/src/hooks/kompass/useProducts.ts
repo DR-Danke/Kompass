@@ -103,7 +103,8 @@ export function useProducts(initialPageSize = 12): UseProductsReturn {
         apiFilters
       );
 
-      let sortedProducts = [...response.items];
+      const items = response.items || [];
+      let sortedProducts = [...items];
 
       if (sortBy) {
         sortedProducts.sort((a, b) => {
