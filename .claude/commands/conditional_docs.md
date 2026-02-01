@@ -1501,3 +1501,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing niche card display or client count badges
     - When troubleshooting niche delete validation (409 Conflict handling)
     - When adding navigation to niches or modifying niche routes
+
+- app_docs/feature-e60c5767-quotation-creator-page.md
+  - Conditions:
+    - When working with QuotationCreatorPage or /quotations/new route
+    - When working with QuotationsListPage or /quotations route
+    - When implementing or modifying apps/Client/src/pages/kompass/QuotationCreatorPage.tsx
+    - When implementing or modifying apps/Client/src/pages/kompass/QuotationsListPage.tsx
+    - When working with quotation line items or pricing calculations
+    - When using useQuotationCreator or useQuotations hooks
+    - When working with ClientSelector, ProductSelector, QuotationLineItemsTable, or QuotationPricingPanel components
+    - When working with QuotationActions or QuotationStatusBadge components
+    - When implementing quotation PDF export, email sending, or share link functionality
+    - When troubleshooting quotation CRUD operations in the frontend
