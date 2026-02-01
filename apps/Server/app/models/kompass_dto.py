@@ -1132,6 +1132,87 @@ class QuotationCloneDTO(BaseModel):
     )
 
 
+class QuotationShareTokenResponseDTO(BaseModel):
+    """Response model for quotation share token generation."""
+
+    token: str
+    quotation_id: UUID
+    expires_at: Optional[datetime] = None
+
+
+class QuotationPublicItemDTO(BaseModel):
+    """Response model for public quotation item data (limited fields)."""
+
+    product_name: str
+    description: Optional[str] = None
+    quantity: int
+    unit_of_measure: str
+    unit_price: Decimal
+    line_total: Decimal
+
+    model_config = {"from_attributes": True}
+
+
+class QuotationPublicResponseDTO(BaseModel):
+    """Response model for public quotation access via share token.
+
+    Omits sensitive internal fields for public viewing.
+    """
+
+    id: UUID
+    quotation_number: str
+    client_name: Optional[str] = None
+    status: QuotationStatus
+    incoterm: Incoterm
+    currency: str
+    subtotal: Decimal
+    freight_cost: Decimal
+    insurance_cost: Decimal
+    other_costs: Decimal
+    total: Decimal
+    discount_percent: Decimal
+    grand_total: Decimal
+    notes: Optional[str] = None
+    terms_and_conditions: Optional[str] = None
+    valid_from: Optional[date] = None
+    valid_until: Optional[date] = None
+    items: List[QuotationPublicItemDTO] = []
+    item_count: int = 0
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class QuotationSendEmailRequestDTO(BaseModel):
+    """Request model for sending quotation via email."""
+
+    recipient_email: EmailStr = Field(description="Email address of the recipient")
+    recipient_name: Optional[str] = Field(
+        default=None, max_length=200, description="Name of the recipient"
+    )
+    subject: Optional[str] = Field(
+        default=None, max_length=255, description="Email subject line"
+    )
+    message: Optional[str] = Field(
+        default=None, description="Custom message to include in the email body"
+    )
+    include_pdf: bool = Field(
+        default=True, description="Whether to attach the PDF proforma"
+    )
+
+
+class QuotationSendEmailResponseDTO(BaseModel):
+    """Response model for quotation email sending result."""
+
+    success: bool
+    message: str
+    sent_at: Optional[datetime] = None
+    recipient_email: str
+    mock_mode: bool = Field(
+        default=False, description="Whether email was sent in mock mode"
+    )
+
+
 # =============================================================================
 # BULK OPERATION DTOs
 # =============================================================================
