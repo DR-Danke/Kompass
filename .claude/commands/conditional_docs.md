@@ -1419,3 +1419,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding new Kompass routes or navigation items
     - When troubleshooting Kompass frontend API communication
     - When implementing type-safe API calls for Kompass entities
+
+- app_docs/feature-ba862094-categories-tags-management-page.md
+  - Conditions:
+    - When working with the Categories & Tags management page
+    - When implementing or modifying apps/Client/src/pages/kompass/CategoriesPage.tsx
+    - When working with CategoryTree, TagChip, CategoryDialog, or TagDialog components
+    - When using useCategories or useTags hooks
+    - When implementing drag-and-drop category reparenting
+    - When working with category tree expand/collapse functionality
+    - When implementing tag search or filtering
+    - When working with tag color picker or contrast text calculation
+    - When troubleshooting category or tag CRUD operations in the UI
