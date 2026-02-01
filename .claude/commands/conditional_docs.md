@@ -1465,3 +1465,17 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing tag search or filtering
     - When working with tag color picker or contrast text calculation
     - When troubleshooting category or tag CRUD operations in the UI
+
+- app_docs/feature-21b3a47b-clients-pipeline-kanban-page.md
+  - Conditions:
+    - When working with ClientsPage or /clients route
+    - When implementing or modifying apps/Client/src/pages/kompass/ClientsPage.tsx
+    - When working with ClientKanbanBoard, KanbanColumn, or ClientCard components
+    - When working with ClientDetailDrawer or ClientForm components
+    - When working with ClientListView component
+    - When using useClients hook for client state management
+    - When implementing drag-and-drop functionality with dnd-kit
+    - When working with client pipeline status transitions
+    - When working with client status history or status change tracking
+    - When troubleshooting client CRUD operations in the UI
+    - When implementing Kanban board views in the frontend
