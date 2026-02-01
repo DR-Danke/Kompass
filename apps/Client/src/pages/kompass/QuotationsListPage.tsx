@@ -87,7 +87,7 @@ const QuotationsListPage: React.FC = () => {
     const fetchClients = async () => {
       try {
         const response = await clientService.list(1, 100);
-        setClients(response.items);
+        setClients(response.items || []);
       } catch (err) {
         console.error('ERROR [QuotationsListPage]: Failed to fetch clients:', err);
       }

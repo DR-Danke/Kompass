@@ -44,8 +44,8 @@ export function useTags(): UseTagsReturn {
     setError(null);
     try {
       console.log('INFO [useTags]: Fetching tags list');
-      const response = await tagService.list(1, 1000);
-      setTags(response.items);
+      const response = await tagService.list(1, 100);
+      setTags(response.items || []);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch tags';
       console.log(`ERROR [useTags]: ${message}`);

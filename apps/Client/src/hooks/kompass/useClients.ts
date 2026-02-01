@@ -90,8 +90,9 @@ export function useClients(): UseClientsReturn {
 
     try {
       const response = await clientService.list(1, 100, filters);
-      setClients(response.items);
-      console.log(`INFO [useClients]: Fetched ${response.items.length} clients`);
+      const items = response.items || [];
+      setClients(items);
+      console.log(`INFO [useClients]: Fetched ${items.length} clients`);
     } catch (err) {
       console.error('ERROR [useClients]: Failed to fetch clients:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch clients');

@@ -101,9 +101,21 @@ class TestListTags:
         self, mock_user_repo, mock_auth_service, mock_tag_service, client, mock_user, mock_tag_with_count
     ):
         """Test listing tags returns tags with product counts."""
+        from app.models.kompass_dto import TagListResponseDTO, PaginationDTO
+
         mock_auth_service.decode_access_token.return_value = {"sub": mock_user["id"]}
         mock_user_repo.get_user_by_id.return_value = mock_user
-        mock_tag_service.list_tags.return_value = [mock_tag_with_count]
+
+        # Return paginated response
+        mock_tag_service.list_tags.return_value = TagListResponseDTO(
+            items=[mock_tag_with_count],
+            pagination=PaginationDTO(
+                page=1,
+                limit=20,
+                total=1,
+                pages=1,
+            )
+        )
 
         response = client.get(
             "/api/tags/",
@@ -112,9 +124,13 @@ class TestListTags:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 1
-        assert data[0]["name"] == "Trending"
-        assert data[0]["product_count"] == 5
+        assert "items" in data
+        assert "pagination" in data
+        assert len(data["items"]) == 1
+        assert data["items"][0]["name"] == "Trending"
+        assert data["items"][0]["product_count"] == 5
+        assert data["pagination"]["total"] == 1
+        assert data["pagination"]["page"] == 1
 
     def test_list_tags_requires_auth(self, client):
         """Test listing tags requires authentication."""

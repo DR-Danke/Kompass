@@ -120,7 +120,7 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({
     onFilterChange('max_price', priceRange[1] < 10000 ? priceRange[1] : null);
   };
 
-  const selectedTags = tags.filter((t) => filters.tag_ids?.includes(t.id));
+  const selectedTags = (tags || []).filter((t) => filters.tag_ids?.includes(t.id));
 
   const hasActiveFilters =
     filters.supplier_id ||

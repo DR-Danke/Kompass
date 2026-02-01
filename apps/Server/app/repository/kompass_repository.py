@@ -892,7 +892,7 @@ class TagRepository:
             close_database_connection(conn)
 
     def get_all_with_counts(self) -> List[Dict[str, Any]]:
-        """Get all tags with product counts."""
+        """Get all tags with product counts (deprecated, use get_all_with_counts_paginated)."""
         conn = get_database_connection()
         if not conn:
             return []
@@ -925,6 +925,64 @@ class TagRepository:
         except Exception as e:
             print(f"ERROR [TagRepository]: Failed to get tags with counts: {e}")
             return []
+        finally:
+            close_database_connection(conn)
+
+    def get_all_with_counts_paginated(
+        self,
+        page: int = 1,
+        limit: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """Get all tags with product counts and pagination.
+
+        Args:
+            page: Page number (1-indexed)
+            limit: Items per page
+
+        Returns:
+            Tuple of (items list, total count)
+        """
+        conn = get_database_connection()
+        if not conn:
+            return [], 0
+
+        try:
+            with conn.cursor() as cur:
+                # Get total count
+                cur.execute("SELECT COUNT(*) FROM tags")
+                total = cur.fetchone()[0]
+
+                # Get paginated results with product counts
+                offset = (page - 1) * limit
+                cur.execute(
+                    """
+                    SELECT t.id, t.name, t.color, t.created_at, t.updated_at,
+                           COALESCE(COUNT(pt.product_id), 0) as product_count
+                    FROM tags t
+                    LEFT JOIN product_tags pt ON t.id = pt.tag_id
+                    GROUP BY t.id, t.name, t.color, t.created_at, t.updated_at
+                    ORDER BY t.name
+                    LIMIT %s OFFSET %s
+                    """,
+                    (limit, offset),
+                )
+                rows = cur.fetchall()
+
+                items = [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "color": row[2],
+                        "created_at": row[3],
+                        "updated_at": row[4],
+                        "product_count": row[5],
+                    }
+                    for row in rows
+                ]
+                return items, total
+        except Exception as e:
+            print(f"ERROR [TagRepository]: Failed to get tags with counts (paginated): {e}")
+            return [], 0
         finally:
             close_database_connection(conn)
 

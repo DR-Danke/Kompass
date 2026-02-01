@@ -49,8 +49,9 @@ const NichesPage: React.FC = () => {
       console.log('INFO [NichesPage]: Fetching niches');
       const response = await nicheService.list(1, 100);
       // Cast to NicheWithClientCount since the API returns client_count
-      setNiches(response.items as NicheWithClientCount[]);
-      console.log(`INFO [NichesPage]: Fetched ${response.items.length} niches`);
+      const items = response.items || [];
+      setNiches(items as NicheWithClientCount[]);
+      console.log(`INFO [NichesPage]: Fetched ${items.length} niches`);
     } catch (err) {
       console.log('ERROR [NichesPage]: Failed to fetch niches', err);
       setError(err instanceof Error ? err.message : 'Failed to load niches');

@@ -284,7 +284,7 @@ export const categoryService = {
 
   async getTree(): Promise<CategoryTreeNode[]> {
     console.log('INFO [categoryService]: Fetching category tree');
-    const response = await apiClient.get<CategoryTreeNode[]>('/categories/tree');
+    const response = await apiClient.get<CategoryTreeNode[]>('/categories');
     return response.data;
   },
 

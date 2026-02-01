@@ -245,13 +245,6 @@ class TagResponseDTO(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class TagListResponseDTO(BaseModel):
-    """Paginated list response for tags."""
-
-    items: List[TagResponseDTO]
-    pagination: PaginationDTO
-
-
 class TagWithCountDTO(BaseModel):
     """Tag response with product count."""
 
@@ -263,6 +256,13 @@ class TagWithCountDTO(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class TagListResponseDTO(BaseModel):
+    """Paginated list response for tags."""
+
+    items: List[TagWithCountDTO]
+    pagination: PaginationDTO
 
 
 # =============================================================================

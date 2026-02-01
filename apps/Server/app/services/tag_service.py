@@ -1,10 +1,13 @@
 """Tag service for managing product tags."""
 
+import math
 from typing import List, Optional
 from uuid import UUID
 
 from app.models.kompass_dto import (
+    PaginationDTO,
     TagCreateDTO,
+    TagListResponseDTO,
     TagResponseDTO,
     TagUpdateDTO,
     TagWithCountDTO,
@@ -55,14 +58,23 @@ class TagService:
             )
         return None
 
-    def list_tags(self) -> List[TagWithCountDTO]:
-        """Get all tags with product counts.
+    def list_tags(
+        self,
+        page: int = 1,
+        limit: int = 20,
+    ) -> TagListResponseDTO:
+        """Get all tags with product counts and pagination.
+
+        Args:
+            page: Page number (1-indexed)
+            limit: Items per page
 
         Returns:
-            List of tag DTOs with product counts
+            Paginated tag list response with items and pagination metadata
         """
-        results = tag_repository.get_all_with_counts()
-        return [
+        results, total = tag_repository.get_all_with_counts_paginated(page, limit)
+
+        items = [
             TagWithCountDTO(
                 id=r["id"],
                 name=r["name"],
@@ -73,6 +85,18 @@ class TagService:
             )
             for r in results
         ]
+
+        # Calculate pagination metadata
+        pages = math.ceil(total / limit) if limit > 0 else 0
+
+        pagination = PaginationDTO(
+            page=page,
+            limit=limit,
+            total=total,
+            pages=pages,
+        )
+
+        return TagListResponseDTO(items=items, pagination=pagination)
 
     def update_tag(
         self, tag_id: UUID, request: TagUpdateDTO

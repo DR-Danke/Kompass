@@ -9,6 +9,7 @@ from app.api.dependencies import get_current_user
 from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
     TagCreateDTO,
+    TagListResponseDTO,
     TagResponseDTO,
     TagUpdateDTO,
     TagWithCountDTO,
@@ -18,17 +19,24 @@ from app.services.tag_service import tag_service
 router = APIRouter(tags=["Tags"])
 
 
-@router.get("/", response_model=List[TagWithCountDTO])
+@router.get("/", response_model=TagListResponseDTO)
 async def list_tags(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user: dict = Depends(get_current_user),
-) -> List[TagWithCountDTO]:
-    """List all tags with product counts.
+) -> TagListResponseDTO:
+    """List all tags with product counts and pagination.
+
+    Args:
+        page: Page number (1-indexed)
+        limit: Items per page (max 100)
+        current_user: Authenticated user (injected)
 
     Returns:
-        List of tags with their product counts
+        Paginated list of tags with product counts
     """
-    print("INFO [TagRoutes]: Listing all tags")
-    return tag_service.list_tags()
+    print(f"INFO [TagRoutes]: Listing tags, page {page}, limit {limit}")
+    return tag_service.list_tags(page=page, limit=limit)
 
 
 @router.get("/search", response_model=List[TagResponseDTO])
