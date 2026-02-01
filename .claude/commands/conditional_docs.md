@@ -1465,3 +1465,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing tag search or filtering
     - When working with tag color picker or contrast text calculation
     - When troubleshooting category or tag CRUD operations in the UI
+
+- app_docs/feature-2287ac8d-portfolio-builder-page.md
+  - Conditions:
+    - When working with PortfoliosPage or /portfolios route
+    - When implementing or modifying PortfolioBuilderPage component
+    - When working with PortfolioCard, PortfolioBuilder, PortfolioItemCard, or PortfolioStatusBadge components
+    - When working with ProductCatalogMini for product selection
+    - When using usePortfolios or usePortfolioBuilder hooks
+    - When implementing drag-and-drop reordering with @dnd-kit
+    - When working with portfolio CRUD operations in the frontend
+    - When implementing portfolio share links or PDF export
+    - When troubleshooting portfolio builder or list page issues
