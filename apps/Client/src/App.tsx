@@ -14,6 +14,7 @@ import ClientsPage from './pages/kompass/ClientsPage';
 import QuotationsPage from './pages/kompass/QuotationsPage';
 import SettingsPage from './pages/kompass/SettingsPage';
 import ImportWizardPage from './pages/kompass/ImportWizardPage';
+import NichesPage from './pages/kompass/NichesPage';
 
 function App() {
   const { isLoading } = useAuth();
@@ -48,6 +49,7 @@ function App() {
                 <Route path="portfolios/:id" element={<PortfolioBuilderPage />} />
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="quotations" element={<QuotationsPage />} />
+                <Route path="niches" element={<NichesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Routes>
             </MainLayout>
