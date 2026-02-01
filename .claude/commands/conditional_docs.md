@@ -1357,3 +1357,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with Phase 5C (KP-015) of Kompass implementation
     - When running validation commands for niche endpoints
     - When understanding the niche API routes acceptance criteria
+
+- app_docs/feature-d2c2988b-pricing-config-service.md
+  - Conditions:
+    - When working with pricing configuration in Kompass
+    - When implementing or modifying apps/Server/app/services/pricing_service.py
+    - When working with HS code tariff lookups or management
+    - When working with freight rate CRUD operations or active rate lookups
+    - When working with pricing settings (margin, insurance, exchange rates)
+    - When implementing quotation calculation that needs pricing data
+    - When troubleshooting pricing service or tariff issues
+    - When initializing default pricing settings
