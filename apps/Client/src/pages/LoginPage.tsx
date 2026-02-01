@@ -94,6 +94,7 @@ const LoginPage: React.FC = () => {
               helperText={errors.email?.message}
               autoComplete="email"
               autoFocus
+              inputProps={{ 'data-testid': 'email-input' }}
             />
 
             <TextField
@@ -111,6 +112,7 @@ const LoginPage: React.FC = () => {
               error={!!errors.password}
               helperText={errors.password?.message}
               autoComplete="current-password"
+              inputProps={{ 'data-testid': 'password-input' }}
             />
 
             <Button
@@ -120,6 +122,7 @@ const LoginPage: React.FC = () => {
               size="large"
               disabled={isLoading}
               sx={{ mt: 3 }}
+              data-testid="login-submit"
             >
               {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
             </Button>
