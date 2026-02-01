@@ -1465,3 +1465,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing tag search or filtering
     - When working with tag color picker or contrast text calculation
     - When troubleshooting category or tag CRUD operations in the UI
+
+- app_docs/feature-e37ee810-niches-configuration-page.md
+  - Conditions:
+    - When working with the Niches Configuration page
+    - When implementing or modifying apps/Client/src/pages/kompass/NichesPage.tsx
+    - When implementing or modifying apps/Client/src/components/kompass/NicheForm.tsx
+    - When working with niche CRUD operations in the frontend UI
+    - When implementing niche card display or client count badges
+    - When troubleshooting niche delete validation (409 Conflict handling)
+    - When adding navigation to niches or modifying niche routes
