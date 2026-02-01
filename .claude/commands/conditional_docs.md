@@ -1349,3 +1349,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing client status history retrieval
     - When troubleshooting client API endpoint issues
     - When writing tests for client API routes
+
+- app_docs/feature-1ea042fc-niche-api-routes-spec.md
+  - Conditions:
+    - When validating niche API routes implementation
+    - When reviewing specs/issue-15-adw-1ea042fc-niche-api-routes.md
+    - When working with Phase 5C (KP-015) of Kompass implementation
+    - When running validation commands for niche endpoints
+    - When understanding the niche API routes acceptance criteria
