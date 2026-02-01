@@ -11,7 +11,8 @@ import CategoriesPage from './pages/kompass/CategoriesPage';
 import PortfoliosPage from './pages/kompass/PortfoliosPage';
 import PortfolioBuilderPage from './pages/kompass/PortfolioBuilderPage';
 import ClientsPage from './pages/kompass/ClientsPage';
-import QuotationsPage from './pages/kompass/QuotationsPage';
+import QuotationsListPage from './pages/kompass/QuotationsListPage';
+import QuotationCreatorPage from './pages/kompass/QuotationCreatorPage';
 import SettingsPage from './pages/kompass/SettingsPage';
 import ImportWizardPage from './pages/kompass/ImportWizardPage';
 import NichesPage from './pages/kompass/NichesPage';
@@ -48,7 +49,9 @@ function App() {
                 <Route path="portfolios" element={<PortfoliosPage />} />
                 <Route path="portfolios/:id" element={<PortfolioBuilderPage />} />
                 <Route path="clients" element={<ClientsPage />} />
-                <Route path="quotations" element={<QuotationsPage />} />
+                <Route path="quotations" element={<QuotationsListPage />} />
+                <Route path="quotations/new" element={<QuotationCreatorPage />} />
+                <Route path="quotations/:id" element={<QuotationCreatorPage />} />
                 <Route path="niches" element={<NichesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Routes>
