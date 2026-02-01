@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kompass Workflow Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #1976d2;
+            --secondary: #424242;
+            --success: #2e7d32;
+            --warning: #ed6c02;
+            --error: #d32f2f;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--secondary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary), #1565c0);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .toc a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 8px 12px;
+            display: block;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .toc a:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .diagram-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .diagram-section h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg);
+        }
+
+        .diagram-section .description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .legend {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .legend h4 {
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .legend ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .legend li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .note {
+            background: #fff3e0;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .note strong {
+            color: var(--warning);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kompass Workflow Diagrams</h1>
+            <p>Visual guides for the Portfolio & Quotation Automation System</p>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#system-overview">1. System Overview</a></li>
+                <li><a href="#data-model">2. Data Model Relationships</a></li>
+                <li><a href="#quotation-workflow">3. Quotation Creation Workflow</a></li>
+                <li><a href="#quotation-status">4. Quotation Status Flow</a></li>
+                <li><a href="#client-pipeline">5. Client Pipeline Stages</a></li>
+                <li><a href="#import-workflow">6. Product Import Workflow</a></li>
+                <li><a href="#portfolio-workflow">7. Portfolio Creation Workflow</a></li>
+                <li><a href="#pricing-calculation">8. Pricing Calculation Flow</a></li>
+                <li><a href="#user-journeys">9. User Journey Maps</a></li>
+                <li><a href="#api-flow">10. API Request Flow</a></li>
+            </ul>
+        </nav>
+
+        <!-- 1. System Overview -->
+        <section id="system-overview" class="diagram-section">
+            <h2>1. System Overview</h2>
+            <p class="description">High-level architecture showing how Kompass components interact.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Frontend["Frontend (React + TypeScript)"]
+        UI[User Interface]
+        Pages[Pages/Views]
+        Hooks[Custom Hooks]
+        Services[API Services]
+    end
+
+    subgraph Backend["Backend (FastAPI + Python)"]
+        Routes[API Routes]
+        BizLogic[Business Services]
+        Repo[Repository Layer]
+    end
+
+    subgraph Database["Database (PostgreSQL)"]
+        Tables[(Tables)]
+    end
+
+    subgraph External["External Services"]
+        PDF[PDF Generation]
+        Email[Email Service]
+        AI[AI Extraction]
+    end
+
+    UI --> Pages
+    Pages --> Hooks
+    Hooks --> Services
+    Services -->|HTTPS/REST| Routes
+    Routes --> BizLogic
+    BizLogic --> Repo
+    BizLogic --> PDF
+    BizLogic --> Email
+    BizLogic --> AI
+    Repo --> Tables
+
+    style Frontend fill:#e3f2fd,stroke:#1976d2
+    style Backend fill:#e8f5e9,stroke:#2e7d32
+    style Database fill:#fff3e0,stroke:#ed6c02
+    style External fill:#fce4ec,stroke:#c2185b
+            </div>
+        </section>
+
+        <!-- 2. Data Model -->
+        <section id="data-model" class="diagram-section">
+            <h2>2. Data Model Relationships</h2>
+            <p class="description">Entity relationships showing how data is connected in Kompass.</p>
+
+            <div class="mermaid">
+erDiagram
+    NICHES ||--o{ CLIENTS : "segment"
+    NICHES ||--o{ PORTFOLIOS : "target"
+
+    SUPPLIERS ||--o{ PRODUCTS : "provides"
+    CATEGORIES ||--o{ PRODUCTS : "organizes"
+    CATEGORIES ||--o{ CATEGORIES : "parent"
+    HS_CODES ||--o{ PRODUCTS : "classifies"
+
+    PRODUCTS }o--o{ TAGS : "tagged"
+    PRODUCTS ||--o{ PRODUCT_IMAGES : "has"
+    PRODUCTS ||--o{ PORTFOLIO_ITEMS : "in"
+    PRODUCTS ||--o{ QUOTATION_ITEMS : "quoted"
+
+    PORTFOLIOS ||--o{ PORTFOLIO_ITEMS : "contains"
+
+    CLIENTS ||--o{ QUOTATIONS : "receives"
+    CLIENTS ||--o{ CLIENT_STATUS_HISTORY : "tracks"
+
+    QUOTATIONS ||--o{ QUOTATION_ITEMS : "includes"
+
+    PRICING_SETTINGS ||--|| QUOTATIONS : "configures"
+    FREIGHT_RATES ||--o{ QUOTATIONS : "ships"
+
+    NICHES {
+        uuid id PK
+        string name
+        boolean is_active
+    }
+
+    SUPPLIERS {
+        uuid id PK
+        string name
+        string status
+        string country
+    }
+
+    PRODUCTS {
+        uuid id PK
+        string sku
+        string name
+        decimal unit_price
+        string status
+    }
+
+    CLIENTS {
+        uuid id PK
+        string company_name
+        string status
+        uuid niche_id FK
+    }
+
+    QUOTATIONS {
+        uuid id PK
+        string quotation_number
+        string status
+        decimal grand_total
+        uuid client_id FK
+    }
+
+    PORTFOLIOS {
+        uuid id PK
+        string name
+        boolean is_active
+        uuid niche_id FK
+    }
+            </div>
+        </section>
+
+        <!-- 3. Quotation Creation Workflow -->
+        <section id="quotation-workflow" class="diagram-section">
+            <h2>3. Quotation Creation Workflow</h2>
+            <p class="description">Step-by-step process for creating a new quotation.</p>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start]) --> SelectClient[Select Client]
+    SelectClient --> ClientExists{Client Exists?}
+
+    ClientExists -->|No| CreateClient[Create New Client]
+    CreateClient --> ConfigQuote
+    ClientExists -->|Yes| ConfigQuote[Configure Quotation Settings]
+
+    ConfigQuote --> SetIncoterm[Set Incoterm]
+    SetIncoterm --> SetCurrency[Set Currency]
+    SetCurrency --> SetDates[Set Valid From/Until]
+
+    SetDates --> AddProducts[Add Products]
+
+    AddProducts --> SearchProducts[Search Product Catalog]
+    AddProducts --> FromPortfolio[Add from Portfolio]
+
+    SearchProducts --> SetQuantities[Set Quantities]
+    FromPortfolio --> SetQuantities
+
+    SetQuantities --> CustomizePrices{Customize Prices?}
+    CustomizePrices -->|Yes| EditPrices[Edit Unit Prices]
+    CustomizePrices -->|No| ReviewPricing
+    EditPrices --> ReviewPricing[Review Pricing Panel]
+
+    ReviewPricing --> PricingOK{Pricing Correct?}
+    PricingOK -->|No| CheckConfig[Check HS Codes & Rates]
+    CheckConfig --> ReviewPricing
+
+    PricingOK -->|Yes| SaveDraft[Save as Draft]
+
+    SaveDraft --> ReadyToSend{Ready to Send?}
+    ReadyToSend -->|No| EditMore[Continue Editing]
+    EditMore --> AddProducts
+
+    ReadyToSend -->|Yes| SendMethod{Send Method}
+
+    SendMethod --> Email[Send via Email]
+    SendMethod --> ShareLink[Generate Share Link]
+    SendMethod --> PDF[Download PDF]
+
+    Email --> UpdateStatus[Update Status to Sent]
+    ShareLink --> UpdateStatus
+    PDF --> UpdateStatus
+
+    UpdateStatus --> End([End])
+
+    style Start fill:#e8f5e9,stroke:#2e7d32
+    style End fill:#e8f5e9,stroke:#2e7d32
+    style SaveDraft fill:#fff3e0,stroke:#ed6c02
+    style UpdateStatus fill:#e3f2fd,stroke:#1976d2
+            </div>
+        </section>
+
+        <!-- 4. Quotation Status Flow -->
+        <section id="quotation-status" class="diagram-section">
+            <h2>4. Quotation Status Flow</h2>
+            <p class="description">Valid status transitions for quotations throughout their lifecycle.</p>
+
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> Draft: Create
+
+    Draft --> Sent: Send to Client
+
+    Sent --> Viewed: Client Opens
+    Sent --> Accepted: Direct Accept
+    Sent --> Rejected: Direct Reject
+    Sent --> Expired: Past Valid Date
+
+    Viewed --> Negotiating: Start Discussion
+    Viewed --> Accepted: Accept
+    Viewed --> Rejected: Reject
+    Viewed --> Expired: Past Valid Date
+
+    Negotiating --> Accepted: Deal Won
+    Negotiating --> Rejected: Deal Lost
+    Negotiating --> Expired: Past Valid Date
+
+    Accepted --> [*]
+    Rejected --> [*]
+    Expired --> [*]
+
+    note right of Draft
+        Work in progress
+        Not visible to client
+    end note
+
+    note right of Sent
+        Delivered to client
+        Awaiting response
+    end note
+
+    note right of Negotiating
+        Active discussion
+        May need revisions
+    end note
+
+    note right of Accepted
+        Deal closed!
+        Proceed to fulfillment
+    end note
+            </div>
+
+            <div class="legend">
+                <h4>Status Descriptions</h4>
+                <ul>
+                    <li><span class="color-box" style="background:#90caf9"></span> Draft - Being prepared</li>
+                    <li><span class="color-box" style="background:#a5d6a7"></span> Sent - Delivered to client</li>
+                    <li><span class="color-box" style="background:#ce93d8"></span> Viewed - Client opened</li>
+                    <li><span class="color-box" style="background:#ffcc80"></span> Negotiating - In discussion</li>
+                    <li><span class="color-box" style="background:#81c784"></span> Accepted - Won!</li>
+                    <li><span class="color-box" style="background:#ef9a9a"></span> Rejected - Lost</li>
+                    <li><span class="color-box" style="background:#bdbdbd"></span> Expired - Past valid date</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 5. Client Pipeline -->
+        <section id="client-pipeline" class="diagram-section">
+            <h2>5. Client Pipeline Stages</h2>
+            <p class="description">CRM pipeline showing client journey from lead to close.</p>
+
+            <div class="mermaid">
+flowchart LR
+    subgraph Pipeline["Sales Pipeline"]
+        Lead[Lead]
+        Qualified[Qualified]
+        Quoting[Quoting]
+        Negotiating[Negotiating]
+        Won[Won]
+        Lost[Lost]
+    end
+
+    Lead -->|"Qualify needs"| Qualified
+    Qualified -->|"Prepare quote"| Quoting
+    Quoting -->|"Send quote"| Negotiating
+    Negotiating -->|"Close deal"| Won
+    Negotiating -->|"Deal lost"| Lost
+
+    Lead -.->|"Disqualify"| Lost
+    Qualified -.->|"No fit"| Lost
+    Quoting -.->|"No response"| Lost
+
+    style Lead fill:#bbdefb,stroke:#1976d2
+    style Qualified fill:#c8e6c9,stroke:#388e3c
+    style Quoting fill:#fff9c4,stroke:#f9a825
+    style Negotiating fill:#ffe0b2,stroke:#f57c00
+    style Won fill:#a5d6a7,stroke:#2e7d32,stroke-width:3px
+    style Lost fill:#ffcdd2,stroke:#c62828
+            </div>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph Kanban["Kanban Board View"]
+        direction LR
+        subgraph L["LEAD"]
+            L1[Company A]
+            L2[Company B]
+        end
+        subgraph Q["QUALIFIED"]
+            Q1[Company C]
+        end
+        subgraph QT["QUOTING"]
+            QT1[Company D]
+            QT2[Company E]
+        end
+        subgraph N["NEGOTIATING"]
+            N1[Company F]
+        end
+        subgraph W["WON"]
+            W1[Company G]
+        end
+        subgraph LO["LOST"]
+            LO1[Company H]
+        end
+    end
+
+    style L fill:#e3f2fd
+    style Q fill:#e8f5e9
+    style QT fill:#fffde7
+    style N fill:#fff3e0
+    style W fill:#e8f5e9
+    style LO fill:#ffebee
+            </div>
+
+            <div class="note">
+                <strong>Tip:</strong> In Kanban view, drag client cards between columns to update their status. All changes are tracked in the status history.
+            </div>
+        </section>
+
+        <!-- 6. Import Workflow -->
+        <section id="import-workflow" class="diagram-section">
+            <h2>6. Product Import Workflow</h2>
+            <p class="description">AI-powered bulk import process from supplier catalogs.</p>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start]) --> Upload[Upload File]
+
+    Upload --> FileType{File Type}
+    FileType -->|PDF| ProcessPDF[Process PDF]
+    FileType -->|Excel| ProcessExcel[Process Excel]
+    FileType -->|Image| ProcessImage[Process Image/OCR]
+
+    ProcessPDF --> AIExtract[AI Extraction]
+    ProcessExcel --> AIExtract
+    ProcessImage --> AIExtract
+
+    AIExtract --> ExtractedData[Extracted Product Data]
+
+    ExtractedData --> Review[Review Products]
+
+    Review --> EditFields[Edit Fields as Needed]
+    EditFields --> AssignCats[Assign Categories]
+    AssignCats --> AssignTags[Assign Tags]
+    AssignTags --> RemoveBad[Remove Unwanted Items]
+
+    RemoveBad --> Validate{Validation OK?}
+    Validate -->|No| FixErrors[Fix Validation Errors]
+    FixErrors --> Validate
+
+    Validate -->|Yes| SelectSupplier[Select/Confirm Supplier]
+    SelectSupplier --> SetDefaults[Set Default Status]
+
+    SetDefaults --> Confirm[Confirm Import]
+
+    Confirm --> CreateProducts[Create Products in Catalog]
+    CreateProducts --> Success[Products Added as Draft]
+
+    Success --> Finalize[Finalize Products]
+    Finalize --> AddImages[Add Images]
+    AddImages --> AssignHS[Assign HS Codes]
+    AssignHS --> Activate[Set Status to Active]
+
+    Activate --> End([End])
+
+    style Start fill:#e8f5e9,stroke:#2e7d32
+    style End fill:#e8f5e9,stroke:#2e7d32
+    style AIExtract fill:#e1f5fe,stroke:#0288d1
+    style Confirm fill:#fff3e0,stroke:#ed6c02
+    style Success fill:#c8e6c9,stroke:#388e3c
+            </div>
+
+            <div class="legend">
+                <h4>Supported File Types</h4>
+                <ul>
+                    <li><span class="color-box" style="background:#ef5350"></span> PDF - Supplier catalogs (max 20MB)</li>
+                    <li><span class="color-box" style="background:#66bb6a"></span> Excel - Price lists (.xlsx, .xls)</li>
+                    <li><span class="color-box" style="background:#42a5f5"></span> Images - Product photos with text (.jpg, .png)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 7. Portfolio Workflow -->
+        <section id="portfolio-workflow" class="diagram-section">
+            <h2>7. Portfolio Creation Workflow</h2>
+            <p class="description">Process for creating and sharing curated product collections.</p>
+
+            <div class="mermaid">
+flowchart TD
+    Start([Start]) --> Create[Create Portfolio]
+
+    Create --> SetName[Set Name & Description]
+    SetName --> SelectNiche[Select Target Niche]
+
+    SelectNiche --> AddProducts[Add Products]
+
+    AddProducts --> SearchMethod{Add Method}
+    SearchMethod -->|Search| SearchCatalog[Search Product Catalog]
+    SearchMethod -->|Browse| BrowseCategory[Browse by Category]
+    SearchMethod -->|Filter| FilterTags[Filter by Tags]
+
+    SearchCatalog --> SelectProducts[Select Products to Add]
+    BrowseCategory --> SelectProducts
+    FilterTags --> SelectProducts
+
+    SelectProducts --> MoreProducts{Add More?}
+    MoreProducts -->|Yes| AddProducts
+    MoreProducts -->|No| Curate[Curate Collection]
+
+    Curate --> Reorder[Reorder Products]
+    Reorder --> AddNotes[Add Curator Notes]
+    AddNotes --> RemoveItems[Remove Poor Fits]
+
+    RemoveItems --> QualityCheck{Quality OK?}
+    QualityCheck -->|No| Curate
+    QualityCheck -->|Yes| SetStatus[Set Status]
+
+    SetStatus --> StatusChoice{Publish?}
+    StatusChoice -->|Draft| SaveDraft[Save as Draft]
+    StatusChoice -->|Published| Publish[Publish Portfolio]
+
+    SaveDraft --> End1([End])
+
+    Publish --> Share{Share Method}
+    Share -->|Link| GenerateLink[Generate Share Link]
+    Share -->|PDF| ExportPDF[Export PDF]
+    Share -->|Both| BothMethods[Link + PDF]
+
+    GenerateLink --> SendToClient[Send to Client]
+    ExportPDF --> SendToClient
+    BothMethods --> SendToClient
+
+    SendToClient --> End2([End])
+
+    style Start fill:#e8f5e9,stroke:#2e7d32
+    style End1 fill:#e8f5e9,stroke:#2e7d32
+    style End2 fill:#e8f5e9,stroke:#2e7d32
+    style Publish fill:#c8e6c9,stroke:#388e3c
+    style GenerateLink fill:#e3f2fd,stroke:#1976d2
+    style ExportPDF fill:#fff3e0,stroke:#ed6c02
+            </div>
+        </section>
+
+        <!-- 8. Pricing Calculation -->
+        <section id="pricing-calculation" class="diagram-section">
+            <h2>8. Pricing Calculation Flow</h2>
+            <p class="description">How quotation pricing is calculated from FOB to final COP price.</p>
+
+            <div class="mermaid">
+flowchart TD
+    subgraph Inputs["Input Values"]
+        Products[Line Items<br/>Qty × Unit Price]
+        HSCode[HS Codes<br/>Duty Rate %]
+        Freight[Freight Rates<br/>Per Route]
+        Settings[Pricing Settings<br/>Exchange Rate, Margin, etc.]
+    end
+
+    subgraph CalcUSD["USD Calculations"]
+        FOB[Subtotal FOB USD]
+        Tariff[+ Tariff Amount]
+        IntlFreight[+ International Freight]
+        Inspection[+ Inspection Fee]
+        Insurance[+ Insurance]
+        TotalUSD[= Subtotal USD]
+    end
+
+    subgraph Convert["Currency Conversion"]
+        ExRate[× Exchange Rate]
+        COP[= Amount in COP]
+    end
+
+    subgraph CalcCOP["COP Additions"]
+        NatFreight[+ National Freight]
+        Nationalization[+ Nationalization]
+        Margin[+ Margin %]
+        FinalCOP[= GRAND TOTAL COP]
+    end
+
+    Products --> FOB
+    HSCode --> Tariff
+    Freight --> IntlFreight
+    Settings --> Inspection
+    Settings --> Insurance
+    Settings --> ExRate
+    Settings --> NatFreight
+    Settings --> Nationalization
+    Settings --> Margin
+
+    FOB --> Tariff
+    Tariff --> IntlFreight
+    IntlFreight --> Inspection
+    Inspection --> Insurance
+    Insurance --> TotalUSD
+
+    TotalUSD --> ExRate
+    ExRate --> COP
+
+    COP --> NatFreight
+    NatFreight --> Nationalization
+    Nationalization --> Margin
+    Margin --> FinalCOP
+
+    style Inputs fill:#e3f2fd,stroke:#1976d2
+    style CalcUSD fill:#fff3e0,stroke:#ed6c02
+    style Convert fill:#f3e5f5,stroke:#7b1fa2
+    style CalcCOP fill:#e8f5e9,stroke:#2e7d32
+    style FinalCOP fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+            </div>
+
+            <div class="mermaid">
+flowchart LR
+    subgraph Formula["Pricing Formula"]
+        direction TB
+        F1["FOB Price × Qty = $5,000"]
+        F2["+ Tariff (15%) = $750"]
+        F3["+ Int'l Freight = $450"]
+        F4["+ Inspection = $150"]
+        F5["+ Insurance (1.5%) = $82"]
+        F6["= Subtotal USD: $6,432"]
+        F7["× Rate (4,200) = COP 27,014,400"]
+        F8["+ Nat'l Freight = COP 500,000"]
+        F9["+ Nationalization = COP 200,000"]
+        F10["+ Margin (20%) = COP 5,542,880"]
+        F11["= TOTAL: COP 33,257,280"]
+
+        F1 --> F2 --> F3 --> F4 --> F5 --> F6 --> F7 --> F8 --> F9 --> F10 --> F11
+    end
+
+    style F11 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+            </div>
+
+            <div class="legend">
+                <h4>Default Pricing Settings</h4>
+                <ul>
+                    <li><strong>Exchange Rate:</strong> 4,200 COP/USD</li>
+                    <li><strong>Margin:</strong> 20%</li>
+                    <li><strong>Insurance:</strong> 1.5%</li>
+                    <li><strong>Inspection:</strong> $150 USD</li>
+                    <li><strong>Nationalization:</strong> 200,000 COP</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 9. User Journeys -->
+        <section id="user-journeys" class="diagram-section">
+            <h2>9. User Journey Maps</h2>
+            <p class="description">Typical workflows for each user persona.</p>
+
+            <h3>Diana (Design Director) - Daily Journey</h3>
+            <div class="mermaid">
+journey
+    title Diana's Daily Workflow
+    section Morning Review
+      Check Dashboard: 5: Diana
+      Review Draft Products: 4: Diana
+      Check Import Queue: 3: Diana
+    section Product Work
+      Import New Catalog: 4: Diana
+      Review Extracted Products: 3: Diana
+      Add Images & Tags: 4: Diana
+      Activate Products: 5: Diana
+    section Portfolio Work
+      Update Portfolios: 4: Diana
+      Create New Collection: 4: Diana
+      Share with Team: 5: Diana
+            </div>
+
+            <h3>Alejandro (Commercial Manager) - Daily Journey</h3>
+            <div class="mermaid">
+journey
+    title Alejandro's Daily Workflow
+    section Morning Review
+      Check Pipeline: 5: Alejandro
+      Review Pending Quotes: 4: Alejandro
+      Check Exchange Rate: 3: Alejandro
+    section Quote Requests
+      Receive Client Request: 3: Alejandro
+      Create Quotation: 4: Alejandro
+      Review Pricing: 4: Alejandro
+      Send to Client: 5: Alejandro
+    section Follow-up
+      Check Sent Quotes: 4: Alejandro
+      Follow Up Calls: 3: Alejandro
+      Update Status: 4: Alejandro
+      Move Pipeline Cards: 5: Alejandro
+            </div>
+
+            <h3>Ruben (CEO) - Weekly Journey</h3>
+            <div class="mermaid">
+journey
+    title Ruben's Weekly Review
+    section Quick Check
+      View Dashboard KPIs: 5: Ruben
+      Check Pipeline Value: 5: Ruben
+    section Pipeline Review
+      Review Kanban Board: 4: Ruben
+      Identify Stuck Deals: 3: Ruben
+      Check Won/Lost: 4: Ruben
+    section Analysis
+      Review Quotation Trend: 4: Ruben
+      Check Top Products: 4: Ruben
+      Team Discussion: 5: Ruben
+            </div>
+        </section>
+
+        <!-- 10. API Flow -->
+        <section id="api-flow" class="diagram-section">
+            <h2>10. API Request Flow</h2>
+            <p class="description">How data flows through the application layers.</p>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as API Routes
+    participant S as Services
+    participant R as Repository
+    participant D as Database
+
+    U->>F: Click "Create Quotation"
+    F->>F: Validate Form
+    F->>A: POST /api/quotations
+    A->>A: Authenticate JWT
+    A->>S: create_quotation(data)
+    S->>S: Business Logic
+    S->>R: insert_quotation()
+    R->>D: INSERT INTO quotations
+    D-->>R: Return ID
+    R-->>S: Quotation Created
+    S->>S: Calculate Pricing
+    S-->>A: QuotationResponse
+    A-->>F: 201 Created
+    F->>F: Update UI
+    F-->>U: Show Success
+            </div>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant C as Client Browser
+    participant F as Frontend
+    participant A as API
+    participant P as PDF Service
+
+    C->>F: Click "Generate PDF"
+    F->>A: GET /api/quotations/{id}/pdf
+    A->>A: Verify Permissions
+    A->>P: generate_pdf(quotation)
+    P->>P: Render Template
+    P->>P: Add Images
+    P->>P: Create PDF Buffer
+    P-->>A: PDF Bytes
+    A-->>F: application/pdf
+    F-->>C: Download PDF
+            </div>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant A as API
+    participant T as Token Service
+    participant DB as Database
+
+    Note over C,DB: Share Link Flow
+
+    C->>A: GET /api/portfolios/{id}/share-token
+    A->>T: generate_share_token()
+    T->>T: Create JWT (30 days)
+    T-->>A: Token
+    A-->>C: { token: "eyJ..." }
+
+    Note over C,DB: Client Access Flow
+
+    C->>A: GET /api/portfolios/public/{token}
+    A->>T: validate_token(token)
+    T->>T: Verify Signature
+    T->>T: Check Expiration
+    T-->>A: portfolio_id
+    A->>DB: SELECT * FROM portfolios
+    DB-->>A: Portfolio Data
+    A-->>C: Portfolio (Public View)
+            </div>
+        </section>
+
+        <footer>
+            <p>Kompass Workflow Diagrams | Generated for Team Reference</p>
+            <p>See also: <a href="KOMPASS_USER_GUIDE.md">User Guide</a> |
+               <a href="KOMPASS_ROLE_WORKFLOWS.md">Role Workflows</a> |
+               <a href="KOMPASS_MODULE_GUIDE.md">Technical Guide</a></p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                wrap: true
+            }
+        });
+    </script>
+</body>
+</html>

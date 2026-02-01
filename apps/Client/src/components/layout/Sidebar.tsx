@@ -28,6 +28,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CategoryIcon from '@mui/icons-material/Category';
 import LabelIcon from '@mui/icons-material/Label';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useAuth } from '@/hooks/useAuth';
 
 const SIDEBAR_BG = '#1a1d21';
@@ -51,6 +52,7 @@ const navItems: NavItem[] = [
   { title: 'Niches', icon: <LabelIcon />, path: '/niches' },
   { title: 'Pricing', icon: <AttachMoneyIcon />, path: '/pricing' },
   { title: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { title: 'Help & Docs', icon: <HelpOutlineIcon />, path: '/docs' },
 ];
 
 interface SidebarProps {
