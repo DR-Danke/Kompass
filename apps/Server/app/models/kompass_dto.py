@@ -55,6 +55,8 @@ class QuotationStatus(str, Enum):
 
     DRAFT = "draft"
     SENT = "sent"
+    VIEWED = "viewed"
+    NEGOTIATING = "negotiating"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     EXPIRED = "expired"
@@ -1069,6 +1071,65 @@ class QuotationListResponseDTO(BaseModel):
     items: List[QuotationResponseDTO]
     pagination: PaginationDTO
     filters: Optional[QuotationFilterDTO] = None
+
+
+class QuotationPricingDTO(BaseModel):
+    """Response model for quotation pricing calculation results."""
+
+    quotation_id: UUID
+    subtotal_fob_usd: Decimal = Field(
+        default=Decimal("0.00"), description="Sum of line items FOB"
+    )
+    tariff_total_usd: Decimal = Field(
+        default=Decimal("0.00"), description="Total tariff amount"
+    )
+    freight_intl_usd: Decimal = Field(
+        default=Decimal("0.00"), description="International freight cost"
+    )
+    freight_national_cop: Decimal = Field(
+        default=Decimal("0.00"), description="National freight in COP"
+    )
+    inspection_usd: Decimal = Field(
+        default=Decimal("0.00"), description="Inspection cost"
+    )
+    insurance_usd: Decimal = Field(
+        default=Decimal("0.00"), description="Insurance cost"
+    )
+    nationalization_cop: Decimal = Field(
+        default=Decimal("0.00"), description="Nationalization cost"
+    )
+    subtotal_before_margin_cop: Decimal = Field(
+        default=Decimal("0.00"), description="Subtotal before margin"
+    )
+    margin_percentage: Decimal = Field(
+        default=Decimal("0.00"), description="Applied margin percentage"
+    )
+    margin_cop: Decimal = Field(
+        default=Decimal("0.00"), description="Margin amount in COP"
+    )
+    total_cop: Decimal = Field(
+        default=Decimal("0.00"), description="Final total in COP"
+    )
+    exchange_rate: Decimal = Field(
+        default=Decimal("1.00"), description="Exchange rate used"
+    )
+
+    model_config = {"from_attributes": True}
+
+
+class QuotationStatusTransitionDTO(BaseModel):
+    """Request model for quotation status change."""
+
+    new_status: QuotationStatus
+    notes: Optional[str] = None
+
+
+class QuotationCloneDTO(BaseModel):
+    """Request model for cloning a quotation."""
+
+    notes: Optional[str] = Field(
+        default=None, description="Notes for the cloned quotation"
+    )
 
 
 # =============================================================================

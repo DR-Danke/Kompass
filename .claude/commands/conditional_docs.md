@@ -1368,3 +1368,17 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing quotation calculation that needs pricing data
     - When troubleshooting pricing service or tariff issues
     - When initializing default pricing settings
+
+- app_docs/feature-bccd1fc5-quotation-service-pricing-engine.md
+  - Conditions:
+    - When working with quotation service or quotation_service.py
+    - When implementing or modifying apps/Server/app/services/quotation_service.py
+    - When implementing or modifying apps/Server/app/api/quotation_routes.py
+    - When working with /api/quotations endpoints
+    - When implementing quotation CRUD operations
+    - When working with quotation pricing calculations
+    - When implementing quotation line item management
+    - When working with quotation status workflow transitions
+    - When implementing quotation cloning functionality
+    - When troubleshooting quotation service or pricing engine issues
+    - When working with QuotationPricingDTO, QuotationStatusTransitionDTO, or QuotationCloneDTO
