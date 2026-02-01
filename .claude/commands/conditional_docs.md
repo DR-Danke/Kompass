@@ -1382,3 +1382,17 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing quotation cloning functionality
     - When troubleshooting quotation service or pricing engine issues
     - When working with QuotationPricingDTO, QuotationStatusTransitionDTO, or QuotationCloneDTO
+
+- app_docs/feature-0884e820-quotation-api-routes.md
+  - Conditions:
+    - When working with quotation PDF export or proforma generation
+    - When implementing quotation email sending functionality
+    - When working with quotation share tokens or public access
+    - When implementing POST /api/quotations/{id}/calculate endpoint
+    - When implementing GET /api/quotations/{id}/export/pdf endpoint
+    - When implementing POST /api/quotations/{id}/send endpoint
+    - When implementing GET /api/quotations/share/{token} endpoint
+    - When working with QuotationShareTokenResponseDTO or QuotationPublicResponseDTO
+    - When working with QuotationSendEmailRequestDTO or QuotationSendEmailResponseDTO
+    - When troubleshooting quotation PDF generation or email issues
+    - When implementing nested line item routes /{quotation_id}/items/{item_id}
