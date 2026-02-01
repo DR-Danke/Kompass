@@ -1548,3 +1548,21 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing QR codes in PDF documents
     - When troubleshooting PDF generation issues or performance
     - When extending PDF functionality with new document types
+
+- app_docs/feature-0be6430f-kompass-e2e-test-suite.md
+  - Conditions:
+    - When writing or modifying tests for Kompass services
+    - When working with apps/Server/tests/test_kompass/* files
+    - When adding new E2E or integration tests for suppliers, products, portfolios, quotations, or pricing
+    - When creating test fixtures or sample data factories for Kompass entities
+    - When implementing mocked repository tests for Kompass services
+    - When working with FastAPI TestClient for API route testing
+    - When troubleshooting test failures in Kompass module
+    - When adding pytest markers or test organization patterns
+
+- app_docs/feature-09679466-kompass-docs-claude-update.md
+  - Conditions:
+    - When updating Kompass module documentation
+    - When modifying ai_docs/KOMPASS_MODULE_GUIDE.md or ai_docs/KOMPASS_USER_GUIDE.md
+    - When updating CLAUDE.md with Kompass module information
+    - When understanding the overall Kompass documentation structure
