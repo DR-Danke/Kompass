@@ -229,6 +229,87 @@ class NicheRepository:
         result = self.update(niche_id, is_active=False)
         return result is not None
 
+    def count_clients_by_niche(self, niche_id: UUID) -> int:
+        """Get the count of clients associated with a niche.
+
+        Args:
+            niche_id: UUID of the niche
+
+        Returns:
+            Number of clients with this niche
+        """
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM clients WHERE niche_id = %s",
+                    (str(niche_id),),
+                )
+                return cur.fetchone()[0]
+        except Exception as e:
+            print(f"ERROR [NicheRepository]: Failed to count clients by niche: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+    def has_clients(self, niche_id: UUID) -> bool:
+        """Check if a niche has any associated clients.
+
+        Args:
+            niche_id: UUID of the niche
+
+        Returns:
+            True if the niche has clients, False otherwise
+        """
+        return self.count_clients_by_niche(niche_id) > 0
+
+    def get_all_with_client_counts(self) -> List[Dict[str, Any]]:
+        """Get all niches with their client counts.
+
+        Returns:
+            List of niche dicts with client_count field
+        """
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT n.id, n.name, n.description, n.is_active,
+                           n.created_at, n.updated_at,
+                           COALESCE(COUNT(c.id), 0) as client_count
+                    FROM niches n
+                    LEFT JOIN clients c ON n.id = c.niche_id
+                    GROUP BY n.id, n.name, n.description, n.is_active,
+                             n.created_at, n.updated_at
+                    ORDER BY n.name
+                    """
+                )
+                rows = cur.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "description": row[2],
+                        "is_active": row[3],
+                        "created_at": row[4],
+                        "updated_at": row[5],
+                        "client_count": row[6],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [NicheRepository]: Failed to get niches with counts: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # CATEGORY REPOSITORY
@@ -2468,6 +2549,135 @@ class PortfolioRepository:
             "item_count": 0,
         }
 
+    def get_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get portfolio by name (for checking duplicates)."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT p.id, p.name, p.description, p.niche_id, p.is_active,
+                           p.created_at, p.updated_at, n.name as niche_name
+                    FROM portfolios p
+                    LEFT JOIN niches n ON p.niche_id = n.id
+                    WHERE p.name = %s
+                    """,
+                    (name,),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_with_niche(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to get portfolio by name: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def search(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Search portfolios by name or description."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                search_pattern = f"%{query}%"
+                cur.execute(
+                    """
+                    SELECT p.id, p.name, p.description, p.niche_id, p.is_active,
+                           p.created_at, p.updated_at, n.name as niche_name
+                    FROM portfolios p
+                    LEFT JOIN niches n ON p.niche_id = n.id
+                    WHERE p.name ILIKE %s OR p.description ILIKE %s
+                    ORDER BY p.name
+                    LIMIT %s
+                    """,
+                    (search_pattern, search_pattern, limit),
+                )
+                rows = cur.fetchall()
+
+                items = []
+                for row in rows:
+                    portfolio = self._row_to_dict_with_niche(row)
+                    portfolio["items"] = self._get_portfolio_items(cur, portfolio["id"])
+                    portfolio["item_count"] = len(portfolio["items"])
+                    items.append(portfolio)
+
+                return items
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to search portfolios: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def update_items_sort_orders(
+        self, portfolio_id: UUID, items: List[Tuple[UUID, int]]
+    ) -> bool:
+        """Update sort_order for multiple portfolio items in batch.
+
+        Args:
+            portfolio_id: Portfolio UUID
+            items: List of tuples (product_id, sort_order)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not items:
+            return True
+
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                for product_id, sort_order in items:
+                    cur.execute(
+                        """
+                        UPDATE portfolio_items
+                        SET sort_order = %s
+                        WHERE portfolio_id = %s AND product_id = %s
+                        """,
+                        (sort_order, str(portfolio_id), str(product_id)),
+                    )
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to update sort orders: {e}")
+            conn.rollback()
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def get_item_product_ids(self, portfolio_id: UUID) -> List[UUID]:
+        """Get list of product IDs in a portfolio."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT product_id FROM portfolio_items
+                    WHERE portfolio_id = %s
+                    ORDER BY sort_order
+                    """,
+                    (str(portfolio_id),),
+                )
+                rows = cur.fetchall()
+                return [row[0] for row in rows]
+        except Exception as e:
+            print(f"ERROR [PortfolioRepository]: Failed to get item product IDs: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # CLIENT REPOSITORY
@@ -2491,6 +2701,9 @@ class ClientRepository:
         niche_id: Optional[UUID] = None,
         status: str = "prospect",
         notes: Optional[str] = None,
+        assigned_to: Optional[UUID] = None,
+        source: Optional[str] = None,
+        project_deadline: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Create a new client."""
         conn = get_database_connection()
@@ -2503,9 +2716,10 @@ class ClientRepository:
                     """
                     INSERT INTO clients (
                         company_name, contact_name, email, phone, address, city,
-                        state, country, postal_code, niche_id, status, notes
+                        state, country, postal_code, niche_id, status, notes,
+                        assigned_to, source, project_deadline
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, company_name, contact_name, email, phone, address,
                               city, state, country, postal_code, niche_id, status, notes,
                               created_at, updated_at
@@ -2523,6 +2737,9 @@ class ClientRepository:
                         str(niche_id) if niche_id else None,
                         status,
                         notes,
+                        str(assigned_to) if assigned_to else None,
+                        source,
+                        project_deadline,
                     ),
                 )
                 conn.commit()
@@ -2551,9 +2768,12 @@ class ClientRepository:
                     SELECT c.id, c.company_name, c.contact_name, c.email, c.phone,
                            c.address, c.city, c.state, c.country, c.postal_code,
                            c.niche_id, c.status, c.notes, c.created_at, c.updated_at,
-                           n.name as niche_name
+                           n.name as niche_name,
+                           c.assigned_to, c.source, c.project_deadline,
+                           u.first_name || ' ' || u.last_name as assigned_to_name
                     FROM clients c
                     LEFT JOIN niches n ON c.niche_id = n.id
+                    LEFT JOIN users u ON c.assigned_to = u.id
                     WHERE c.id = %s
                     """,
                     (str(client_id),),
@@ -2582,9 +2802,12 @@ class ClientRepository:
                     SELECT c.id, c.company_name, c.contact_name, c.email, c.phone,
                            c.address, c.city, c.state, c.country, c.postal_code,
                            c.niche_id, c.status, c.notes, c.created_at, c.updated_at,
-                           n.name as niche_name
+                           n.name as niche_name,
+                           c.assigned_to, c.source, c.project_deadline,
+                           u.first_name || ' ' || u.last_name as assigned_to_name
                     FROM clients c
                     LEFT JOIN niches n ON c.niche_id = n.id
+                    LEFT JOIN users u ON c.assigned_to = u.id
                     WHERE c.email = %s
                     """,
                     (email,),
@@ -2607,8 +2830,13 @@ class ClientRepository:
         status: Optional[str] = None,
         niche_id: Optional[UUID] = None,
         search: Optional[str] = None,
+        assigned_to: Optional[UUID] = None,
+        source: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        sort_by: str = "company_name",
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """Get all clients with pagination."""
+        """Get all clients with pagination and filters."""
         conn = get_database_connection()
         if not conn:
             return [], 0
@@ -2630,6 +2858,18 @@ class ClientRepository:
                     )
                     search_pattern = f"%{search}%"
                     params.extend([search_pattern, search_pattern, search_pattern])
+                if assigned_to:
+                    conditions.append("c.assigned_to = %s")
+                    params.append(str(assigned_to))
+                if source:
+                    conditions.append("c.source = %s")
+                    params.append(source)
+                if date_from:
+                    conditions.append("c.created_at >= %s")
+                    params.append(date_from)
+                if date_to:
+                    conditions.append("c.created_at <= %s")
+                    params.append(date_to)
 
                 where_clause = (
                     "WHERE " + " AND ".join(conditions) if conditions else ""
@@ -2641,6 +2881,15 @@ class ClientRepository:
                 )
                 total = cur.fetchone()[0]
 
+                # Determine sort column
+                sort_column = "c.company_name"
+                if sort_by == "created_at":
+                    sort_column = "c.created_at DESC"
+                elif sort_by == "project_deadline":
+                    sort_column = "c.project_deadline"
+                elif sort_by == "company_name":
+                    sort_column = "c.company_name"
+
                 offset = (page - 1) * limit
                 params.extend([limit, offset])
 
@@ -2649,11 +2898,14 @@ class ClientRepository:
                     SELECT c.id, c.company_name, c.contact_name, c.email, c.phone,
                            c.address, c.city, c.state, c.country, c.postal_code,
                            c.niche_id, c.status, c.notes, c.created_at, c.updated_at,
-                           n.name as niche_name
+                           n.name as niche_name,
+                           c.assigned_to, c.source, c.project_deadline,
+                           u.first_name || ' ' || u.last_name as assigned_to_name
                     FROM clients c
                     LEFT JOIN niches n ON c.niche_id = n.id
+                    LEFT JOIN users u ON c.assigned_to = u.id
                     {where_clause}
-                    ORDER BY c.company_name
+                    ORDER BY {sort_column}
                     LIMIT %s OFFSET %s
                     """,
                     params,
@@ -2683,6 +2935,9 @@ class ClientRepository:
         niche_id: Optional[UUID] = None,
         status: Optional[str] = None,
         notes: Optional[str] = None,
+        assigned_to: Optional[UUID] = None,
+        source: Optional[str] = None,
+        project_deadline: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Update a client."""
         conn = get_database_connection()
@@ -2729,6 +2984,15 @@ class ClientRepository:
             if notes is not None:
                 updates.append("notes = %s")
                 params.append(notes)
+            if assigned_to is not None:
+                updates.append("assigned_to = %s")
+                params.append(str(assigned_to))
+            if source is not None:
+                updates.append("source = %s")
+                params.append(source)
+            if project_deadline is not None:
+                updates.append("project_deadline = %s")
+                params.append(project_deadline)
 
             if not updates:
                 return self.get_by_id(client_id)
@@ -2781,7 +3045,263 @@ class ClientRepository:
             "created_at": row[13],
             "updated_at": row[14],
             "niche_name": row[15] if len(row) > 15 else None,
+            "assigned_to": row[16] if len(row) > 16 else None,
+            "source": row[17] if len(row) > 17 else None,
+            "project_deadline": row[18] if len(row) > 18 else None,
+            "assigned_to_name": row[19] if len(row) > 19 else None,
         }
+
+    def get_by_status(self, status: str) -> List[Dict[str, Any]]:
+        """Get all clients with a specific status for pipeline view."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT c.id, c.company_name, c.contact_name, c.email, c.phone,
+                           c.address, c.city, c.state, c.country, c.postal_code,
+                           c.niche_id, c.status, c.notes, c.created_at, c.updated_at,
+                           n.name as niche_name,
+                           c.assigned_to, c.source, c.project_deadline,
+                           u.first_name || ' ' || u.last_name as assigned_to_name
+                    FROM clients c
+                    LEFT JOIN niches n ON c.niche_id = n.id
+                    LEFT JOIN users u ON c.assigned_to = u.id
+                    WHERE c.status = %s
+                    ORDER BY c.company_name
+                    """,
+                    (status,),
+                )
+                rows = cur.fetchall()
+                return [self._row_to_dict_with_niche(row) for row in rows]
+        except Exception as e:
+            print(f"ERROR [ClientRepository]: Failed to get clients by status: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def create_status_history(
+        self,
+        client_id: UUID,
+        old_status: Optional[str],
+        new_status: str,
+        notes: Optional[str] = None,
+        changed_by: Optional[UUID] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Create a status history record."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO client_status_history (
+                        client_id, old_status, new_status, notes, changed_by
+                    )
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id, client_id, old_status, new_status, notes,
+                              changed_by, created_at
+                    """,
+                    (
+                        str(client_id),
+                        old_status,
+                        new_status,
+                        notes,
+                        str(changed_by) if changed_by else None,
+                    ),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return {
+                        "id": row[0],
+                        "client_id": row[1],
+                        "old_status": row[2],
+                        "new_status": row[3],
+                        "notes": row[4],
+                        "changed_by": row[5],
+                        "changed_by_name": None,
+                        "created_at": row[6],
+                    }
+                return None
+        except Exception as e:
+            print(f"ERROR [ClientRepository]: Failed to create status history: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def get_status_history(self, client_id: UUID) -> List[Dict[str, Any]]:
+        """Get status change history for a client."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT h.id, h.client_id, h.old_status, h.new_status, h.notes,
+                           h.changed_by, h.created_at,
+                           u.first_name || ' ' || u.last_name as changed_by_name
+                    FROM client_status_history h
+                    LEFT JOIN users u ON h.changed_by = u.id
+                    WHERE h.client_id = %s
+                    ORDER BY h.created_at DESC
+                    """,
+                    (str(client_id),),
+                )
+                rows = cur.fetchall()
+                return [
+                    {
+                        "id": row[0],
+                        "client_id": row[1],
+                        "old_status": row[2],
+                        "new_status": row[3],
+                        "notes": row[4],
+                        "changed_by": row[5],
+                        "created_at": row[6],
+                        "changed_by_name": row[7],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [ClientRepository]: Failed to get status history: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def get_quotation_summary(self, client_id: UUID) -> Dict[str, Any]:
+        """Get quotation summary for a client."""
+        conn = get_database_connection()
+        if not conn:
+            return {
+                "total_quotations": 0,
+                "draft_count": 0,
+                "sent_count": 0,
+                "accepted_count": 0,
+                "rejected_count": 0,
+                "expired_count": 0,
+                "total_value": Decimal("0.00"),
+            }
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT
+                        COUNT(*) as total_quotations,
+                        COUNT(*) FILTER (WHERE status = 'draft') as draft_count,
+                        COUNT(*) FILTER (WHERE status = 'sent') as sent_count,
+                        COUNT(*) FILTER (WHERE status = 'accepted') as accepted_count,
+                        COUNT(*) FILTER (WHERE status = 'rejected') as rejected_count,
+                        COUNT(*) FILTER (WHERE status = 'expired') as expired_count,
+                        COALESCE(SUM(grand_total), 0) as total_value
+                    FROM quotations
+                    WHERE client_id = %s
+                    """,
+                    (str(client_id),),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return {
+                        "total_quotations": row[0],
+                        "draft_count": row[1],
+                        "sent_count": row[2],
+                        "accepted_count": row[3],
+                        "rejected_count": row[4],
+                        "expired_count": row[5],
+                        "total_value": row[6] or Decimal("0.00"),
+                    }
+                return {
+                    "total_quotations": 0,
+                    "draft_count": 0,
+                    "sent_count": 0,
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "expired_count": 0,
+                    "total_value": Decimal("0.00"),
+                }
+        except Exception as e:
+            print(f"ERROR [ClientRepository]: Failed to get quotation summary: {e}")
+            return {
+                "total_quotations": 0,
+                "draft_count": 0,
+                "sent_count": 0,
+                "accepted_count": 0,
+                "rejected_count": 0,
+                "expired_count": 0,
+                "total_value": Decimal("0.00"),
+            }
+        finally:
+            close_database_connection(conn)
+
+    def has_active_quotations(self, client_id: UUID) -> bool:
+        """Check if client has any non-draft, non-expired quotations."""
+        conn = get_database_connection()
+        if not conn:
+            return False
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) FROM quotations
+                    WHERE client_id = %s
+                    AND status IN ('sent', 'accepted')
+                    """,
+                    (str(client_id),),
+                )
+                row = cur.fetchone()
+                return row[0] > 0 if row else False
+        except Exception as e:
+            print(f"ERROR [ClientRepository]: Failed to check active quotations: {e}")
+            return False
+        finally:
+            close_database_connection(conn)
+
+    def search(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Search clients by company name, contact name, or email."""
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                search_pattern = f"%{query}%"
+                cur.execute(
+                    """
+                    SELECT c.id, c.company_name, c.contact_name, c.email, c.phone,
+                           c.address, c.city, c.state, c.country, c.postal_code,
+                           c.niche_id, c.status, c.notes, c.created_at, c.updated_at,
+                           n.name as niche_name,
+                           c.assigned_to, c.source, c.project_deadline,
+                           u.first_name || ' ' || u.last_name as assigned_to_name
+                    FROM clients c
+                    LEFT JOIN niches n ON c.niche_id = n.id
+                    LEFT JOIN users u ON c.assigned_to = u.id
+                    WHERE c.company_name ILIKE %s
+                       OR c.contact_name ILIKE %s
+                       OR c.email ILIKE %s
+                    ORDER BY c.company_name
+                    LIMIT %s
+                    """,
+                    (search_pattern, search_pattern, search_pattern, limit),
+                )
+                rows = cur.fetchall()
+                return [self._row_to_dict_with_niche(row) for row in rows]
+        except Exception as e:
+            print(f"ERROR [ClientRepository]: Failed to search clients: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
 
 
 # =============================================================================

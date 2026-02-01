@@ -1290,3 +1290,41 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with HS code suggestion API
     - When troubleshooting extraction job state management
     - When working with ExtractionJobDTO, ConfirmImportRequestDTO, or UploadResponseDTO
+
+- app_docs/feature-566f84a0-portfolio-service.md
+  - Conditions:
+    - When working with portfolio service or portfolio_service.py
+    - When implementing or modifying apps/Server/app/api/portfolio_routes.py
+    - When working with /api/portfolios/* endpoints
+    - When implementing portfolio CRUD operations
+    - When implementing portfolio product management (add, remove, reorder)
+    - When implementing portfolio duplication functionality
+    - When implementing portfolio share token generation or public access
+    - When implementing auto-creation of portfolios from product filters
+    - When working with PortfolioFilterDTO, PortfolioShareTokenResponseDTO, or PortfolioPublicResponseDTO
+    - When troubleshooting portfolio service or API issues
+
+- app_docs/feature-eb16007c-client-service-crm.md
+  - Conditions:
+    - When working with client CRM functionality in Kompass
+    - When implementing or modifying apps/Server/app/services/client_service.py
+    - When implementing or modifying apps/Server/app/api/client_routes.py
+    - When working with client pipeline views or status grouping
+    - When implementing client status history tracking
+    - When working with timing feasibility calculations for project deadlines
+    - When working with client source tracking (lead origin)
+    - When working with /api/clients/* endpoints
+    - When modifying client_status_history database table
+    - When troubleshooting client CRUD or pipeline issues
+
+- app_docs/feature-15dd75a7-niche-service-crud.md
+  - Conditions:
+    - When working with niche CRUD operations in Kompass
+    - When implementing or modifying apps/Server/app/services/niche_service.py
+    - When implementing or modifying apps/Server/app/api/niche_routes.py
+    - When working with /api/niches endpoints
+    - When working with client type classifications or business segments
+    - When implementing client count tracking for niches
+    - When troubleshooting niche delete validation (cannot delete niche with clients)
+    - When seeding default niches using database/seed_niches.py
+    - When working with NicheWithClientCountDTO
