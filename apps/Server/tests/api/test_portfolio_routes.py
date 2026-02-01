@@ -608,3 +608,194 @@ class TestCreateFromFilters:
         )
 
         assert response.status_code == 403
+
+
+class TestPdfExport:
+    """Tests for GET /portfolios/{portfolio_id}/export/pdf endpoint."""
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_export_pdf_success(
+        self, mock_service, client, sample_portfolio_response
+    ):
+        """Test successful PDF export."""
+        # Mock PDF bytes
+        pdf_bytes = b"%PDF-1.4 mock pdf content"
+        mock_service.generate_pdf.return_value = pdf_bytes
+        mock_service.get_portfolio.return_value = sample_portfolio_response
+        portfolio_id = sample_portfolio_response.id
+
+        response = client.get(f"/api/portfolios/{portfolio_id}/export/pdf")
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+        assert "attachment" in response.headers["content-disposition"]
+        assert response.content == pdf_bytes
+        mock_service.generate_pdf.assert_called_once_with(portfolio_id)
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_export_pdf_not_found(self, mock_service, client):
+        """Test PDF export for non-existent portfolio."""
+        mock_service.generate_pdf.return_value = None
+        portfolio_id = uuid4()
+
+        response = client.get(f"/api/portfolios/{portfolio_id}/export/pdf")
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Portfolio not found"
+
+    def test_export_pdf_requires_auth(self):
+        """Test that PDF export requires authentication."""
+        test_app = FastAPI()
+        test_app.include_router(router, prefix="/api/portfolios")
+        unauth_client = TestClient(test_app)
+        portfolio_id = uuid4()
+
+        response = unauth_client.get(f"/api/portfolios/{portfolio_id}/export/pdf")
+
+        assert response.status_code in [401, 403]
+
+
+class TestShareAliasEndpoint:
+    """Tests for GET /portfolios/share/{token} alias endpoint."""
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_share_alias_success(
+        self, mock_service, public_client, sample_public_response
+    ):
+        """Test getting portfolio via /share/{token} alias (no auth required)."""
+        mock_service.get_by_share_token.return_value = sample_public_response
+
+        response = public_client.get("/api/portfolios/share/valid-token")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == sample_public_response.name
+        mock_service.get_by_share_token.assert_called_once_with("valid-token")
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_share_alias_invalid_token(self, mock_service, public_client):
+        """Test /share/{token} with invalid token."""
+        mock_service.get_by_share_token.return_value = None
+
+        response = public_client.get("/api/portfolios/share/invalid-token")
+
+        assert response.status_code == 404
+
+
+class TestItemsAliasEndpoints:
+    """Tests for /items path alias endpoints."""
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_add_item_via_items_endpoint(self, mock_service, admin_client):
+        """Test adding product via POST /items endpoint."""
+        mock_service.add_product_to_portfolio.return_value = True
+        portfolio_id = uuid4()
+        product_id = uuid4()
+
+        response = admin_client.post(
+            f"/api/portfolios/{portfolio_id}/items",
+            json={"product_id": str(product_id), "curator_notes": "Great product"},
+        )
+
+        assert response.status_code == 201
+        assert "successfully" in response.json()["message"]
+        mock_service.add_product_to_portfolio.assert_called_once()
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_add_item_portfolio_not_found(
+        self, mock_service, admin_client
+    ):
+        """Test POST /items when portfolio not found."""
+        mock_service.add_product_to_portfolio.return_value = False
+        mock_service.get_portfolio.return_value = None
+        portfolio_id = uuid4()
+        product_id = uuid4()
+
+        response = admin_client.post(
+            f"/api/portfolios/{portfolio_id}/items",
+            json={"product_id": str(product_id)},
+        )
+
+        assert response.status_code == 404
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_remove_item_via_items_endpoint(self, mock_service, admin_client):
+        """Test removing product via DELETE /items/{product_id} endpoint."""
+        mock_service.remove_product_from_portfolio.return_value = True
+        portfolio_id = uuid4()
+        product_id = uuid4()
+
+        response = admin_client.delete(
+            f"/api/portfolios/{portfolio_id}/items/{product_id}",
+        )
+
+        assert response.status_code == 204
+        mock_service.remove_product_from_portfolio.assert_called_once_with(
+            portfolio_id, product_id
+        )
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_remove_item_not_found(self, mock_service, admin_client):
+        """Test DELETE /items/{product_id} when product not in portfolio."""
+        mock_service.remove_product_from_portfolio.return_value = False
+        portfolio_id = uuid4()
+        product_id = uuid4()
+
+        response = admin_client.delete(
+            f"/api/portfolios/{portfolio_id}/items/{product_id}",
+        )
+
+        assert response.status_code == 404
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_reorder_via_items_endpoint(self, mock_service, admin_client):
+        """Test reordering via PUT /items/reorder endpoint."""
+        mock_service.reorder_products.return_value = True
+        portfolio_id = uuid4()
+
+        response = admin_client.put(
+            f"/api/portfolios/{portfolio_id}/items/reorder",
+            json={"product_ids": [str(uuid4()), str(uuid4())]},
+        )
+
+        assert response.status_code == 200
+        assert "successfully" in response.json()["message"]
+
+    @patch("app.api.portfolio_routes.portfolio_service")
+    def test_reorder_items_mismatch(
+        self, mock_service, admin_client, sample_portfolio_response
+    ):
+        """Test PUT /items/reorder with mismatched product IDs."""
+        mock_service.reorder_products.return_value = False
+        mock_service.get_portfolio.return_value = sample_portfolio_response
+        portfolio_id = uuid4()
+
+        response = admin_client.put(
+            f"/api/portfolios/{portfolio_id}/items/reorder",
+            json={"product_ids": [str(uuid4())]},
+        )
+
+        assert response.status_code == 400
+
+    def test_items_endpoints_forbidden_for_regular_user(self, client):
+        """Test /items endpoints forbidden for regular users."""
+        portfolio_id = uuid4()
+        product_id = uuid4()
+
+        # Add item
+        response = client.post(
+            f"/api/portfolios/{portfolio_id}/items",
+            json={"product_id": str(product_id)},
+        )
+        assert response.status_code == 403
+
+        # Remove item
+        response = client.delete(f"/api/portfolios/{portfolio_id}/items/{product_id}")
+        assert response.status_code == 403
+
+        # Reorder items
+        response = client.put(
+            f"/api/portfolios/{portfolio_id}/items/reorder",
+            json={"product_ids": []},
+        )
+        assert response.status_code == 403

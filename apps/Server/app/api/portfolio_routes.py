@@ -12,11 +12,14 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from starlette import status
+import io
 
 from app.api.dependencies import get_current_user
 from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
+    PortfolioAddItemRequestDTO,
     PortfolioAddProductRequestDTO,
     PortfolioCreateDTO,
     PortfolioDuplicateRequestDTO,
@@ -498,6 +501,229 @@ async def generate_share_token(
 
     print(f"INFO [PortfolioRoutes]: Share token generated for portfolio {portfolio_id}")
     return result
+
+
+# =============================================================================
+# PDF Export Endpoint
+# =============================================================================
+
+
+@router.get("/{portfolio_id}/export/pdf")
+async def export_portfolio_pdf(
+    portfolio_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> StreamingResponse:
+    """Export a portfolio as a PDF document.
+
+    Generates a formatted PDF with portfolio details and product listing.
+
+    Args:
+        portfolio_id: Portfolio UUID
+        current_user: Authenticated user
+
+    Returns:
+        StreamingResponse with PDF content
+
+    Raises:
+        HTTPException 404: If portfolio not found
+    """
+    print(f"INFO [PortfolioRoutes]: Exporting PDF for portfolio {portfolio_id}")
+
+    pdf_bytes = portfolio_service.generate_pdf(portfolio_id)
+
+    if not pdf_bytes:
+        print(f"WARN [PortfolioRoutes]: Portfolio not found for PDF export - id={portfolio_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Portfolio not found",
+        )
+
+    # Get portfolio name for filename
+    portfolio = portfolio_service.get_portfolio(portfolio_id)
+    filename = f"{portfolio.name.replace(' ', '_')}_portfolio.pdf" if portfolio else "portfolio.pdf"
+
+    print(f"INFO [PortfolioRoutes]: PDF exported for portfolio {portfolio_id}")
+
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
+
+
+# =============================================================================
+# Alias Routes for /items Path Pattern (Specification Compliance)
+# =============================================================================
+
+
+@router.get("/share/{token}", response_model=PortfolioPublicResponseDTO)
+async def get_portfolio_by_share_token_alias(
+    token: str,
+) -> PortfolioPublicResponseDTO:
+    """Get a portfolio by its share token (alias for /shared/{token}).
+
+    This endpoint is PUBLIC and does NOT require authentication.
+
+    Args:
+        token: JWT share token
+
+    Returns:
+        PortfolioPublicResponseDTO
+
+    Raises:
+        HTTPException 404: If token is invalid, expired, or portfolio not found
+    """
+    print("INFO [PortfolioRoutes]: Accessing portfolio via share token (alias route)")
+
+    result = portfolio_service.get_by_share_token(token)
+
+    if not result:
+        print("WARN [PortfolioRoutes]: Invalid or expired share token")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid or expired share token, or portfolio not found",
+        )
+
+    print(f"INFO [PortfolioRoutes]: Retrieved portfolio {result.id} via share token (alias)")
+    return result
+
+
+@router.post(
+    "/{portfolio_id}/items",
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_item_to_portfolio(
+    portfolio_id: UUID,
+    data: PortfolioAddItemRequestDTO,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> dict:
+    """Add a product to a portfolio (alias using /items path).
+
+    This is an alias endpoint for specification compliance.
+    Takes product_id in the request body.
+
+    Args:
+        portfolio_id: Portfolio UUID
+        data: Contains product_id and optional curator notes
+        current_user: Authenticated user with admin or manager role
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException 404: If portfolio not found
+        HTTPException 400: If operation fails
+    """
+    print(f"INFO [PortfolioRoutes]: Adding item {data.product_id} to portfolio {portfolio_id}")
+
+    success = portfolio_service.add_product_to_portfolio(
+        portfolio_id=portfolio_id,
+        product_id=data.product_id,
+        curator_notes=data.curator_notes,
+    )
+
+    if not success:
+        # Check if portfolio exists
+        portfolio = portfolio_service.get_portfolio(portfolio_id)
+        if not portfolio:
+            print(f"WARN [PortfolioRoutes]: Portfolio not found - id={portfolio_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Portfolio not found",
+            )
+        else:
+            print("WARN [PortfolioRoutes]: Failed to add item - may be invalid product ID")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to add product (may already exist or invalid product ID)",
+            )
+
+    print(f"INFO [PortfolioRoutes]: Item added - portfolio={portfolio_id}, product={data.product_id}")
+    return {"message": "Product added to portfolio successfully"}
+
+
+@router.delete(
+    "/{portfolio_id}/items/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_item_from_portfolio(
+    portfolio_id: UUID,
+    product_id: UUID,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> None:
+    """Remove a product from a portfolio (alias using /items path).
+
+    This is an alias endpoint for specification compliance.
+
+    Args:
+        portfolio_id: Portfolio UUID
+        product_id: Product UUID to remove
+        current_user: Authenticated user with admin or manager role
+
+    Raises:
+        HTTPException 404: If portfolio or product not found in portfolio
+    """
+    print(f"INFO [PortfolioRoutes]: Removing item {product_id} from portfolio {portfolio_id}")
+
+    success = portfolio_service.remove_product_from_portfolio(portfolio_id, product_id)
+
+    if not success:
+        print(f"WARN [PortfolioRoutes]: Item not found in portfolio - portfolio={portfolio_id}, product={product_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found in portfolio",
+        )
+
+    print(f"INFO [PortfolioRoutes]: Item removed - portfolio={portfolio_id}, product={product_id}")
+
+
+@router.put("/{portfolio_id}/items/reorder")
+async def reorder_items(
+    portfolio_id: UUID,
+    data: ReorderProductsRequestDTO,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> dict:
+    """Reorder products in a portfolio (alias using /items path).
+
+    This is an alias endpoint for specification compliance.
+    All product IDs currently in the portfolio must be provided in the desired order.
+
+    Args:
+        portfolio_id: Portfolio UUID
+        data: List of product UUIDs in desired order
+        current_user: Authenticated user with admin or manager role
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException 404: If portfolio not found
+        HTTPException 400: If product IDs don't match portfolio contents
+    """
+    print(f"INFO [PortfolioRoutes]: Reordering items in portfolio {portfolio_id}")
+
+    success = portfolio_service.reorder_products(portfolio_id, data.product_ids)
+
+    if not success:
+        # Check if portfolio exists
+        portfolio = portfolio_service.get_portfolio(portfolio_id)
+        if not portfolio:
+            print(f"WARN [PortfolioRoutes]: Portfolio not found - id={portfolio_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Portfolio not found",
+            )
+        else:
+            print("WARN [PortfolioRoutes]: Product IDs don't match portfolio contents")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Product IDs must match exactly the products in the portfolio",
+            )
+
+    print(f"INFO [PortfolioRoutes]: Items reordered in portfolio {portfolio_id}")
+    return {"message": "Products reordered successfully"}
 
 
 # =============================================================================

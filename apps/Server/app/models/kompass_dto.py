@@ -624,6 +624,13 @@ class PortfolioAddProductRequestDTO(BaseModel):
     curator_notes: Optional[str] = None
 
 
+class PortfolioAddItemRequestDTO(BaseModel):
+    """Request model for adding an item to a portfolio via /items endpoint."""
+
+    product_id: UUID = Field(description="The product UUID to add to the portfolio")
+    curator_notes: Optional[str] = None
+
+
 class PortfolioFromFiltersRequestDTO(BaseModel):
     """Request model for creating a portfolio from product filters."""
 
