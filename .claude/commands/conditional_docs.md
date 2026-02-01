@@ -1328,3 +1328,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When troubleshooting niche delete validation (cannot delete niche with clients)
     - When seeding default niches using database/seed_niches.py
     - When working with NicheWithClientCountDTO
+
+- app_docs/feature-e962d830-portfolio-api-routes.md
+  - Conditions:
+    - When working with portfolio PDF export functionality
+    - When implementing or modifying apps/Server/app/api/portfolio_routes.py
+    - When working with /api/portfolios/{id}/export/pdf endpoint
+    - When working with /api/portfolios/share/{token} endpoint
+    - When working with /api/portfolios/{id}/items endpoints
+    - When implementing portfolio item management via /items path
+    - When troubleshooting portfolio PDF generation or reportlab issues
+    - When working with PortfolioAddItemRequestDTO
