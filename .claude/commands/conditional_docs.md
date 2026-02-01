@@ -1408,3 +1408,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with QuotationSendEmailRequestDTO or QuotationSendEmailResponseDTO
     - When troubleshooting quotation PDF generation or email issues
     - When implementing nested line item routes /{quotation_id}/items/{item_id}
+
+- app_docs/feature-af7568d5-frontend-types-api-service.md
+  - Conditions:
+    - When working with Kompass frontend TypeScript types
+    - When using kompassService or any of its service objects (nicheService, supplierService, productService, categoryService, tagService, portfolioService, clientService, quotationService, pricingService)
+    - When implementing Kompass frontend UI components that consume API services
+    - When working with apps/Client/src/types/kompass.ts
+    - When working with apps/Client/src/services/kompassService.ts
+    - When adding new Kompass routes or navigation items
+    - When troubleshooting Kompass frontend API communication
+    - When implementing type-safe API calls for Kompass entities
