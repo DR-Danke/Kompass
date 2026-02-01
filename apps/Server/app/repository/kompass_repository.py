@@ -229,6 +229,87 @@ class NicheRepository:
         result = self.update(niche_id, is_active=False)
         return result is not None
 
+    def count_clients_by_niche(self, niche_id: UUID) -> int:
+        """Get the count of clients associated with a niche.
+
+        Args:
+            niche_id: UUID of the niche
+
+        Returns:
+            Number of clients with this niche
+        """
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM clients WHERE niche_id = %s",
+                    (str(niche_id),),
+                )
+                return cur.fetchone()[0]
+        except Exception as e:
+            print(f"ERROR [NicheRepository]: Failed to count clients by niche: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+    def has_clients(self, niche_id: UUID) -> bool:
+        """Check if a niche has any associated clients.
+
+        Args:
+            niche_id: UUID of the niche
+
+        Returns:
+            True if the niche has clients, False otherwise
+        """
+        return self.count_clients_by_niche(niche_id) > 0
+
+    def get_all_with_client_counts(self) -> List[Dict[str, Any]]:
+        """Get all niches with their client counts.
+
+        Returns:
+            List of niche dicts with client_count field
+        """
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT n.id, n.name, n.description, n.is_active,
+                           n.created_at, n.updated_at,
+                           COALESCE(COUNT(c.id), 0) as client_count
+                    FROM niches n
+                    LEFT JOIN clients c ON n.id = c.niche_id
+                    GROUP BY n.id, n.name, n.description, n.is_active,
+                             n.created_at, n.updated_at
+                    ORDER BY n.name
+                    """
+                )
+                rows = cur.fetchall()
+
+                return [
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "description": row[2],
+                        "is_active": row[3],
+                        "created_at": row[4],
+                        "updated_at": row[5],
+                        "client_count": row[6],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [NicheRepository]: Failed to get niches with counts: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # CATEGORY REPOSITORY

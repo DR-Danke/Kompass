@@ -14,6 +14,7 @@ from app.api.supplier_routes import router as supplier_router
 from app.api.product_routes import router as products_router
 from app.api.category_routes import router as category_router
 from app.api.tag_routes import router as tag_router
+from app.api.niche_routes import router as niche_router
 from app.api.extraction_routes import router as extraction_router
 from database.init_db import init_database
 
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
     app.include_router(products_router, prefix="/api/products")
     app.include_router(category_router, prefix="/api/categories")
     app.include_router(tag_router, prefix="/api/tags")
+    app.include_router(niche_router, prefix="/api/niches")
     app.include_router(extraction_router, prefix="/api/extract")
 
     print(f"INFO [Main]: Application configured with CORS origins: {settings.get_cors_origins()}")
