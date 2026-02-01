@@ -13,7 +13,6 @@ from app.models.kompass_dto import (
     QuotationCreateDTO,
     QuotationFilterDTO,
     QuotationItemCreateDTO,
-    QuotationItemUpdateDTO,
     QuotationStatus,
     QuotationStatusTransitionDTO,
     QuotationUpdateDTO,
