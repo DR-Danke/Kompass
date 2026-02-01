@@ -2,14 +2,31 @@
 
 This service provides business logic for managing quotations throughout their lifecycle,
 including CRUD operations, pricing calculations, line item management, status workflow
-transitions, and quotation cloning functionality.
+transitions, quotation cloning, PDF generation, share tokens, and email functionality.
 """
 
+import io
 import math
+import os
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, List, Optional
 from uuid import UUID
 
+from jose import JWTError, jwt
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
+from app.config.settings import get_settings
 from app.models.kompass_dto import (
     Incoterm,
     PaginationDTO,
@@ -21,13 +38,22 @@ from app.models.kompass_dto import (
     QuotationItemUpdateDTO,
     QuotationListResponseDTO,
     QuotationPricingDTO,
+    QuotationPublicItemDTO,
+    QuotationPublicResponseDTO,
     QuotationResponseDTO,
+    QuotationSendEmailRequestDTO,
+    QuotationSendEmailResponseDTO,
+    QuotationShareTokenResponseDTO,
     QuotationStatus,
     QuotationStatusTransitionDTO,
     QuotationUpdateDTO,
 )
 from app.repository.kompass_repository import quotation_repository
 from app.services.pricing_service import pricing_service
+
+
+# Share token expiration in days
+SHARE_TOKEN_EXPIRE_DAYS = 30
 
 
 # Valid status transitions map
@@ -49,6 +75,7 @@ class QuotationService:
     def __init__(self, repository=None):
         """Initialize service with optional repository injection for testing."""
         self.repository = repository or quotation_repository
+        self._settings = get_settings()
 
     # =========================================================================
     # CRUD OPERATIONS
@@ -909,6 +936,534 @@ class QuotationService:
             created_at=data["created_at"],
             updated_at=data["updated_at"],
         )
+
+    def _map_to_public_item_dto(self, data: Dict) -> QuotationPublicItemDTO:
+        """Map item data to public item DTO (limited fields)."""
+        return QuotationPublicItemDTO(
+            product_name=data["product_name"],
+            description=data.get("description"),
+            quantity=data["quantity"],
+            unit_of_measure=data.get("unit_of_measure", "piece"),
+            unit_price=data.get("unit_price", Decimal("0.00")),
+            line_total=data.get("line_total", Decimal("0.00")),
+        )
+
+    def _map_to_public_response_dto(self, data: Dict) -> QuotationPublicResponseDTO:
+        """Map quotation data to public response DTO for share token access."""
+        items = [
+            self._map_to_public_item_dto(item) for item in data.get("items", [])
+        ]
+
+        return QuotationPublicResponseDTO(
+            id=data["id"],
+            quotation_number=data["quotation_number"],
+            client_name=data.get("client_name"),
+            status=QuotationStatus(data["status"]),
+            incoterm=Incoterm(data["incoterm"]),
+            currency=data["currency"],
+            subtotal=data.get("subtotal", Decimal("0.00")),
+            freight_cost=data.get("freight_cost", Decimal("0.00")),
+            insurance_cost=data.get("insurance_cost", Decimal("0.00")),
+            other_costs=data.get("other_costs", Decimal("0.00")),
+            total=data.get("total", Decimal("0.00")),
+            discount_percent=data.get("discount_percent", Decimal("0.00")),
+            grand_total=data.get("grand_total", Decimal("0.00")),
+            notes=data.get("notes"),
+            terms_and_conditions=data.get("terms_and_conditions"),
+            valid_from=data.get("valid_from"),
+            valid_until=data.get("valid_until"),
+            items=items,
+            item_count=len(items),
+            created_at=data["created_at"],
+        )
+
+    # =========================================================================
+    # RECALCULATE AND PERSIST
+    # =========================================================================
+
+    def recalculate_and_persist(self, quotation_id: UUID) -> Optional[QuotationPricingDTO]:
+        """Recalculate pricing for a quotation and persist the results.
+
+        This method calculates the pricing and updates the quotation totals
+        in the database.
+
+        Args:
+            quotation_id: UUID of the quotation
+
+        Returns:
+            Pricing calculation results or None if quotation not found
+        """
+        # Calculate pricing
+        pricing = self.calculate_pricing(quotation_id)
+        if not pricing:
+            return None
+
+        # Recalculate totals in the database
+        result = self.repository.recalculate_totals(quotation_id)
+        if not result:
+            print(f"WARN [QuotationService]: Failed to persist recalculated totals for {quotation_id}")
+
+        print(f"INFO [QuotationService]: Recalculated and persisted pricing for quotation {quotation_id}")
+        return pricing
+
+    # =========================================================================
+    # PDF GENERATION
+    # =========================================================================
+
+    def generate_pdf(self, quotation_id: UUID) -> Optional[bytes]:
+        """Generate a PDF proforma document for a quotation.
+
+        Creates a formatted PDF with:
+        - Quotation header (number, date, client info)
+        - Line items table with quantities and prices
+        - Totals section (subtotal, freight, insurance, grand total)
+        - Terms and conditions
+        - Validity period
+
+        Args:
+            quotation_id: UUID of the quotation
+
+        Returns:
+            PDF content as bytes, or None if quotation not found
+        """
+        # Get quotation with all items
+        quotation = self.repository.get_by_id(quotation_id)
+        if not quotation:
+            print(f"INFO [QuotationService]: Quotation {quotation_id} not found for PDF export")
+            return None
+
+        # Create PDF buffer
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=0.75 * inch,
+            leftMargin=0.75 * inch,
+            topMargin=0.75 * inch,
+            bottomMargin=0.75 * inch,
+        )
+
+        # Get styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            "CustomTitle",
+            parent=styles["Heading1"],
+            fontSize=24,
+            spaceAfter=12,
+            textColor=colors.HexColor("#1976d2"),
+        )
+        subtitle_style = ParagraphStyle(
+            "CustomSubtitle",
+            parent=styles["Normal"],
+            fontSize=12,
+            spaceAfter=6,
+            textColor=colors.grey,
+        )
+        heading_style = ParagraphStyle(
+            "CustomHeading",
+            parent=styles["Heading2"],
+            fontSize=14,
+            spaceBefore=20,
+            spaceAfter=10,
+            textColor=colors.HexColor("#333333"),
+        )
+        normal_style = ParagraphStyle(
+            "CustomNormal",
+            parent=styles["Normal"],
+            fontSize=10,
+            spaceAfter=6,
+        )
+
+        # Build document elements
+        elements = []
+
+        # Title
+        elements.append(Paragraph(f"Quotation: {quotation['quotation_number']}", title_style))
+
+        # Client info
+        if quotation.get("client_name"):
+            elements.append(Paragraph(f"Client: {quotation['client_name']}", subtitle_style))
+
+        # Status and dates
+        elements.append(Paragraph(f"Status: {quotation['status'].title()}", subtitle_style))
+
+        if quotation.get("valid_from") and quotation.get("valid_until"):
+            elements.append(
+                Paragraph(
+                    f"Valid: {quotation['valid_from']} to {quotation['valid_until']}",
+                    subtitle_style,
+                )
+            )
+
+        elements.append(Spacer(1, 20))
+
+        # Line items table
+        items = quotation.get("items", [])
+        if items:
+            elements.append(Paragraph("Line Items", heading_style))
+
+            # Table header
+            table_data = [["#", "Product", "Qty", "Unit", "Unit Price", "Total"]]
+
+            # Table rows
+            currency = quotation.get("currency", "USD")
+            for idx, item in enumerate(items, 1):
+                product_name = item.get("product_name", "N/A")
+                quantity = item.get("quantity", 0)
+                unit = item.get("unit_of_measure", "piece")
+                unit_price = item.get("unit_price", Decimal("0.00"))
+                line_total = item.get("line_total", Decimal("0.00"))
+                table_data.append([
+                    str(idx),
+                    product_name[:40],  # Truncate long names
+                    str(quantity),
+                    unit,
+                    f"{currency} {unit_price:,.2f}",
+                    f"{currency} {line_total:,.2f}",
+                ])
+
+            # Create table
+            col_widths = [0.4 * inch, 2.5 * inch, 0.6 * inch, 0.7 * inch, 1.2 * inch, 1.2 * inch]
+            table = Table(table_data, colWidths=col_widths)
+            table.setStyle(
+                TableStyle(
+                    [
+                        # Header styling
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1976d2")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
+                        ("TOPPADDING", (0, 0), (-1, 0), 10),
+                        # Data row styling
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+                        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                        ("FONTSIZE", (0, 1), (-1, -1), 9),
+                        ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
+                        ("TOPPADDING", (0, 1), (-1, -1), 6),
+                        # Alternating row colors
+                        *[
+                            ("BACKGROUND", (0, i), (-1, i), colors.HexColor("#f5f5f5"))
+                            for i in range(2, len(table_data), 2)
+                        ],
+                        # Grid
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e0e0e0")),
+                        # Alignment
+                        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                        ("ALIGN", (2, 0), (2, -1), "CENTER"),
+                        ("ALIGN", (4, 0), (-1, -1), "RIGHT"),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ]
+                )
+            )
+            elements.append(table)
+        else:
+            elements.append(Paragraph("No line items in this quotation.", normal_style))
+
+        elements.append(Spacer(1, 20))
+
+        # Totals section
+        elements.append(Paragraph("Totals", heading_style))
+
+        currency = quotation.get("currency", "USD")
+        subtotal = quotation.get("subtotal", Decimal("0.00"))
+        freight = quotation.get("freight_cost", Decimal("0.00"))
+        insurance = quotation.get("insurance_cost", Decimal("0.00"))
+        other = quotation.get("other_costs", Decimal("0.00"))
+        total = quotation.get("total", Decimal("0.00"))
+        discount_percent = quotation.get("discount_percent", Decimal("0.00"))
+        discount_amount = quotation.get("discount_amount", Decimal("0.00"))
+        grand_total = quotation.get("grand_total", Decimal("0.00"))
+
+        totals_data = [
+            ["Subtotal:", f"{currency} {subtotal:,.2f}"],
+            ["Freight:", f"{currency} {freight:,.2f}"],
+            ["Insurance:", f"{currency} {insurance:,.2f}"],
+            ["Other Costs:", f"{currency} {other:,.2f}"],
+            ["Total:", f"{currency} {total:,.2f}"],
+        ]
+
+        if discount_percent > 0:
+            totals_data.append([f"Discount ({discount_percent}%):", f"-{currency} {discount_amount:,.2f}"])
+
+        totals_data.append(["Grand Total:", f"{currency} {grand_total:,.2f}"])
+
+        totals_table = Table(totals_data, colWidths=[2 * inch, 2 * inch])
+        totals_table.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, -2), "Helvetica"),
+                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("LINEABOVE", (0, -1), (-1, -1), 1, colors.HexColor("#333333")),
+                ]
+            )
+        )
+        elements.append(totals_table)
+
+        # Terms and conditions
+        if quotation.get("terms_and_conditions"):
+            elements.append(Spacer(1, 20))
+            elements.append(Paragraph("Terms and Conditions", heading_style))
+            elements.append(Paragraph(quotation["terms_and_conditions"], normal_style))
+
+        # Notes
+        if quotation.get("notes"):
+            elements.append(Spacer(1, 20))
+            elements.append(Paragraph("Notes", heading_style))
+            elements.append(Paragraph(quotation["notes"], normal_style))
+
+        # Footer with timestamp
+        elements.append(Spacer(1, 30))
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+        footer_style = ParagraphStyle(
+            "Footer",
+            parent=styles["Normal"],
+            fontSize=9,
+            textColor=colors.grey,
+        )
+        elements.append(
+            Paragraph(
+                f"Generated on {timestamp} | Incoterm: {quotation['incoterm']} | {len(items)} item(s)",
+                footer_style,
+            )
+        )
+
+        # Build PDF
+        doc.build(elements)
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+
+        print(
+            f"INFO [QuotationService]: Generated PDF for quotation {quotation_id} "
+            f"({len(pdf_bytes)} bytes, {len(items)} items)"
+        )
+
+        return pdf_bytes
+
+    # =========================================================================
+    # SHARE TOKEN FUNCTIONALITY
+    # =========================================================================
+
+    def get_share_token(self, quotation_id: UUID) -> Optional[QuotationShareTokenResponseDTO]:
+        """Generate a share token for public quotation access.
+
+        Creates a JWT token that can be used to access the quotation without
+        authentication.
+
+        Args:
+            quotation_id: UUID of the quotation
+
+        Returns:
+            QuotationShareTokenResponseDTO with token, or None if quotation not found
+        """
+        # Verify quotation exists
+        quotation = self.repository.get_by_id(quotation_id)
+        if not quotation:
+            print(f"INFO [QuotationService]: Quotation {quotation_id} not found for share token")
+            return None
+
+        # Generate JWT token
+        expire = datetime.utcnow() + timedelta(days=SHARE_TOKEN_EXPIRE_DAYS)
+        payload = {
+            "sub": str(quotation_id),
+            "type": "quotation_share",
+            "exp": expire,
+        }
+
+        token = jwt.encode(
+            payload,
+            self._settings.JWT_SECRET_KEY,
+            algorithm=self._settings.JWT_ALGORITHM,
+        )
+
+        print(f"INFO [QuotationService]: Generated share token for quotation {quotation_id}")
+
+        return QuotationShareTokenResponseDTO(
+            token=token,
+            quotation_id=quotation_id,
+            expires_at=expire,
+        )
+
+    def get_by_share_token(self, token: str) -> Optional[QuotationPublicResponseDTO]:
+        """Get a quotation by its share token.
+
+        Validates the token and returns the quotation for public viewing.
+        This method does NOT require authentication.
+
+        Args:
+            token: JWT share token
+
+        Returns:
+            QuotationPublicResponseDTO if token valid and quotation exists,
+            None otherwise
+        """
+        try:
+            payload = jwt.decode(
+                token,
+                self._settings.JWT_SECRET_KEY,
+                algorithms=[self._settings.JWT_ALGORITHM],
+            )
+
+            # Verify token type
+            if payload.get("type") != "quotation_share":
+                print("WARN [QuotationService]: Invalid share token type")
+                return None
+
+            quotation_id_str = payload.get("sub")
+            if not quotation_id_str:
+                print("WARN [QuotationService]: Share token missing quotation ID")
+                return None
+
+            quotation_id = UUID(quotation_id_str)
+
+        except JWTError as e:
+            print(f"WARN [QuotationService]: Invalid or expired share token: {e}")
+            return None
+        except ValueError as e:
+            print(f"WARN [QuotationService]: Invalid quotation ID in token: {e}")
+            return None
+
+        # Get quotation
+        quotation = self.repository.get_by_id(quotation_id)
+        if not quotation:
+            print(f"INFO [QuotationService]: Quotation {quotation_id} not found")
+            return None
+
+        print(f"INFO [QuotationService]: Accessed quotation {quotation_id} via share token")
+
+        return self._map_to_public_response_dto(quotation)
+
+    # =========================================================================
+    # EMAIL FUNCTIONALITY
+    # =========================================================================
+
+    def send_email(
+        self, quotation_id: UUID, request: QuotationSendEmailRequestDTO
+    ) -> Optional[QuotationSendEmailResponseDTO]:
+        """Send a quotation via email.
+
+        Generates a PDF attachment and sends the quotation to the recipient.
+        Supports mock mode via EMAIL_MOCK_MODE environment variable.
+
+        Args:
+            quotation_id: UUID of the quotation
+            request: Email sending request with recipient details
+
+        Returns:
+            QuotationSendEmailResponseDTO with result, or None if quotation not found
+        """
+        # Verify quotation exists
+        quotation = self.repository.get_by_id(quotation_id)
+        if not quotation:
+            print(f"INFO [QuotationService]: Quotation {quotation_id} not found for email")
+            return None
+
+        # Check if mock mode is enabled
+        mock_mode = os.environ.get("EMAIL_MOCK_MODE", "true").lower() == "true"
+
+        # Generate PDF if requested
+        pdf_bytes = None
+        if request.include_pdf:
+            pdf_bytes = self.generate_pdf(quotation_id)
+
+        # Build email subject
+        subject = request.subject or f"Quotation {quotation['quotation_number']}"
+
+        if mock_mode:
+            # Mock mode - just log and return success
+            print(
+                f"INFO [QuotationService]: MOCK EMAIL - Would send quotation {quotation_id} "
+                f"to {request.recipient_email}, subject: '{subject}'"
+            )
+            if pdf_bytes:
+                print(f"INFO [QuotationService]: MOCK EMAIL - PDF attachment size: {len(pdf_bytes)} bytes")
+
+            return QuotationSendEmailResponseDTO(
+                success=True,
+                message=f"Email would be sent to {request.recipient_email} (mock mode)",
+                sent_at=datetime.utcnow(),
+                recipient_email=request.recipient_email,
+                mock_mode=True,
+            )
+
+        # TODO: Implement actual email sending when SMTP is configured
+        # For now, return success in mock mode
+        print(
+            f"WARN [QuotationService]: Email sending not configured. "
+            f"Would send to {request.recipient_email}"
+        )
+
+        return QuotationSendEmailResponseDTO(
+            success=True,
+            message=f"Email functionality requires SMTP configuration. Mock: {request.recipient_email}",
+            sent_at=datetime.utcnow(),
+            recipient_email=request.recipient_email,
+            mock_mode=True,
+        )
+
+    # =========================================================================
+    # ITEM VALIDATION
+    # =========================================================================
+
+    def get_item_by_id(self, item_id: UUID) -> Optional[Dict]:
+        """Get a quotation item by ID.
+
+        Args:
+            item_id: UUID of the item
+
+        Returns:
+            Item data or None if not found
+        """
+        from app.config.database import close_database_connection, get_database_connection
+
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, quotation_id, product_id, sku, product_name, description,
+                           quantity, unit_of_measure, unit_cost, unit_price, markup_percent,
+                           tariff_percent, tariff_amount, freight_amount, line_total,
+                           sort_order, notes, created_at, updated_at
+                    FROM quotation_items WHERE id = %s
+                    """,
+                    (str(item_id),),
+                )
+                row = cur.fetchone()
+                if row:
+                    return self._item_row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [QuotationService]: Failed to get item: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def validate_item_belongs_to_quotation(
+        self, quotation_id: UUID, item_id: UUID
+    ) -> bool:
+        """Validate that an item belongs to the specified quotation.
+
+        Args:
+            quotation_id: UUID of the quotation
+            item_id: UUID of the item
+
+        Returns:
+            True if item belongs to quotation, False otherwise
+        """
+        item = self.get_item_by_id(item_id)
+        if not item:
+            return False
+
+        return str(item.get("quotation_id")) == str(quotation_id)
 
 
 # Singleton instance

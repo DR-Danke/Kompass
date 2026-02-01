@@ -1,15 +1,19 @@
 """Quotation API routes.
 
 This module provides REST endpoints for quotation CRUD operations, pricing
-calculations, line item management, status transitions, and cloning.
-All endpoints require authentication and some require admin/manager roles.
+calculations, line item management, status transitions, cloning, PDF export,
+email sending, and public share links.
+All endpoints require authentication except the public share endpoint.
 """
 
+import io
 from datetime import date
 from typing import Dict, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from starlette import status
 
 from app.api.dependencies import get_current_user
 from app.api.rbac_dependencies import require_roles
@@ -22,7 +26,11 @@ from app.models.kompass_dto import (
     QuotationItemUpdateDTO,
     QuotationListResponseDTO,
     QuotationPricingDTO,
+    QuotationPublicResponseDTO,
     QuotationResponseDTO,
+    QuotationSendEmailRequestDTO,
+    QuotationSendEmailResponseDTO,
+    QuotationShareTokenResponseDTO,
     QuotationStatus,
     QuotationStatusTransitionDTO,
     QuotationUpdateDTO,
@@ -30,6 +38,48 @@ from app.models.kompass_dto import (
 from app.services.quotation_service import quotation_service
 
 router = APIRouter(tags=["Quotations"])
+
+
+# =============================================================================
+# PUBLIC SHARE ENDPOINT (No Authentication Required)
+# =============================================================================
+
+
+@router.get("/share/{token}", response_model=QuotationPublicResponseDTO)
+async def get_quotation_by_share_token(
+    token: str,
+) -> QuotationPublicResponseDTO:
+    """Get a quotation by its share token.
+
+    This endpoint is PUBLIC and does NOT require authentication.
+
+    Args:
+        token: JWT share token
+
+    Returns:
+        QuotationPublicResponseDTO
+
+    Raises:
+        HTTPException 404: If token is invalid, expired, or quotation not found
+    """
+    print("INFO [QuotationRoutes]: Accessing quotation via share token")
+
+    result = quotation_service.get_by_share_token(token)
+
+    if not result:
+        print("WARN [QuotationRoutes]: Invalid or expired share token")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid or expired share token, or quotation not found",
+        )
+
+    print(f"INFO [QuotationRoutes]: Retrieved quotation {result.id} via share token")
+    return result
+
+
+# =============================================================================
+# CRUD ENDPOINTS
+# =============================================================================
 
 
 @router.get("", response_model=QuotationListResponseDTO)
@@ -336,6 +386,161 @@ async def update_status(
 
 
 # =============================================================================
+# CALCULATE, PDF EXPORT, EMAIL, AND SHARE TOKEN ENDPOINTS
+# =============================================================================
+
+
+@router.post("/{quotation_id}/calculate", response_model=QuotationPricingDTO)
+async def recalculate_and_persist_pricing(
+    quotation_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> QuotationPricingDTO:
+    """Recalculate pricing for a quotation and persist the results.
+
+    Computes all cost components and updates the quotation totals in the database.
+
+    Args:
+        quotation_id: UUID of the quotation
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Detailed pricing breakdown
+
+    Raises:
+        HTTPException 404: If quotation not found
+    """
+    print(f"INFO [QuotationRoutes]: Recalculating and persisting pricing for quotation: {quotation_id}")
+
+    result = quotation_service.recalculate_and_persist(quotation_id)
+
+    if not result:
+        print(f"WARN [QuotationRoutes]: Quotation not found: {quotation_id}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quotation not found")
+
+    print(
+        f"INFO [QuotationRoutes]: Pricing recalculated and persisted for quotation: {quotation_id}, "
+        f"Total: {result.total_cop} COP"
+    )
+    return result
+
+
+@router.get("/{quotation_id}/export/pdf")
+async def export_quotation_pdf(
+    quotation_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> StreamingResponse:
+    """Export a quotation as a PDF proforma document.
+
+    Generates a formatted PDF with quotation details, line items, and totals.
+
+    Args:
+        quotation_id: UUID of the quotation
+        current_user: Authenticated user (injected)
+
+    Returns:
+        StreamingResponse with PDF content
+
+    Raises:
+        HTTPException 404: If quotation not found
+    """
+    print(f"INFO [QuotationRoutes]: Exporting PDF for quotation: {quotation_id}")
+
+    pdf_bytes = quotation_service.generate_pdf(quotation_id)
+
+    if not pdf_bytes:
+        print(f"WARN [QuotationRoutes]: Quotation not found for PDF export: {quotation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quotation not found",
+        )
+
+    # Get quotation for filename
+    quotation = quotation_service.get_quotation(quotation_id)
+    filename = f"{quotation.quotation_number}_proforma.pdf" if quotation else "quotation.pdf"
+
+    print(f"INFO [QuotationRoutes]: PDF exported for quotation {quotation_id}")
+
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
+
+
+@router.post("/{quotation_id}/send", response_model=QuotationSendEmailResponseDTO)
+async def send_quotation_email(
+    quotation_id: UUID,
+    request: QuotationSendEmailRequestDTO,
+    current_user: dict = Depends(get_current_user),
+) -> QuotationSendEmailResponseDTO:
+    """Send a quotation via email.
+
+    Sends the quotation to the specified recipient with optional PDF attachment.
+    Supports mock mode via EMAIL_MOCK_MODE environment variable.
+
+    Args:
+        quotation_id: UUID of the quotation
+        request: Email sending request with recipient details
+        current_user: Authenticated user (injected)
+
+    Returns:
+        QuotationSendEmailResponseDTO with result
+
+    Raises:
+        HTTPException 404: If quotation not found
+    """
+    print(f"INFO [QuotationRoutes]: Sending quotation {quotation_id} to {request.recipient_email}")
+
+    result = quotation_service.send_email(quotation_id, request)
+
+    if not result:
+        print(f"WARN [QuotationRoutes]: Quotation not found: {quotation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quotation not found",
+        )
+
+    print(f"INFO [QuotationRoutes]: Email send result for quotation {quotation_id}: {result.success}")
+    return result
+
+
+@router.post("/{quotation_id}/share", response_model=QuotationShareTokenResponseDTO)
+async def generate_share_token(
+    quotation_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> QuotationShareTokenResponseDTO:
+    """Generate a share token for public quotation access.
+
+    The token allows anyone to view the quotation without authentication.
+
+    Args:
+        quotation_id: UUID of the quotation
+        current_user: Authenticated user (injected)
+
+    Returns:
+        QuotationShareTokenResponseDTO with token and expiration
+
+    Raises:
+        HTTPException 404: If quotation not found
+    """
+    print(f"INFO [QuotationRoutes]: Generating share token for quotation {quotation_id}")
+
+    result = quotation_service.get_share_token(quotation_id)
+
+    if not result:
+        print(f"WARN [QuotationRoutes]: Quotation not found: {quotation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quotation not found",
+        )
+
+    print(f"INFO [QuotationRoutes]: Share token generated for quotation {quotation_id}")
+    return result
+
+
+# =============================================================================
 # LINE ITEM ENDPOINTS
 # =============================================================================
 
@@ -371,8 +576,9 @@ async def add_item(
     return result
 
 
-@router.put("/items/{item_id}", response_model=QuotationItemResponseDTO)
+@router.put("/{quotation_id}/items/{item_id}", response_model=QuotationItemResponseDTO)
 async def update_item(
+    quotation_id: UUID,
     item_id: UUID,
     request: QuotationItemUpdateDTO,
     current_user: dict = Depends(get_current_user),
@@ -380,6 +586,7 @@ async def update_item(
     """Update a quotation line item.
 
     Args:
+        quotation_id: UUID of the quotation
         item_id: UUID of the item to update
         request: Update data
         current_user: Authenticated user (injected)
@@ -388,28 +595,39 @@ async def update_item(
         Updated line item
 
     Raises:
-        HTTPException 404: If item not found
+        HTTPException 404: If quotation or item not found
+        HTTPException 400: If item doesn't belong to the quotation
     """
-    print(f"INFO [QuotationRoutes]: Updating item: {item_id}")
+    print(f"INFO [QuotationRoutes]: Updating item {item_id} in quotation {quotation_id}")
+
+    # Validate item belongs to quotation
+    if not quotation_service.validate_item_belongs_to_quotation(quotation_id, item_id):
+        print(f"WARN [QuotationRoutes]: Item {item_id} not found in quotation {quotation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found in the specified quotation",
+        )
 
     result = quotation_service.update_item(item_id, request)
 
     if not result:
         print(f"WARN [QuotationRoutes]: Item not found: {item_id}")
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     print(f"INFO [QuotationRoutes]: Item updated successfully: {item_id}")
     return result
 
 
-@router.delete("/items/{item_id}")
+@router.delete("/{quotation_id}/items/{item_id}")
 async def remove_item(
+    quotation_id: UUID,
     item_id: UUID,
     current_user: dict = Depends(get_current_user),
 ) -> Dict[str, str]:
     """Remove a line item from a quotation.
 
     Args:
+        quotation_id: UUID of the quotation
         item_id: UUID of the item to remove
         current_user: Authenticated user (injected)
 
@@ -417,15 +635,24 @@ async def remove_item(
         Success message
 
     Raises:
-        HTTPException 404: If item not found
+        HTTPException 404: If quotation or item not found
+        HTTPException 400: If item doesn't belong to the quotation
     """
-    print(f"INFO [QuotationRoutes]: Removing item: {item_id}")
+    print(f"INFO [QuotationRoutes]: Removing item {item_id} from quotation {quotation_id}")
+
+    # Validate item belongs to quotation
+    if not quotation_service.validate_item_belongs_to_quotation(quotation_id, item_id):
+        print(f"WARN [QuotationRoutes]: Item {item_id} not found in quotation {quotation_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found in the specified quotation",
+        )
 
     result = quotation_service.remove_item(item_id)
 
     if not result:
         print(f"WARN [QuotationRoutes]: Item not found: {item_id}")
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     print(f"INFO [QuotationRoutes]: Item removed successfully: {item_id}")
     return {"message": "Item removed successfully"}
