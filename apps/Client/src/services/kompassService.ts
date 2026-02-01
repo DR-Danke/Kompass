@@ -86,6 +86,11 @@ import type {
   PricingSettingUpdate,
   PricingSettingsResponse,
   Incoterm,
+  // Extraction types
+  ExtractionJobDTO,
+  UploadResponseDTO,
+  ConfirmImportRequestDTO,
+  ConfirmImportResponseDTO,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -745,5 +750,46 @@ export const pricingService = {
   async updateSetting(key: string, data: PricingSettingUpdate): Promise<void> {
     console.log(`INFO [pricingService]: Updating pricing setting ${key}`);
     await apiClient.put(`/pricing/settings/${key}`, data);
+  },
+};
+
+// =============================================================================
+// EXTRACTION SERVICE
+// =============================================================================
+
+export const extractionService = {
+  async uploadFiles(files: FileList): Promise<UploadResponseDTO> {
+    console.log(`INFO [extractionService]: Uploading ${files.length} files for extraction`);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    const response = await apiClient.post<UploadResponseDTO>('/extract/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  async getJobStatus(jobId: string): Promise<ExtractionJobDTO> {
+    console.log(`INFO [extractionService]: Fetching job status for ${jobId}`);
+    const response = await apiClient.get<ExtractionJobDTO>(`/extract/${jobId}`);
+    return response.data;
+  },
+
+  async getJobResults(jobId: string): Promise<ExtractionJobDTO> {
+    console.log(`INFO [extractionService]: Fetching job results for ${jobId}`);
+    const response = await apiClient.get<ExtractionJobDTO>(`/extract/${jobId}/results`);
+    return response.data;
+  },
+
+  async confirmImport(request: ConfirmImportRequestDTO): Promise<ConfirmImportResponseDTO> {
+    console.log(`INFO [extractionService]: Confirming import for job ${request.job_id}`);
+    const response = await apiClient.post<ConfirmImportResponseDTO>(
+      `/extract/${request.job_id}/confirm`,
+      request
+    );
+    return response.data;
   },
 };

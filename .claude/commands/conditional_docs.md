@@ -1419,3 +1419,49 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding new Kompass routes or navigation items
     - When troubleshooting Kompass frontend API communication
     - When implementing type-safe API calls for Kompass entities
+
+- app_docs/feature-f060bebe-suppliers-management-page.md
+  - Conditions:
+    - When working with SuppliersPage or /suppliers route
+    - When implementing or modifying SupplierForm component
+    - When working with supplier CRUD operations in the frontend UI
+    - When implementing supplier search, filtering, or pagination
+    - When troubleshooting supplier management page issues
+    - When extending supplier list with new columns or actions
+
+- app_docs/feature-e17d0e09-products-catalog-page.md
+  - Conditions:
+    - When working with ProductsPage or products catalog UI
+    - When implementing or modifying apps/Client/src/pages/kompass/ProductsPage.tsx
+    - When working with ProductCard, ProductTable, ProductFilters, ProductForm, or ProductStatusBadge components
+    - When using useProducts hook for product data management
+    - When implementing product grid or table views
+    - When working with product filtering, search, or pagination
+    - When implementing product CRUD operations in the frontend
+    - When troubleshooting products catalog UI issues
+    - When working with apps/Client/src/components/kompass/Product*.tsx files
+    - When working with apps/Client/src/hooks/kompass/useProducts.ts
+
+- app_docs/feature-d5237c66-product-import-wizard.md
+  - Conditions:
+    - When working with the product import wizard or ImportWizardPage
+    - When implementing AI-powered document extraction features
+    - When modifying apps/Client/src/pages/kompass/ImportWizardPage.tsx
+    - When working with ExtractedProductTable component
+    - When using useExtractionJob hook or extractionService
+    - When implementing file upload or drag-and-drop functionality
+    - When working with extraction job polling or progress tracking
+    - When troubleshooting product extraction or import issues
+    - When implementing bulk product import from supplier catalogs
+
+- app_docs/feature-ba862094-categories-tags-management-page.md
+  - Conditions:
+    - When working with the Categories & Tags management page
+    - When implementing or modifying apps/Client/src/pages/kompass/CategoriesPage.tsx
+    - When working with CategoryTree, TagChip, CategoryDialog, or TagDialog components
+    - When using useCategories or useTags hooks
+    - When implementing drag-and-drop category reparenting
+    - When working with category tree expand/collapse functionality
+    - When implementing tag search or filtering
+    - When working with tag color picker or contrast text calculation
+    - When troubleshooting category or tag CRUD operations in the UI
