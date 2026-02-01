@@ -1290,3 +1290,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with HS code suggestion API
     - When troubleshooting extraction job state management
     - When working with ExtractionJobDTO, ConfirmImportRequestDTO, or UploadResponseDTO
+
+- app_docs/feature-566f84a0-portfolio-service.md
+  - Conditions:
+    - When working with portfolio service or portfolio_service.py
+    - When implementing or modifying apps/Server/app/api/portfolio_routes.py
+    - When working with /api/portfolios/* endpoints
+    - When implementing portfolio CRUD operations
+    - When implementing portfolio product management (add, remove, reorder)
+    - When implementing portfolio duplication functionality
+    - When implementing portfolio share token generation or public access
+    - When implementing auto-creation of portfolios from product filters
+    - When working with PortfolioFilterDTO, PortfolioShareTokenResponseDTO, or PortfolioPublicResponseDTO
+    - When troubleshooting portfolio service or API issues
