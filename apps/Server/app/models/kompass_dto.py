@@ -1252,3 +1252,89 @@ class BulkCreateResponseDTO(BaseModel):
     total_count: int = 0
     success_count: int = 0
     failure_count: int = 0
+
+
+# =============================================================================
+# DASHBOARD DTOs
+# =============================================================================
+
+
+class DashboardKPIsDTO(BaseModel):
+    """KPI metrics for the dashboard."""
+
+    total_products: int = 0
+    products_added_this_month: int = 0
+    active_suppliers: int = 0
+    quotations_sent_this_week: int = 0
+    pipeline_value: Decimal = Decimal("0.00")
+
+
+class QuotationsByStatusDTO(BaseModel):
+    """Quotation counts by status."""
+
+    draft: int = 0
+    sent: int = 0
+    viewed: int = 0
+    negotiating: int = 0
+    accepted: int = 0
+    rejected: int = 0
+    expired: int = 0
+
+
+class QuotationTrendPointDTO(BaseModel):
+    """A single data point in the quotation trend chart."""
+
+    date: str
+    sent: int = 0
+    accepted: int = 0
+
+
+class TopQuotedProductDTO(BaseModel):
+    """Top quoted product for the dashboard chart."""
+
+    id: UUID
+    name: str
+    sku: str
+    quote_count: int = 0
+
+
+class RecentProductDTO(BaseModel):
+    """Recent product for the dashboard activity feed."""
+
+    id: UUID
+    name: str
+    sku: str
+    supplier_name: Optional[str] = None
+    created_at: datetime
+
+
+class RecentQuotationDTO(BaseModel):
+    """Recent quotation for the dashboard activity feed."""
+
+    id: UUID
+    quotation_number: str
+    client_name: Optional[str] = None
+    status: QuotationStatus
+    grand_total: Decimal = Decimal("0.00")
+    created_at: datetime
+
+
+class RecentClientDTO(BaseModel):
+    """Recent client for the dashboard activity feed."""
+
+    id: UUID
+    company_name: str
+    status: ClientStatus
+    created_at: datetime
+
+
+class DashboardStatsDTO(BaseModel):
+    """Complete dashboard statistics response."""
+
+    kpis: DashboardKPIsDTO
+    quotations_by_status: QuotationsByStatusDTO
+    quotation_trend: List[QuotationTrendPointDTO] = []
+    top_quoted_products: List[TopQuotedProductDTO] = []
+    recent_products: List[RecentProductDTO] = []
+    recent_quotations: List[RecentQuotationDTO] = []
+    recent_clients: List[RecentClientDTO] = []

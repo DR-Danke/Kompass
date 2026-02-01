@@ -935,3 +935,72 @@ export interface ConfirmImportResponseDTO {
   failed_count: number;
   errors: string[];
 }
+
+// =============================================================================
+// DASHBOARD DTOs
+// =============================================================================
+
+export interface DashboardKPIs {
+  totalProducts: number;
+  productsAddedThisMonth: number;
+  activeSuppliers: number;
+  quotationsSentThisWeek: number;
+  pipelineValue: number | string;
+}
+
+export interface QuotationsByStatus {
+  draft: number;
+  sent: number;
+  viewed: number;
+  negotiating: number;
+  accepted: number;
+  rejected: number;
+  expired: number;
+}
+
+export interface QuotationTrendPoint {
+  date: string;
+  sent: number;
+  accepted: number;
+}
+
+export interface TopQuotedProduct {
+  id: string;
+  name: string;
+  sku: string;
+  quoteCount: number;
+}
+
+export interface RecentProduct {
+  id: string;
+  name: string;
+  sku: string;
+  supplierName: string | null;
+  createdAt: string;
+}
+
+export interface RecentQuotation {
+  id: string;
+  quotationNumber: string;
+  clientName: string | null;
+  status: QuotationStatus;
+  grandTotal: number | string;
+  createdAt: string;
+}
+
+export interface RecentClient {
+  id: string;
+  companyName: string;
+  status: ClientStatus;
+  createdAt: string;
+}
+
+export interface DashboardStats {
+  kpis: DashboardKPIs;
+  quotationsByStatus: QuotationsByStatus;
+  quotationTrend: QuotationTrendPoint[];
+  topQuotedProducts: TopQuotedProduct[];
+  recentProducts: RecentProduct[];
+  recentQuotations: RecentQuotation[];
+  recentClients: RecentClient[];
+}
