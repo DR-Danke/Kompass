@@ -1290,3 +1290,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with HS code suggestion API
     - When troubleshooting extraction job state management
     - When working with ExtractionJobDTO, ConfirmImportRequestDTO, or UploadResponseDTO
+
+- app_docs/feature-15dd75a7-niche-service-crud.md
+  - Conditions:
+    - When working with niche CRUD operations in Kompass
+    - When implementing or modifying apps/Server/app/services/niche_service.py
+    - When implementing or modifying apps/Server/app/api/niche_routes.py
+    - When working with /api/niches endpoints
+    - When working with client type classifications or business segments
+    - When implementing client count tracking for niches
+    - When troubleshooting niche delete validation (cannot delete niche with clients)
+    - When seeding default niches using database/seed_niches.py
+    - When working with NicheWithClientCountDTO
