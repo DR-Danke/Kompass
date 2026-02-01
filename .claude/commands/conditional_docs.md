@@ -1328,3 +1328,32 @@ This prompt helps you determine what documentation you should read based on the 
     - When troubleshooting niche delete validation (cannot delete niche with clients)
     - When seeding default niches using database/seed_niches.py
     - When working with NicheWithClientCountDTO
+
+- app_docs/feature-e962d830-portfolio-api-routes.md
+  - Conditions:
+    - When working with portfolio PDF export functionality
+    - When implementing or modifying apps/Server/app/api/portfolio_routes.py
+    - When working with /api/portfolios/{id}/export/pdf endpoint
+    - When working with /api/portfolios/share/{token} endpoint
+    - When working with /api/portfolios/{id}/items endpoints
+    - When implementing portfolio item management via /items path
+    - When troubleshooting portfolio PDF generation or reportlab issues
+    - When working with PortfolioAddItemRequestDTO
+
+- app_docs/feature-559c0462-client-api-routes.md
+  - Conditions:
+    - When working with client API routes in Kompass
+    - When implementing or modifying apps/Server/app/api/client_routes.py
+    - When working with /api/clients endpoints
+    - When implementing client status update functionality
+    - When implementing client status history retrieval
+    - When troubleshooting client API endpoint issues
+    - When writing tests for client API routes
+
+- app_docs/feature-1ea042fc-niche-api-routes-spec.md
+  - Conditions:
+    - When validating niche API routes implementation
+    - When reviewing specs/issue-15-adw-1ea042fc-niche-api-routes.md
+    - When working with Phase 5C (KP-015) of Kompass implementation
+    - When running validation commands for niche endpoints
+    - When understanding the niche API routes acceptance criteria
