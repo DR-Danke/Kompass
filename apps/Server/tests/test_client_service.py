@@ -34,7 +34,7 @@ from app.services.client_service import ClientService
 def create_mock_client(
     client_id: Optional[UUID] = None,
     company_name: str = "Test Company",
-    status: str = "prospect",
+    status: str = "lead",
     with_crm_fields: bool = False,
 ) -> Dict[str, Any]:
     """Create a mock client dictionary for testing."""
@@ -75,8 +75,8 @@ def create_mock_client(
 
 def create_mock_status_history(
     client_id: Optional[UUID] = None,
-    old_status: str = "prospect",
-    new_status: str = "active",
+    old_status: str = "lead",
+    new_status: str = "qualified",
 ) -> Dict[str, Any]:
     """Create a mock status history entry."""
     return {
@@ -266,14 +266,14 @@ class TestListClients:
         mock_repository.get_all.return_value = (mock_clients, 1)
 
         client_service.list_clients(
-            status=ClientStatus.ACTIVE,
+            status=ClientStatus.QUALIFIED,
             source=ClientSource.WEBSITE,
             sort_by="created_at",
         )
 
         mock_repository.get_all.assert_called_once()
         call_kwargs = mock_repository.get_all.call_args[1]
-        assert call_kwargs["status"] == "active"
+        assert call_kwargs["status"] == "qualified"
         assert call_kwargs["source"] == "website"
         assert call_kwargs["sort_by"] == "created_at"
 
@@ -376,28 +376,37 @@ class TestPipeline:
 
     def test_get_pipeline_groups_by_status(self, client_service, mock_repository):
         """Test that pipeline groups clients by status."""
-        prospect_clients = [create_mock_client(status="prospect") for _ in range(3)]
-        active_clients = [create_mock_client(status="active") for _ in range(2)]
-        inactive_clients = [create_mock_client(status="inactive") for _ in range(1)]
+        lead_clients = [create_mock_client(status="lead") for _ in range(3)]
+        qualified_clients = [create_mock_client(status="qualified") for _ in range(2)]
+        quoting_clients = [create_mock_client(status="quoting") for _ in range(1)]
+        negotiating_clients = [create_mock_client(status="negotiating") for _ in range(2)]
+        won_clients = [create_mock_client(status="won") for _ in range(1)]
+        lost_clients = [create_mock_client(status="lost") for _ in range(1)]
 
         mock_repository.get_by_status.side_effect = lambda status: {
-            "prospect": prospect_clients,
-            "active": active_clients,
-            "inactive": inactive_clients,
+            "lead": lead_clients,
+            "qualified": qualified_clients,
+            "quoting": quoting_clients,
+            "negotiating": negotiating_clients,
+            "won": won_clients,
+            "lost": lost_clients,
         }[status]
 
         result = client_service.get_pipeline()
 
-        assert len(result.prospect) == 3
-        assert len(result.active) == 2
-        assert len(result.inactive) == 1
+        assert len(result.lead) == 3
+        assert len(result.qualified) == 2
+        assert len(result.quoting) == 1
+        assert len(result.negotiating) == 2
+        assert len(result.won) == 1
+        assert len(result.lost) == 1
 
     def test_update_status_records_history(self, client_service, mock_repository):
         """Test that status update records history."""
         client_id = uuid4()
         user_id = uuid4()
-        mock_client = create_mock_client(client_id=client_id, status="prospect")
-        updated_client = create_mock_client(client_id=client_id, status="active")
+        mock_client = create_mock_client(client_id=client_id, status="lead")
+        updated_client = create_mock_client(client_id=client_id, status="qualified")
 
         mock_repository.get_by_id.return_value = mock_client
         mock_repository.update.return_value = updated_client
@@ -406,8 +415,8 @@ class TestPipeline:
         )
 
         request = ClientStatusChangeDTO(
-            new_status=ClientStatus.ACTIVE,
-            notes="Converted to active client",
+            new_status=ClientStatus.QUALIFIED,
+            notes="Client qualified for next stage",
         )
 
         result = client_service.update_status(client_id, request, user_id)
@@ -416,9 +425,9 @@ class TestPipeline:
         mock_repository.create_status_history.assert_called_once()
         call_kwargs = mock_repository.create_status_history.call_args[1]
         assert call_kwargs["client_id"] == client_id
-        assert call_kwargs["old_status"] == "prospect"
-        assert call_kwargs["new_status"] == "active"
-        assert call_kwargs["notes"] == "Converted to active client"
+        assert call_kwargs["old_status"] == "lead"
+        assert call_kwargs["new_status"] == "qualified"
+        assert call_kwargs["notes"] == "Client qualified for next stage"
         assert call_kwargs["changed_by"] == user_id
 
     def test_get_status_history(self, client_service, mock_repository):
@@ -426,8 +435,8 @@ class TestPipeline:
         client_id = uuid4()
         mock_client = create_mock_client(client_id=client_id)
         mock_history = [
-            create_mock_status_history(client_id=client_id, old_status="prospect", new_status="active"),
-            create_mock_status_history(client_id=client_id, old_status=None, new_status="prospect"),
+            create_mock_status_history(client_id=client_id, old_status="lead", new_status="qualified"),
+            create_mock_status_history(client_id=client_id, old_status=None, new_status="lead"),
         ]
 
         mock_repository.get_by_id.return_value = mock_client
@@ -436,8 +445,8 @@ class TestPipeline:
         result = client_service.get_status_history(client_id)
 
         assert len(result) == 2
-        assert result[0].new_status == ClientStatus.ACTIVE
-        assert result[1].new_status == ClientStatus.PROSPECT
+        assert result[0].new_status == ClientStatus.QUALIFIED
+        assert result[1].new_status == ClientStatus.LEAD
 
 
 # =============================================================================
@@ -567,7 +576,7 @@ class TestDTOMapping:
 
         assert result.id == mock_client["id"]
         assert result.company_name == mock_client["company_name"]
-        assert result.status == ClientStatus.PROSPECT
+        assert result.status == ClientStatus.LEAD
         assert result.assigned_to == mock_client["assigned_to"]
         assert result.source == ClientSource.WEBSITE
 
