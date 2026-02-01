@@ -1559,3 +1559,10 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with FastAPI TestClient for API route testing
     - When troubleshooting test failures in Kompass module
     - When adding pytest markers or test organization patterns
+
+- app_docs/feature-09679466-kompass-docs-claude-update.md
+  - Conditions:
+    - When updating Kompass module documentation
+    - When modifying ai_docs/KOMPASS_MODULE_GUIDE.md or ai_docs/KOMPASS_USER_GUIDE.md
+    - When updating CLAUDE.md with Kompass module information
+    - When understanding the overall Kompass documentation structure

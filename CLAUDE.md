@@ -111,6 +111,39 @@ Backend:   api/ → services/ → repository/ → database
 - Frontend: `apps/Client/src/main.tsx`
 - Backend: `apps/Server/main.py`
 
+### Project Structure
+
+```
+├── apps/
+│   ├── Client/                          # React frontend (Vercel)
+│   │   └── src/
+│   │       ├── pages/
+│   │       │   ├── kompass/             # 12 Kompass pages
+│   │       │   ├── DashboardPage.tsx
+│   │       │   └── LoginPage.tsx
+│   │       ├── components/
+│   │       │   ├── kompass/             # Kompass components
+│   │       │   ├── layout/              # Layout components
+│   │       │   └── auth/                # Auth components
+│   │       ├── hooks/kompass/           # Custom hooks
+│   │       ├── types/kompass.ts         # Type definitions
+│   │       └── services/kompassService.ts
+│   └── Server/                          # FastAPI backend (Render)
+│       ├── app/
+│       │   ├── api/                     # Route handlers (12 Kompass routes)
+│       │   ├── services/                # Business logic (12 services)
+│       │   ├── models/kompass_dto.py    # Pydantic DTOs
+│       │   └── repository/kompass_repository.py
+│       └── database/schema.sql          # PostgreSQL schema
+├── ai_docs/                             # AI/Claude documentation
+│   ├── KOMPASS_MODULE_GUIDE.md          # Technical docs
+│   ├── KOMPASS_USER_GUIDE.md            # User guide
+│   └── PRD-Kompass-Portfolio-Quotation-System.md
+├── app_docs/                            # Feature documentation
+├── adws/                                # ADW workflow scripts
+└── specs/                               # Implementation specs
+```
+
 ### Technology Stack
 
 **Frontend:** React 19, TypeScript 5, Vite 5, Material-UI 5, React Router 6, react-hook-form, Axios
@@ -157,6 +190,81 @@ const { user, isAuthenticated, login, logout } = useAuth();
 <ProtectedRoute><DashboardPage /></ProtectedRoute>
 <RoleProtectedRoute allowedRoles={['admin']}><AdminPage /></RoleProtectedRoute>
 ```
+
+## Kompass Module
+
+Portfolio & Quotation Automation System for managing suppliers, products, portfolios, clients, and quotations with automated pricing calculations.
+
+### Module Overview
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| Backend Services | 12 | Business logic layer |
+| API Route Groups | 11 | REST endpoints |
+| Database Tables | 16 | PostgreSQL schema |
+| Frontend Pages | 12 | User interface |
+
+### API Routes
+
+| Prefix | Module | Key Features |
+|--------|--------|--------------|
+| `/api/suppliers` | Suppliers | CRUD, status management |
+| `/api/products` | Products | CRUD, images, tags, bulk import |
+| `/api/categories` | Categories | Hierarchical tree structure |
+| `/api/tags` | Tags | Flexible product tagging |
+| `/api/portfolios` | Portfolios | Curation, PDF export, share tokens |
+| `/api/clients` | Clients | CRM, Kanban pipeline, status history |
+| `/api/quotations` | Quotations | Pricing engine, PDF, email, share tokens |
+| `/api/pricing` | Pricing | HS codes, freight rates, settings |
+| `/api/niches` | Niches | Client market segments |
+| `/api/extract` | Extraction | AI product import from files |
+| `/api/dashboard` | Dashboard | KPIs, charts, statistics |
+
+### Frontend Pages
+
+Located in `apps/Client/src/pages/kompass/`:
+- `SuppliersPage.tsx` - Supplier management
+- `ProductsPage.tsx` - Biblia General (product catalog)
+- `ImportWizardPage.tsx` - AI-powered product import
+- `CategoriesPage.tsx` - Category and tag management
+- `PortfoliosPage.tsx` - Portfolio list
+- `PortfolioBuilderPage.tsx` - Portfolio editor
+- `ClientsPage.tsx` - Client CRM with Kanban
+- `QuotationsListPage.tsx` - Quotation list
+- `QuotationCreatorPage.tsx` - Quotation editor with pricing
+- `NichesPage.tsx` - Niche configuration
+- `PricingConfigPage.tsx` - Pricing settings
+- `SettingsPage.tsx` - Application settings
+
+### Key Services
+
+**Pricing Engine** (`quotation_service.py`):
+```python
+# Pricing formula
+Total COP = (FOB + Tariffs + Freight + Inspection + Insurance) × Exchange Rate
+            + National Freight + Nationalization + Margin
+```
+
+**Share Token Pattern** (portfolios and quotations):
+```python
+# Generate: GET /api/{resource}/{id}/share-token
+# Access:   GET /api/{resource}/public/{token}
+```
+
+**Status Workflows**:
+- Quotation: `draft → sent → viewed → negotiating → accepted/rejected/expired`
+- Client Pipeline: `lead → qualified → quoting → negotiating → won/lost`
+
+### Database Tables
+
+Reference: `niches`, `categories`, `tags`, `hs_codes`
+Products: `suppliers`, `products`, `product_images`, `product_tags`
+Portfolios: `portfolios`, `portfolio_items`
+CRM: `clients`, `client_status_history`
+Pricing: `freight_rates`, `pricing_settings`
+Quotations: `quotations`, `quotation_items`
+
+See `ai_docs/KOMPASS_MODULE_GUIDE.md` for full documentation.
 
 ## Code Standards
 
