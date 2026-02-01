@@ -1428,3 +1428,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing supplier search, filtering, or pagination
     - When troubleshooting supplier management page issues
     - When extending supplier list with new columns or actions
+
+- app_docs/feature-e17d0e09-products-catalog-page.md
+  - Conditions:
+    - When working with ProductsPage or products catalog UI
+    - When implementing or modifying apps/Client/src/pages/kompass/ProductsPage.tsx
+    - When working with ProductCard, ProductTable, ProductFilters, ProductForm, or ProductStatusBadge components
+    - When using useProducts hook for product data management
+    - When implementing product grid or table views
+    - When working with product filtering, search, or pagination
+    - When implementing product CRUD operations in the frontend
+    - When troubleshooting products catalog UI issues
+    - When working with apps/Client/src/components/kompass/Product*.tsx files
+    - When working with apps/Client/src/hooks/kompass/useProducts.ts
