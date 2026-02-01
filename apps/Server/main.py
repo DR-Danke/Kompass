@@ -16,6 +16,7 @@ from app.api.category_routes import router as category_router
 from app.api.tag_routes import router as tag_router
 from app.api.extraction_routes import router as extraction_router
 from app.api.portfolio_routes import router as portfolio_router
+from app.api.client_routes import router as client_router
 from database.init_db import init_database
 
 
@@ -72,6 +73,7 @@ def create_app() -> FastAPI:
     app.include_router(tag_router, prefix="/api/tags")
     app.include_router(extraction_router, prefix="/api/extract")
     app.include_router(portfolio_router, prefix="/api/portfolios")
+    app.include_router(client_router, prefix="/api/clients")
 
     print(f"INFO [Main]: Application configured with CORS origins: {settings.get_cors_origins()}")
 
