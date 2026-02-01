@@ -20,6 +20,7 @@ from app.models.kompass_dto import (
     ClientStatusChangeDTO,
     ClientUpdateDTO,
     ClientWithQuotationsDTO,
+    Incoterm,
     PaginationDTO,
     PipelineResponseDTO,
     QuotationSummaryDTO,
@@ -79,6 +80,7 @@ class ClientService:
             contact_name=request.contact_name,
             email=str(request.email) if request.email else None,
             phone=request.phone,
+            whatsapp=request.whatsapp,
             address=request.address,
             city=request.city,
             state=request.state,
@@ -90,6 +92,8 @@ class ClientService:
             assigned_to=request.assigned_to,
             source=request.source.value if request.source else None,
             project_deadline=str(request.project_deadline) if request.project_deadline else None,
+            project_name=request.project_name,
+            incoterm_preference=request.incoterm_preference.value if request.incoterm_preference else None,
         )
 
         if not result:
@@ -145,6 +149,7 @@ class ClientService:
             contact_name=result.get("contact_name"),
             email=result.get("email"),
             phone=result.get("phone"),
+            whatsapp=result.get("whatsapp"),
             address=result.get("address"),
             city=result.get("city"),
             state=result.get("state"),
@@ -158,6 +163,8 @@ class ClientService:
             assigned_to_name=result.get("assigned_to_name"),
             source=ClientSource(result["source"]) if result.get("source") else None,
             project_deadline=result.get("project_deadline"),
+            project_name=result.get("project_name"),
+            incoterm_preference=Incoterm(result["incoterm_preference"]) if result.get("incoterm_preference") else None,
             created_at=result["created_at"],
             updated_at=result["updated_at"],
             quotation_summary=quotation_summary,
@@ -261,6 +268,8 @@ class ClientService:
             update_kwargs["email"] = str(request.email)
         if request.phone is not None:
             update_kwargs["phone"] = request.phone
+        if request.whatsapp is not None:
+            update_kwargs["whatsapp"] = request.whatsapp
         if request.address is not None:
             update_kwargs["address"] = request.address
         if request.city is not None:
@@ -283,6 +292,10 @@ class ClientService:
             update_kwargs["source"] = request.source.value
         if request.project_deadline is not None:
             update_kwargs["project_deadline"] = str(request.project_deadline)
+        if request.project_name is not None:
+            update_kwargs["project_name"] = request.project_name
+        if request.incoterm_preference is not None:
+            update_kwargs["incoterm_preference"] = request.incoterm_preference.value
 
         result = self.repository.update(client_id, **update_kwargs)
 
@@ -347,24 +360,32 @@ class ClientService:
         return [self._map_to_response_dto(item) for item in items]
 
     def get_pipeline(self) -> PipelineResponseDTO:
-        """Get clients grouped by status for pipeline view.
+        """Get clients grouped by status for pipeline view (Kanban columns).
 
         Returns:
-            Pipeline response with clients grouped by status
+            Pipeline response with clients grouped by status (6 columns)
         """
-        prospect_clients = self.repository.get_by_status("prospect")
-        active_clients = self.repository.get_by_status("active")
-        inactive_clients = self.repository.get_by_status("inactive")
+        lead_clients = self.repository.get_by_status("lead")
+        qualified_clients = self.repository.get_by_status("qualified")
+        quoting_clients = self.repository.get_by_status("quoting")
+        negotiating_clients = self.repository.get_by_status("negotiating")
+        won_clients = self.repository.get_by_status("won")
+        lost_clients = self.repository.get_by_status("lost")
 
         print(
-            f"INFO [ClientService]: Pipeline - prospect: {len(prospect_clients)}, "
-            f"active: {len(active_clients)}, inactive: {len(inactive_clients)}"
+            f"INFO [ClientService]: Pipeline - lead: {len(lead_clients)}, "
+            f"qualified: {len(qualified_clients)}, quoting: {len(quoting_clients)}, "
+            f"negotiating: {len(negotiating_clients)}, won: {len(won_clients)}, "
+            f"lost: {len(lost_clients)}"
         )
 
         return PipelineResponseDTO(
-            prospect=[self._map_to_response_dto(c) for c in prospect_clients],
-            active=[self._map_to_response_dto(c) for c in active_clients],
-            inactive=[self._map_to_response_dto(c) for c in inactive_clients],
+            lead=[self._map_to_response_dto(c) for c in lead_clients],
+            qualified=[self._map_to_response_dto(c) for c in qualified_clients],
+            quoting=[self._map_to_response_dto(c) for c in quoting_clients],
+            negotiating=[self._map_to_response_dto(c) for c in negotiating_clients],
+            won=[self._map_to_response_dto(c) for c in won_clients],
+            lost=[self._map_to_response_dto(c) for c in lost_clients],
         )
 
     def update_status(
@@ -545,6 +566,7 @@ class ClientService:
             contact_name=data.get("contact_name"),
             email=data.get("email"),
             phone=data.get("phone"),
+            whatsapp=data.get("whatsapp"),
             address=data.get("address"),
             city=data.get("city"),
             state=data.get("state"),
@@ -558,6 +580,8 @@ class ClientService:
             assigned_to_name=data.get("assigned_to_name"),
             source=ClientSource(data["source"]) if data.get("source") else None,
             project_deadline=data.get("project_deadline"),
+            project_name=data.get("project_name"),
+            incoterm_preference=Incoterm(data["incoterm_preference"]) if data.get("incoterm_preference") else None,
             created_at=data["created_at"],
             updated_at=data["updated_at"],
         )

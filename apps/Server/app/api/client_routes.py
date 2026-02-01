@@ -34,7 +34,7 @@ router = APIRouter(tags=["Clients"])
 @router.get("", response_model=ClientListResponseDTO)
 async def list_clients(
     status: Optional[str] = Query(
-        None, description="Filter by status: active | inactive | prospect"
+        None, description="Filter by status: lead | qualified | quoting | negotiating | won | lost"
     ),
     niche_id: Optional[UUID] = Query(None, description="Filter by niche"),
     assigned_to: Optional[UUID] = Query(None, description="Filter by assigned user"),
@@ -79,7 +79,7 @@ async def list_clients(
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid status value: {status}. Must be one of: active, inactive, prospect",
+                detail=f"Invalid status value: {status}. Must be one of: lead, qualified, quoting, negotiating, won, lost",
             )
 
     # Convert source string to enum if provided
@@ -160,13 +160,13 @@ async def search_clients(
 async def get_pipeline(
     current_user: dict = Depends(get_current_user),
 ) -> PipelineResponseDTO:
-    """Get clients grouped by status for pipeline view.
+    """Get clients grouped by status for pipeline view (Kanban columns).
 
     Args:
         current_user: Authenticated user (injected)
 
     Returns:
-        Clients grouped by status (prospect, active, inactive)
+        Clients grouped by status (lead, qualified, quoting, negotiating, won, lost)
     """
     print("INFO [ClientRoutes]: Getting client pipeline")
 

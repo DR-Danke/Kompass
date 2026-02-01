@@ -11,7 +11,7 @@ export type SupplierStatus = 'active' | 'inactive' | 'pending_review';
 
 export type ProductStatus = 'active' | 'inactive' | 'draft' | 'discontinued';
 
-export type ClientStatus = 'active' | 'inactive' | 'prospect';
+export type ClientStatus = 'lead' | 'qualified' | 'quoting' | 'negotiating' | 'won' | 'lost';
 
 export type ClientSource = 'website' | 'referral' | 'cold_call' | 'trade_show' | 'linkedin' | 'other';
 
@@ -450,6 +450,7 @@ export interface ClientCreate {
   contact_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  whatsapp?: string | null;
   address?: string | null;
   city?: string | null;
   state?: string | null;
@@ -461,6 +462,8 @@ export interface ClientCreate {
   assigned_to?: string | null;
   source?: ClientSource | null;
   project_deadline?: string | null;
+  project_name?: string | null;
+  incoterm_preference?: Incoterm | null;
 }
 
 export interface ClientUpdate {
@@ -468,6 +471,7 @@ export interface ClientUpdate {
   contact_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  whatsapp?: string | null;
   address?: string | null;
   city?: string | null;
   state?: string | null;
@@ -479,6 +483,8 @@ export interface ClientUpdate {
   assigned_to?: string | null;
   source?: ClientSource | null;
   project_deadline?: string | null;
+  project_name?: string | null;
+  incoterm_preference?: Incoterm | null;
 }
 
 export interface ClientResponse {
@@ -487,6 +493,7 @@ export interface ClientResponse {
   contact_name: string | null;
   email: string | null;
   phone: string | null;
+  whatsapp: string | null;
   address: string | null;
   city: string | null;
   state: string | null;
@@ -500,6 +507,8 @@ export interface ClientResponse {
   assigned_to_name: string | null;
   source: ClientSource | null;
   project_deadline: string | null;
+  project_name: string | null;
+  incoterm_preference: Incoterm | null;
   created_at: string;
   updated_at: string;
 }
@@ -540,9 +549,12 @@ export interface ClientWithQuotations extends ClientResponse {
 }
 
 export interface PipelineResponse {
-  prospect: ClientResponse[];
-  active: ClientResponse[];
-  inactive: ClientResponse[];
+  lead: ClientResponse[];
+  qualified: ClientResponse[];
+  quoting: ClientResponse[];
+  negotiating: ClientResponse[];
+  won: ClientResponse[];
+  lost: ClientResponse[];
 }
 
 export interface TimingFeasibility {
