@@ -1328,3 +1328,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When troubleshooting niche delete validation (cannot delete niche with clients)
     - When seeding default niches using database/seed_niches.py
     - When working with NicheWithClientCountDTO
+
+- app_docs/feature-559c0462-client-api-routes.md
+  - Conditions:
+    - When working with client API routes in Kompass
+    - When implementing or modifying apps/Server/app/api/client_routes.py
+    - When working with /api/clients endpoints
+    - When implementing client status update functionality
+    - When implementing client status history retrieval
+    - When troubleshooting client API endpoint issues
+    - When writing tests for client API routes
