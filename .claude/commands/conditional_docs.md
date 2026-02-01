@@ -1419,3 +1419,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding new Kompass routes or navigation items
     - When troubleshooting Kompass frontend API communication
     - When implementing type-safe API calls for Kompass entities
+
+- app_docs/feature-f060bebe-suppliers-management-page.md
+  - Conditions:
+    - When working with SuppliersPage or /suppliers route
+    - When implementing or modifying SupplierForm component
+    - When working with supplier CRUD operations in the frontend UI
+    - When implementing supplier search, filtering, or pagination
+    - When troubleshooting supplier management page issues
+    - When extending supplier list with new columns or actions
