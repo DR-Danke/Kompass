@@ -874,3 +874,52 @@ export interface BulkCreateResponse {
   success_count: number;
   failure_count: number;
 }
+
+// =============================================================================
+// EXTRACTION DTOs
+// =============================================================================
+
+export type ExtractionJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface ExtractedProduct {
+  sku: string | null;
+  name: string | null;
+  description: string | null;
+  price_fob_usd: number | string | null;
+  moq: number | null;
+  dimensions: string | null;
+  material: string | null;
+  suggested_category: string | null;
+  image_urls: string[];
+  confidence_score: number;
+  raw_text: string | null;
+  source_page: number | null;
+}
+
+export interface ExtractionJobDTO {
+  job_id: string;
+  status: ExtractionJobStatus;
+  progress: number;
+  total_files: number;
+  processed_files: number;
+  extracted_products: ExtractedProduct[];
+  errors: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UploadResponseDTO {
+  job_id: string;
+}
+
+export interface ConfirmImportRequestDTO {
+  job_id: string;
+  product_indices: number[] | null;
+  supplier_id: string;
+}
+
+export interface ConfirmImportResponseDTO {
+  imported_count: number;
+  failed_count: number;
+  errors: string[];
+}
