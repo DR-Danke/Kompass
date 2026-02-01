@@ -19,6 +19,11 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import FactoryIcon from '@mui/icons-material/Factory';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import CollectionsIcon from '@mui/icons-material/Collections';
+import PeopleIcon from '@mui/icons-material/People';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { useAuth } from '@/hooks/useAuth';
 
 const SIDEBAR_BG = '#1a1d21';
@@ -32,8 +37,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { title: 'Suppliers', icon: <FactoryIcon />, path: '/suppliers' },
+  { title: 'Biblia General', icon: <InventoryIcon />, path: '/products' },
+  { title: 'Portfolios', icon: <CollectionsIcon />, path: '/portfolios' },
+  { title: 'Clients', icon: <PeopleIcon />, path: '/clients' },
+  { title: 'Quotations', icon: <DescriptionIcon />, path: '/quotations' },
   { title: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-  // Add more navigation items here
 ];
 
 interface SidebarProps {

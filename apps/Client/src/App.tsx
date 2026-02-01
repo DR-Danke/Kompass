@@ -5,6 +5,12 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import SuppliersPage from './pages/kompass/SuppliersPage';
+import ProductsPage from './pages/kompass/ProductsPage';
+import PortfoliosPage from './pages/kompass/PortfoliosPage';
+import ClientsPage from './pages/kompass/ClientsPage';
+import QuotationsPage from './pages/kompass/QuotationsPage';
+import SettingsPage from './pages/kompass/SettingsPage';
 
 function App() {
   const { isLoading } = useAuth();
@@ -31,18 +37,12 @@ function App() {
               <Routes>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
-
-                {/* Add role-protected routes here */}
-                {/* Example:
-                <Route
-                  path="admin"
-                  element={
-                    <RoleProtectedRoute allowedRoles={['admin']}>
-                      <AdminPage />
-                    </RoleProtectedRoute>
-                  }
-                />
-                */}
+                <Route path="suppliers" element={<SuppliersPage />} />
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="portfolios" element={<PortfoliosPage />} />
+                <Route path="clients" element={<ClientsPage />} />
+                <Route path="quotations" element={<QuotationsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
               </Routes>
             </MainLayout>
           </ProtectedRoute>
