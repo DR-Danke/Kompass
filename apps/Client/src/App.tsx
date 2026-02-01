@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import SuppliersPage from './pages/kompass/SuppliersPage';
 import ProductsPage from './pages/kompass/ProductsPage';
+import CategoriesPage from './pages/kompass/CategoriesPage';
 import PortfoliosPage from './pages/kompass/PortfoliosPage';
 import ClientsPage from './pages/kompass/ClientsPage';
 import QuotationsPage from './pages/kompass/QuotationsPage';
@@ -41,6 +42,7 @@ function App() {
                 <Route path="suppliers" element={<SuppliersPage />} />
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="import-wizard" element={<ImportWizardPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
                 <Route path="portfolios" element={<PortfoliosPage />} />
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="quotations" element={<QuotationsPage />} />
