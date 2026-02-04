@@ -81,6 +81,51 @@ class Incoterm(str, Enum):
     FAS = "FAS"
 
 
+class AuditType(str, Enum):
+    """Type of supplier audit document."""
+
+    FACTORY_AUDIT = "factory_audit"
+    CONTAINER_INSPECTION = "container_inspection"
+
+
+class ExtractionStatus(str, Enum):
+    """Status of AI data extraction from audit documents."""
+
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class CertificationStatus(str, Enum):
+    """Certification level for suppliers."""
+
+    UNCERTIFIED = "uncertified"
+    PENDING_REVIEW = "pending_review"
+    CERTIFIED_A = "certified_a"
+    CERTIFIED_B = "certified_b"
+    CERTIFIED_C = "certified_c"
+
+
+class SupplierPipelineStatus(str, Enum):
+    """Pipeline status for supplier onboarding workflow."""
+
+    CONTACTED = "contacted"
+    POTENTIAL = "potential"
+    QUOTED = "quoted"
+    CERTIFIED = "certified"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+
+class SupplierType(str, Enum):
+    """Type of supplier as determined by audit extraction."""
+
+    MANUFACTURER = "manufacturer"
+    TRADER = "trader"
+    UNKNOWN = "unknown"
+
+
 # =============================================================================
 # PAGINATION
 # =============================================================================
@@ -328,6 +373,9 @@ class SupplierCreateDTO(BaseModel):
     country: str = Field(default="China", max_length=100)
     website: Optional[str] = Field(default=None, max_length=500)
     notes: Optional[str] = None
+    # Certification fields
+    certification_status: CertificationStatus = CertificationStatus.UNCERTIFIED
+    pipeline_status: SupplierPipelineStatus = SupplierPipelineStatus.CONTACTED
 
 
 class SupplierUpdateDTO(BaseModel):
@@ -344,6 +392,9 @@ class SupplierUpdateDTO(BaseModel):
     country: Optional[str] = Field(default=None, max_length=100)
     website: Optional[str] = Field(default=None, max_length=500)
     notes: Optional[str] = None
+    # Certification fields
+    certification_status: Optional[CertificationStatus] = None
+    pipeline_status: Optional[SupplierPipelineStatus] = None
 
 
 class SupplierResponseDTO(BaseModel):
@@ -361,6 +412,11 @@ class SupplierResponseDTO(BaseModel):
     country: str
     website: Optional[str] = None
     notes: Optional[str] = None
+    # Certification fields
+    certification_status: CertificationStatus = CertificationStatus.UNCERTIFIED
+    pipeline_status: SupplierPipelineStatus = SupplierPipelineStatus.CONTACTED
+    latest_audit_id: Optional[UUID] = None
+    certified_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -371,6 +427,96 @@ class SupplierListResponseDTO(BaseModel):
     """Paginated list response for suppliers."""
 
     items: List[SupplierResponseDTO]
+    pagination: PaginationDTO
+
+
+# =============================================================================
+# SUPPLIER AUDIT DTOs
+# =============================================================================
+
+
+class SupplierAuditCreateDTO(BaseModel):
+    """Request model for creating a supplier audit record."""
+
+    supplier_id: UUID
+    audit_type: AuditType = AuditType.FACTORY_AUDIT
+    document_url: str = Field(min_length=1, max_length=1000)
+    document_name: Optional[str] = Field(default=None, max_length=255)
+    file_size_bytes: Optional[int] = Field(default=None, ge=0)
+    audit_date: Optional[date] = None
+    inspector_name: Optional[str] = Field(default=None, max_length=255)
+
+
+class SupplierAuditExtractionDTO(BaseModel):
+    """Model for AI-extracted data from audit documents."""
+
+    supplier_type: Optional[SupplierType] = None
+    employee_count: Optional[int] = Field(default=None, ge=0)
+    factory_area_sqm: Optional[int] = Field(default=None, ge=0)
+    production_lines_count: Optional[int] = Field(default=None, ge=0)
+    markets_served: Optional[dict] = None
+    certifications: Optional[List[str]] = None
+    has_machinery_photos: bool = False
+    positive_points: Optional[List[str]] = None
+    negative_points: Optional[List[str]] = None
+    products_verified: Optional[List[str]] = None
+
+
+class SupplierAuditClassificationDTO(BaseModel):
+    """Request model for classifying a supplier audit."""
+
+    classification: str = Field(pattern=r"^[ABC]$", description="Classification grade: A, B, or C")
+    notes: Optional[str] = None
+
+
+class SupplierAuditResponseDTO(BaseModel):
+    """Response model for supplier audit data."""
+
+    id: UUID
+    supplier_id: UUID
+    audit_type: AuditType
+    document_url: str
+    document_name: Optional[str] = None
+    file_size_bytes: Optional[int] = None
+
+    # Extracted data fields
+    supplier_type: Optional[SupplierType] = None
+    employee_count: Optional[int] = None
+    factory_area_sqm: Optional[int] = None
+    production_lines_count: Optional[int] = None
+    markets_served: Optional[dict] = None
+    certifications: Optional[List[str]] = None
+    has_machinery_photos: bool = False
+    positive_points: Optional[List[str]] = None
+    negative_points: Optional[List[str]] = None
+    products_verified: Optional[List[str]] = None
+
+    # Audit metadata
+    audit_date: Optional[date] = None
+    inspector_name: Optional[str] = None
+
+    # Processing fields
+    extraction_status: ExtractionStatus
+    extraction_raw_response: Optional[dict] = None
+    extracted_at: Optional[datetime] = None
+
+    # Classification fields
+    ai_classification: Optional[str] = None
+    ai_classification_reason: Optional[str] = None
+    manual_classification: Optional[str] = None
+    classification_notes: Optional[str] = None
+
+    # Timestamps
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SupplierAuditListResponseDTO(BaseModel):
+    """Paginated list response for supplier audits."""
+
+    items: List[SupplierAuditResponseDTO]
     pagination: PaginationDTO
 
 
