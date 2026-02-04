@@ -1566,3 +1566,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying ai_docs/KOMPASS_MODULE_GUIDE.md or ai_docs/KOMPASS_USER_GUIDE.md
     - When updating CLAUDE.md with Kompass module information
     - When understanding the overall Kompass documentation structure
+
+- app_docs/feature-8bb175a8-supplier-audits-schema-dtos.md
+  - Conditions:
+    - When working with supplier audits or factory audit documents
+    - When implementing supplier certification features
+    - When modifying the supplier_audits table or related DTOs
+    - When working with AI data extraction from audit documents
+    - When implementing supplier classification (A/B/C grades)
+    - When working with supplier pipeline status or certification status
+    - When running database migrations for supplier audits
