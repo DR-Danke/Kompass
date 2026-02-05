@@ -1646,6 +1646,86 @@ class SupplierRepository:
         finally:
             close_database_connection(conn)
 
+    def update_certification_status(
+        self,
+        supplier_id: UUID,
+        certification_status: str,
+        audit_id: UUID,
+    ) -> Optional[Dict[str, Any]]:
+        """Update supplier certification status and link to latest audit.
+
+        Args:
+            supplier_id: UUID of the supplier
+            certification_status: New certification status (certified_a, certified_b, certified_c)
+            audit_id: UUID of the audit that triggered this update
+
+        Returns:
+            Updated supplier dict if successful, None otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE suppliers
+                    SET certification_status = %s,
+                        certified_at = NOW(),
+                        latest_audit_id = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING id, name, code, status, contact_name, contact_email,
+                              contact_phone, address, city, country, website, notes,
+                              certification_status, pipeline_status, latest_audit_id, certified_at,
+                              created_at, updated_at
+                    """,
+                    (certification_status, str(audit_id), str(supplier_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_extended(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to update certification status: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def _row_to_dict_extended(self, row: tuple) -> Dict[str, Any]:
+        """Convert an extended database row to a dictionary (includes certification fields).
+
+        Args:
+            row: Database row tuple with certification fields
+
+        Returns:
+            Dictionary with supplier fields including certification data
+        """
+        return {
+            "id": row[0],
+            "name": row[1],
+            "code": row[2],
+            "status": row[3],
+            "contact_name": row[4],
+            "contact_email": row[5],
+            "contact_phone": row[6],
+            "address": row[7],
+            "city": row[8],
+            "country": row[9],
+            "website": row[10],
+            "notes": row[11],
+            "certification_status": row[12],
+            "pipeline_status": row[13],
+            "latest_audit_id": row[14],
+            "certified_at": row[15],
+            "created_at": row[16],
+            "updated_at": row[17],
+        }
+
 
 # =============================================================================
 # PRODUCT REPOSITORY

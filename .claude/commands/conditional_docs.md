@@ -1584,5 +1584,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with /api/suppliers/{id}/audits endpoints
     - When implementing or modifying AI extraction from PDF documents
     - When troubleshooting audit extraction status (pending/processing/completed/failed)
+
+- app_docs/feature-3b28932b-supplier-classification-abc-tiers.md
+  - Conditions:
+    - When working with supplier classification or ABC tier ratings
+    - When implementing or modifying the classification scoring algorithm
+    - When working with audit classification endpoints (classify, override)
+    - When updating supplier certification_status based on audit data
+    - When troubleshooting classification reasoning or override functionality
     - When working with audit_repository.py or audit_routes.py
     - When configuring PDF-to-image conversion or pdf2image library
