@@ -34,6 +34,7 @@ import type {
   SupplierPipelineSummary,
   SupplierPipelineResponse,
   SupplierPipelineStatus,
+  SupplierCertificationSummary,
   // Product types
   ProductCreate,
   ProductUpdate,
@@ -145,11 +146,20 @@ export const nicheService = {
 // SUPPLIER SERVICE
 // =============================================================================
 
+export interface SupplierListFilters {
+  status?: string;
+  search?: string;
+  certification_status?: string;
+  pipeline_status?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
 export const supplierService = {
   async list(
     page = 1,
     limit = 20,
-    filters?: { status?: string; search?: string }
+    filters?: SupplierListFilters
   ): Promise<SupplierListResponse> {
     console.log('INFO [supplierService]: Fetching suppliers list');
     const response = await apiClient.get<SupplierListResponse>('/suppliers', {
@@ -206,6 +216,12 @@ export const supplierService = {
     const response = await apiClient.put<SupplierResponse>(`/suppliers/${id}/pipeline-status`, {
       pipeline_status: pipelineStatus,
     });
+    return response.data;
+  },
+
+  async getCertificationSummary(id: string): Promise<SupplierCertificationSummary> {
+    console.log(`INFO [supplierService]: Fetching certification summary for supplier ${id}`);
+    const response = await apiClient.get<SupplierCertificationSummary>(`/suppliers/${id}/certification`);
     return response.data;
   },
 };

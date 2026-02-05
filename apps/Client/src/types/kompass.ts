@@ -261,6 +261,21 @@ export interface SupplierPipelineResponse {
   inactive: SupplierWithProductCount[];
 }
 
+export interface SupplierCertificationSummary {
+  id: string;
+  name: string;
+  code: string | null;
+  status: SupplierStatus;
+  country: string;
+  certification_status: CertificationStatus;
+  pipeline_status: SupplierPipelineStatus;
+  certified_at: string | null;
+  latest_audit_id: string | null;
+  latest_audit_date: string | null;
+  ai_classification: string | null;
+  manual_classification: string | null;
+}
+
 // =============================================================================
 // PRODUCT IMAGE DTOs
 // =============================================================================

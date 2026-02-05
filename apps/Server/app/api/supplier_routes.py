@@ -41,9 +41,21 @@ async def list_suppliers(
     has_products: Optional[bool] = Query(
         None, description="Filter by whether supplier has products"
     ),
+    certification_status: Optional[str] = Query(
+        None,
+        description="Filter by certification: certified | certified_a | certified_b | certified_c | uncertified",
+    ),
+    pipeline_status: Optional[str] = Query(
+        None,
+        description="Filter by pipeline: contacted | potential | quoted | certified | active | inactive",
+    ),
+    search: Optional[str] = Query(None, description="Search by name, email, phone, or code"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    sort_by: str = Query("name", description="Sort by: name | created_at"),
+    sort_by: str = Query(
+        "name",
+        description="Sort by: name | certification_status | pipeline_status | certified_at | created_at",
+    ),
     sort_order: str = Query("asc", description="Sort order: asc | desc"),
     current_user: dict = Depends(get_current_user),
 ) -> SupplierListResponseDTO:
@@ -53,6 +65,9 @@ async def list_suppliers(
         status: Filter by supplier status
         country: Filter by country
         has_products: Filter by whether supplier has products
+        certification_status: Filter by certification status
+        pipeline_status: Filter by pipeline status
+        search: Search query for name, email, phone, code
         page: Page number (1-indexed)
         limit: Items per page (max 100)
         sort_by: Field to sort by
@@ -75,13 +90,28 @@ async def list_suppliers(
                 detail=f"Invalid status value: {status}. Must be one of: active, inactive, pending_review",
             )
 
+    # Validate pipeline_status if provided
+    if pipeline_status:
+        try:
+            SupplierPipelineStatus(pipeline_status)
+        except ValueError:
+            valid_statuses = ", ".join([s.value for s in SupplierPipelineStatus])
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid pipeline_status: {pipeline_status}. Must be one of: {valid_statuses}",
+            )
+
     return supplier_service.list_suppliers(
         status=status_enum,
         country=country,
         has_products=has_products,
+        certification_status=certification_status,
+        pipeline_status=pipeline_status,
+        search=search,
         page=page,
         limit=limit,
         sort_by=sort_by,
+        sort_order=sort_order,
     )
 
 

@@ -12,8 +12,8 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   Paper,
-  IconButton,
   Chip,
   Alert,
   CircularProgress,
@@ -27,20 +27,30 @@ import {
   ToggleButtonGroup,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import type { SupplierResponse, SupplierStatus, SupplierPipelineStatus, SupplierWithProductCount } from '@/types/kompass';
+import type {
+  SupplierResponse,
+  SupplierStatus,
+  SupplierPipelineStatus,
+  SupplierWithProductCount,
+  CertificationStatus,
+} from '@/types/kompass';
 import { supplierService } from '@/services/kompassService';
 import SupplierForm from '@/components/kompass/SupplierForm';
 import PipelineStatusBadge from '@/components/kompass/PipelineStatusBadge';
+import CertificationStatusBadge from '@/components/kompass/CertificationStatusBadge';
+import SupplierQuickActionsMenu from '@/components/kompass/SupplierQuickActionsMenu';
 import SupplierPipelineKanban from '@/components/kompass/SupplierPipelineKanban';
+import AuditUploader from '@/components/kompass/AuditUploader';
 import { useSupplierPipeline, ViewMode } from '@/hooks/kompass/useSupplierPipeline';
 
 type StatusFilter = SupplierStatus | 'all';
 type PipelineFilter = SupplierPipelineStatus | 'all';
+type CertificationFilter = 'all' | 'certified' | 'certified_a' | 'certified_b' | 'certified_c' | 'uncertified';
+type SortField = 'name' | 'certification_status' | 'pipeline_status' | 'certified_at';
+type SortOrder = 'asc' | 'desc';
 
 const statusOptions: { value: StatusFilter; label: string }[] = [
   { value: 'all', label: 'All Statuses' },
@@ -57,6 +67,15 @@ const pipelineOptions: { value: PipelineFilter; label: string }[] = [
   { value: 'certified', label: 'Certified' },
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
+];
+
+const certificationOptions: { value: CertificationFilter; label: string }[] = [
+  { value: 'all', label: 'All Certifications' },
+  { value: 'certified', label: 'Certified (Any)' },
+  { value: 'certified_a', label: 'Type A' },
+  { value: 'certified_b', label: 'Type B' },
+  { value: 'certified_c', label: 'Type C' },
+  { value: 'uncertified', label: 'Uncertified' },
 ];
 
 const getStatusChipColor = (status: SupplierStatus): 'success' | 'default' | 'warning' => {
@@ -83,6 +102,15 @@ const getStatusLabel = (status: SupplierStatus): string => {
     default:
       return status;
   }
+};
+
+const formatDate = (dateString: string | null): string => {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 };
 
 const SuppliersPage: React.FC = () => {
@@ -117,6 +145,11 @@ const SuppliersPage: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [pipelineFilter, setPipelineFilter] = useState<PipelineFilter>('all');
+  const [certificationFilter, setCertificationFilter] = useState<CertificationFilter>('all');
+
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   // Dialog state
   const [formOpen, setFormOpen] = useState(false);
@@ -124,6 +157,13 @@ const SuppliersPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState<SupplierResponse | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Audit upload dialog state
+  const [auditUploadOpen, setAuditUploadOpen] = useState(false);
+  const [auditUploadSupplier, setAuditUploadSupplier] = useState<SupplierResponse | null>(null);
+
+  // Pipeline status update loading state
+  const [pipelineStatusLoading, setPipelineStatusLoading] = useState<string | null>(null);
 
   // Debounce search query for list view
   useEffect(() => {
@@ -151,16 +191,28 @@ const SuppliersPage: React.FC = () => {
 
     try {
       console.log('INFO [SuppliersPage]: Fetching suppliers');
-      const filters: { status?: string; search?: string; pipeline_status?: string } = {};
+      const filters: {
+        status?: string;
+        search?: string;
+        pipeline_status?: string;
+        certification_status?: string;
+        sort_by?: string;
+        sort_order?: 'asc' | 'desc';
+      } = {};
       if (statusFilter !== 'all') {
         filters.status = statusFilter;
       }
       if (pipelineFilter !== 'all') {
         filters.pipeline_status = pipelineFilter;
       }
+      if (certificationFilter !== 'all') {
+        filters.certification_status = certificationFilter;
+      }
       if (debouncedSearch) {
         filters.search = debouncedSearch;
       }
+      filters.sort_by = sortField;
+      filters.sort_order = sortOrder;
 
       const response = await supplierService.list(page + 1, limit, filters);
       const items = response.items || [];
@@ -173,7 +225,7 @@ const SuppliersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, statusFilter, pipelineFilter, debouncedSearch]);
+  }, [page, limit, statusFilter, pipelineFilter, certificationFilter, debouncedSearch, sortField, sortOrder]);
 
   useEffect(() => {
     if (viewMode === 'list') {
@@ -213,6 +265,22 @@ const SuppliersPage: React.FC = () => {
 
   const handlePipelineFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPipelineFilter(event.target.value as PipelineFilter);
+    setPage(0);
+  };
+
+  const handleCertificationFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCertificationFilter(event.target.value as CertificationFilter);
+    setPage(0);
+  };
+
+  // Handle sorting
+  const handleSort = (field: SortField) => {
+    if (field === sortField) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
     setPage(0);
   };
 
@@ -287,6 +355,55 @@ const SuppliersPage: React.FC = () => {
     await updatePipelineStatus(supplierId, newStatus);
   };
 
+  // Handle quick action: Upload Audit
+  const handleUploadAudit = (supplier: SupplierResponse) => {
+    setAuditUploadSupplier(supplier);
+    setAuditUploadOpen(true);
+  };
+
+  const handleAuditUploadClose = () => {
+    setAuditUploadOpen(false);
+    setAuditUploadSupplier(null);
+  };
+
+  const handleAuditUploadComplete = () => {
+    console.log('INFO [SuppliersPage]: Audit upload completed');
+    setAuditUploadOpen(false);
+    setAuditUploadSupplier(null);
+    // Refresh suppliers to get updated certification status
+    if (viewMode === 'list') {
+      fetchSuppliers();
+    } else {
+      fetchPipeline();
+    }
+  };
+
+  // Handle quick action: View Certification
+  // Opens the supplier form - user can navigate to Certification tab
+  const handleViewCertification = (supplier: SupplierResponse) => {
+    setSelectedSupplier(supplier);
+    setFormOpen(true);
+  };
+
+  // Handle quick action: Change Pipeline Status
+  const handleChangePipelineStatus = async (supplier: SupplierResponse, status: SupplierPipelineStatus) => {
+    setPipelineStatusLoading(supplier.id);
+    try {
+      console.log(`INFO [SuppliersPage]: Changing pipeline status for ${supplier.id} to ${status}`);
+      await supplierService.updatePipelineStatus(supplier.id, status);
+      if (viewMode === 'list') {
+        fetchSuppliers();
+      } else {
+        fetchPipeline();
+      }
+    } catch (err) {
+      console.log('ERROR [SuppliersPage]: Failed to change pipeline status', err);
+      setError(err instanceof Error ? err.message : 'Failed to change pipeline status');
+    } finally {
+      setPipelineStatusLoading(null);
+    }
+  };
+
   const currentError = viewMode === 'kanban' ? kanbanError : error;
   const clearError = () => {
     if (viewMode === 'kanban') {
@@ -297,6 +414,12 @@ const SuppliersPage: React.FC = () => {
   };
 
   const filteredPipeline = getFilteredPipeline();
+
+  const hasActiveFilters =
+    debouncedSearch ||
+    statusFilter !== 'all' ||
+    pipelineFilter !== 'all' ||
+    certificationFilter !== 'all';
 
   return (
     <Box>
@@ -335,7 +458,7 @@ const SuppliersPage: React.FC = () => {
       )}
 
       {/* Filters */}
-      <Box display="flex" gap={2} mb={2}>
+      <Box display="flex" gap={2} mb={2} flexWrap="wrap">
         <TextField
           placeholder="Search suppliers..."
           value={searchQuery}
@@ -358,7 +481,7 @@ const SuppliersPage: React.FC = () => {
               value={statusFilter}
               onChange={handleStatusFilterChange}
               size="small"
-              sx={{ width: 180 }}
+              sx={{ width: 160 }}
             >
               {statusOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -372,9 +495,23 @@ const SuppliersPage: React.FC = () => {
               value={pipelineFilter}
               onChange={handlePipelineFilterChange}
               size="small"
-              sx={{ width: 180 }}
+              sx={{ width: 160 }}
             >
               {pipelineOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Certification"
+              value={certificationFilter}
+              onChange={handleCertificationFilterChange}
+              size="small"
+              sx={{ width: 180 }}
+            >
+              {certificationOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
@@ -406,12 +543,44 @@ const SuppliersPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'name'}
+                    direction={sortField === 'name' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('name')}
+                  >
+                    Name
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Country</TableCell>
-                <TableCell>Contact Email</TableCell>
-                <TableCell>Contact Phone</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Pipeline</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'certification_status'}
+                    direction={sortField === 'certification_status' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('certification_status')}
+                  >
+                    Certification
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'pipeline_status'}
+                    direction={sortField === 'pipeline_status' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('pipeline_status')}
+                  >
+                    Pipeline
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === 'certified_at'}
+                    direction={sortField === 'certified_at' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('certified_at')}
+                  >
+                    Certified Date
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -426,7 +595,7 @@ const SuppliersPage: React.FC = () => {
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
-                      {debouncedSearch || statusFilter !== 'all' || pipelineFilter !== 'all'
+                      {hasActiveFilters
                         ? 'No suppliers match your filters'
                         : 'No suppliers found. Click "Add Supplier" to create one.'}
                     </Typography>
@@ -438,7 +607,7 @@ const SuppliersPage: React.FC = () => {
                     <TableCell>
                       <Typography
                         sx={{
-                          maxWidth: 250,
+                          maxWidth: 200,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -448,8 +617,6 @@ const SuppliersPage: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>{supplier.country}</TableCell>
-                    <TableCell>{supplier.contact_email || '-'}</TableCell>
-                    <TableCell>{supplier.contact_phone || '-'}</TableCell>
                     <TableCell>
                       <Chip
                         label={getStatusLabel(supplier.status)}
@@ -458,24 +625,25 @@ const SuppliersPage: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
+                      <CertificationStatusBadge
+                        certificationStatus={supplier.certification_status as CertificationStatus}
+                        latestAuditId={supplier.latest_audit_id}
+                      />
+                    </TableCell>
+                    <TableCell>
                       <PipelineStatusBadge status={supplier.pipeline_status} />
                     </TableCell>
+                    <TableCell>{formatDate(supplier.certified_at)}</TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditClick(supplier)}
-                        aria-label="edit"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDeleteClick(supplier)}
-                        aria-label="delete"
-                        color="error"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      <SupplierQuickActionsMenu
+                        supplier={supplier}
+                        onEdit={handleEditClick}
+                        onDelete={handleDeleteClick}
+                        onUploadAudit={handleUploadAudit}
+                        onViewCertification={handleViewCertification}
+                        onChangePipelineStatus={handleChangePipelineStatus}
+                        isUpdating={pipelineStatusLoading === supplier.id}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
@@ -523,6 +691,30 @@ const SuppliersPage: React.FC = () => {
           >
             {deleteLoading ? <CircularProgress size={20} /> : 'Delete'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Audit Upload Dialog */}
+      <Dialog
+        open={auditUploadOpen}
+        onClose={handleAuditUploadClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Upload Audit for {auditUploadSupplier?.name}</DialogTitle>
+        <DialogContent>
+          {auditUploadSupplier && (
+            <Box sx={{ pt: 2 }}>
+              <AuditUploader
+                supplierId={auditUploadSupplier.id}
+                onUploadComplete={handleAuditUploadComplete}
+                onError={(err) => setError(err)}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleAuditUploadClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
     </Box>

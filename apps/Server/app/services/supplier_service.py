@@ -153,7 +153,11 @@ class SupplierService:
         status: Optional[SupplierStatus] = None,
         country: Optional[str] = None,
         has_products: Optional[bool] = None,
+        certification_status: Optional[str] = None,
+        pipeline_status: Optional[str] = None,
+        search: Optional[str] = None,
         sort_by: str = "name",
+        sort_order: str = "asc",
         page: int = 1,
         limit: int = 20,
     ) -> SupplierListResponseDTO:
@@ -163,7 +167,11 @@ class SupplierService:
             status: Filter by supplier status
             country: Filter by country
             has_products: Filter by whether supplier has products
+            certification_status: Filter by certification status
+            pipeline_status: Filter by pipeline status
+            search: Search query for name, email, phone, code
             sort_by: Field to sort by (default: name)
+            sort_order: Sort direction (asc, desc)
             page: Page number (1-indexed)
             limit: Items per page
 
@@ -177,6 +185,11 @@ class SupplierService:
             status=status.value if status else None,
             country=country,
             has_products=has_products,
+            certification_status=certification_status,
+            pipeline_status=pipeline_status,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
         pages = math.ceil(total / limit) if total > 0 else 0
