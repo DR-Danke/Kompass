@@ -1634,3 +1634,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding quick actions to supplier table rows
     - When integrating AuditUploader dialog from the suppliers list view
     - When troubleshooting supplier certification badge display or filter issues
+
+- app_docs/feature-f2581488-e2e-supplier-certification-tests.md
+  - Conditions:
+    - When writing or modifying tests for audit API routes
+    - When testing supplier certification workflow functionality
+    - When implementing RBAC tests for audit endpoints
+    - When writing E2E tests for supplier certification features
+    - When troubleshooting audit upload, classification, or override test failures
+    - When understanding test coverage for the certification system

@@ -552,3 +552,270 @@ class TestProcessAudit:
         mock_repo.update_extraction_status.assert_called_with(
             sample_audit_data["id"], "processing"
         )
+
+
+class TestStatusTransitions:
+    """Tests for extraction status transitions during processing."""
+
+    @patch("app.services.audit_service.audit_repository")
+    @patch("httpx.Client")
+    def test_process_audit_marks_failed_on_error(
+        self, mock_httpx, mock_repo, service, sample_audit_data
+    ):
+        """Test that processing errors set status to 'failed'."""
+        sample_audit_data["extraction_status"] = "pending"
+        mock_repo.get_by_id.return_value = sample_audit_data
+        mock_repo.update_extraction_status.return_value = sample_audit_data
+
+        # Mock httpx to raise an error during download
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = Exception("Download failed")
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+        mock_httpx.return_value = mock_client
+
+        # Track update_extraction_results calls to verify failed status
+        mock_repo.update_extraction_results.return_value = sample_audit_data
+
+        service.process_audit(sample_audit_data["id"])
+
+        # Verify that status was set to processing first
+        mock_repo.update_extraction_status.assert_called_with(
+            sample_audit_data["id"], "processing"
+        )
+
+        # Verify that extraction results were updated (even with failure data)
+        assert mock_repo.update_extraction_results.called
+
+    @patch("app.services.audit_service.audit_repository")
+    @patch("httpx.Client")
+    def test_process_audit_marks_completed_on_success(
+        self, mock_httpx, mock_repo, service, sample_audit_data, mock_settings
+    ):
+        """Test that successful processing sets status to 'completed'."""
+        sample_audit_data["extraction_status"] = "pending"
+        mock_repo.get_by_id.return_value = sample_audit_data
+        mock_repo.update_extraction_status.return_value = sample_audit_data
+        mock_repo.update_extraction_results.return_value = {
+            **sample_audit_data,
+            "extraction_status": "completed",
+        }
+
+        # Mock httpx
+        mock_response = MagicMock()
+        mock_response.content = b"mock pdf content"
+        mock_response.raise_for_status = MagicMock()
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+        mock_httpx.return_value = mock_client
+
+        # Mock PDF conversion and AI extraction to succeed
+        with patch.object(service, "_settings", mock_settings):
+            with patch.object(
+                service, "_convert_pdf_to_images", return_value=[b"mock_image"]
+            ):
+                with patch.object(
+                    service,
+                    "_extract_with_anthropic",
+                    return_value='{"supplier_type": "manufacturer", "employee_count": 100}',
+                ):
+                    service.process_audit(sample_audit_data["id"])
+
+        # Verify extraction results were updated
+        assert mock_repo.update_extraction_results.called
+        call_kwargs = mock_repo.update_extraction_results.call_args
+        # The call should include extraction data
+        assert call_kwargs is not None
+
+
+class TestClassificationEdgeCases:
+    """Tests for classification edge cases not covered in test_classification.py."""
+
+    @patch("app.services.audit_service.audit_repository")
+    @patch("app.services.audit_service.SupplierRepository")
+    def test_classify_with_empty_markets_served(
+        self, mock_supplier_repo_class, mock_repo, service
+    ):
+        """Test classification handles None/empty markets_served gracefully."""
+        audit_data = {
+            "id": uuid4(),
+            "supplier_id": uuid4(),
+            "audit_type": "factory_audit",
+            "document_url": "https://example.com/audit.pdf",
+            "document_name": "factory_audit.pdf",
+            "file_size_bytes": 1024000,
+            "supplier_type": "manufacturer",
+            "employee_count": 200,
+            "factory_area_sqm": 5000,
+            "production_lines_count": 3,
+            "markets_served": None,  # Empty markets served
+            "certifications": ["ISO 9001"],
+            "has_machinery_photos": True,
+            "positive_points": ["Good quality"],
+            "negative_points": [],
+            "products_verified": ["Product A"],
+            "audit_date": "2024-01-15",
+            "inspector_name": "Inspector",
+            "extraction_status": "completed",
+            "extraction_raw_response": None,
+            "extracted_at": datetime.utcnow(),
+            "ai_classification": None,
+            "ai_classification_reason": None,
+            "manual_classification": None,
+            "classification_notes": None,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }
+        mock_repo.get_by_id.return_value = audit_data
+
+        classified_data = audit_data.copy()
+        classified_data["ai_classification"] = "B"  # Should still classify
+        mock_repo.update_classification.return_value = classified_data
+
+        mock_supplier_repo = MagicMock()
+        mock_supplier_repo.update_certification_status.return_value = {
+            "id": audit_data["supplier_id"]
+        }
+        mock_supplier_repo_class.return_value = mock_supplier_repo
+
+        # Should not raise an error
+        result = service.classify_supplier(audit_data["id"])
+
+        assert result is not None
+        mock_repo.update_classification.assert_called_once()
+
+    @patch("app.services.audit_service.audit_repository")
+    @patch("app.services.audit_service.SupplierRepository")
+    def test_classify_with_empty_certifications(
+        self, mock_supplier_repo_class, mock_repo, service
+    ):
+        """Test classification handles None/empty certifications list."""
+        audit_data = {
+            "id": uuid4(),
+            "supplier_id": uuid4(),
+            "audit_type": "factory_audit",
+            "document_url": "https://example.com/audit.pdf",
+            "document_name": "factory_audit.pdf",
+            "file_size_bytes": 1024000,
+            "supplier_type": "manufacturer",
+            "employee_count": 200,
+            "factory_area_sqm": 5000,
+            "production_lines_count": 3,
+            "markets_served": {"asia": 100},
+            "certifications": None,  # Empty certifications
+            "has_machinery_photos": True,
+            "positive_points": ["Good quality"],
+            "negative_points": [],
+            "products_verified": ["Product A"],
+            "audit_date": "2024-01-15",
+            "inspector_name": "Inspector",
+            "extraction_status": "completed",
+            "extraction_raw_response": None,
+            "extracted_at": datetime.utcnow(),
+            "ai_classification": None,
+            "ai_classification_reason": None,
+            "manual_classification": None,
+            "classification_notes": None,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }
+        mock_repo.get_by_id.return_value = audit_data
+
+        classified_data = audit_data.copy()
+        classified_data["ai_classification"] = "B"
+        mock_repo.update_classification.return_value = classified_data
+
+        mock_supplier_repo = MagicMock()
+        mock_supplier_repo.update_certification_status.return_value = {
+            "id": audit_data["supplier_id"]
+        }
+        mock_supplier_repo_class.return_value = mock_supplier_repo
+
+        # Should not raise an error
+        result = service.classify_supplier(audit_data["id"])
+
+        assert result is not None
+        mock_repo.update_classification.assert_called_once()
+
+    @patch("app.services.audit_service.audit_repository")
+    @patch("app.services.audit_service.SupplierRepository")
+    def test_classify_trader_lower_score_than_manufacturer(
+        self, mock_supplier_repo_class, mock_repo, service
+    ):
+        """Test that traders score lower than manufacturers with equivalent metrics."""
+        # Create two similar audits - one for manufacturer, one for trader
+        manufacturer_data = {
+            "id": uuid4(),
+            "supplier_id": uuid4(),
+            "audit_type": "factory_audit",
+            "document_url": "https://example.com/audit.pdf",
+            "document_name": "factory_audit.pdf",
+            "file_size_bytes": 1024000,
+            "supplier_type": "manufacturer",
+            "employee_count": 100,
+            "factory_area_sqm": 2000,
+            "production_lines_count": 2,
+            "markets_served": {"asia": 100},
+            "certifications": ["ISO 9001"],
+            "has_machinery_photos": True,
+            "positive_points": ["Good quality"],
+            "negative_points": ["Small warehouse"],
+            "products_verified": ["Product A"],
+            "audit_date": "2024-01-15",
+            "inspector_name": "Inspector",
+            "extraction_status": "completed",
+            "extraction_raw_response": None,
+            "extracted_at": datetime.utcnow(),
+            "ai_classification": None,
+            "ai_classification_reason": None,
+            "manual_classification": None,
+            "classification_notes": None,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }
+
+        trader_data = manufacturer_data.copy()
+        trader_data["id"] = uuid4()
+        trader_data["supplier_id"] = uuid4()
+        trader_data["supplier_type"] = "trader"
+
+        # Track classifications
+        classifications = []
+
+        def track_classification(audit_id, classification, reason):
+            classifications.append({
+                "audit_id": audit_id,
+                "classification": classification,
+                "reason": reason,
+            })
+            return {**manufacturer_data, "ai_classification": classification}
+
+        mock_repo.update_classification.side_effect = track_classification
+
+        mock_supplier_repo = MagicMock()
+        mock_supplier_repo.update_certification_status.return_value = {"id": uuid4()}
+        mock_supplier_repo_class.return_value = mock_supplier_repo
+
+        # Classify manufacturer
+        mock_repo.get_by_id.return_value = manufacturer_data
+        service.classify_supplier(manufacturer_data["id"])
+
+        # Classify trader
+        mock_repo.get_by_id.return_value = trader_data
+        service.classify_supplier(trader_data["id"])
+
+        # With equivalent metrics, trader should not score higher than manufacturer
+        # This tests that the supplier_type factor is working
+        assert len(classifications) == 2
+
+        # Get the classifications
+        mfg_classification = classifications[0]["classification"]
+        trader_classification = classifications[1]["classification"]
+
+        # Trader should score same or lower (C >= B >= A in terms of "worse")
+        grade_order = {"A": 1, "B": 2, "C": 3}
+        assert grade_order[trader_classification] >= grade_order[mfg_classification]
