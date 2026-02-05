@@ -1625,3 +1625,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing view toggle between List and Kanban views
     - When working with /suppliers/pipeline-summary or /suppliers/pipeline endpoints
     - When troubleshooting supplier pipeline status updates or Kanban board issues
+
+- app_docs/feature-f77a2609-suppliers-certification-filters-badges.md
+  - Conditions:
+    - When working with CertificationStatusBadge or SupplierQuickActionsMenu components
+    - When filtering suppliers by certification status in the SuppliersPage
+    - When implementing sorting by certification, pipeline status, or certified date
+    - When adding quick actions to supplier table rows
+    - When integrating AuditUploader dialog from the suppliers list view
+    - When troubleshooting supplier certification badge display or filter issues
