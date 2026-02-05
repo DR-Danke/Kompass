@@ -2008,6 +2008,101 @@ class SupplierRepository:
         finally:
             close_database_connection(conn)
 
+    def get_pipeline_summary(self) -> Dict[str, int]:
+        """Get count of suppliers grouped by pipeline status.
+
+        Returns:
+            Dictionary with pipeline_status as keys and counts as values
+        """
+        conn = get_database_connection()
+        if not conn:
+            return {}
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT pipeline_status, COUNT(*)
+                    FROM suppliers
+                    GROUP BY pipeline_status
+                    """
+                )
+                rows = cur.fetchall()
+
+                # Build result dict with all statuses initialized to 0
+                result = {
+                    "contacted": 0,
+                    "potential": 0,
+                    "quoted": 0,
+                    "certified": 0,
+                    "active": 0,
+                    "inactive": 0,
+                }
+
+                # Update counts from query results
+                for row in rows:
+                    status = row[0]
+                    count = row[1]
+                    if status in result:
+                        result[status] = count
+
+                return result
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get pipeline summary: {e}")
+            return {}
+        finally:
+            close_database_connection(conn)
+
+    def get_all_grouped_by_pipeline(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Get all suppliers grouped by pipeline status for Kanban view.
+
+        Returns:
+            Dictionary with pipeline_status as keys and lists of suppliers as values
+        """
+        conn = get_database_connection()
+        if not conn:
+            return {}
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
+                           s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
+                           s.certification_status, s.pipeline_status, s.latest_audit_id, s.certified_at,
+                           s.created_at, s.updated_at,
+                           (SELECT COUNT(*) FROM products p WHERE p.supplier_id = s.id) as product_count
+                    FROM suppliers s
+                    ORDER BY s.name
+                    """
+                )
+                rows = cur.fetchall()
+
+                # Initialize result dict with all statuses
+                result: Dict[str, List[Dict[str, Any]]] = {
+                    "contacted": [],
+                    "potential": [],
+                    "quoted": [],
+                    "certified": [],
+                    "active": [],
+                    "inactive": [],
+                }
+
+                # Group suppliers by pipeline status
+                for row in rows:
+                    supplier = self._row_to_dict_extended(row[:18])
+                    supplier["product_count"] = row[18]
+                    pipeline_status = row[13]  # pipeline_status column
+                    if pipeline_status in result:
+                        result[pipeline_status].append(supplier)
+
+                return result
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get suppliers grouped by pipeline: {e}")
+            return {}
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # PRODUCT REPOSITORY

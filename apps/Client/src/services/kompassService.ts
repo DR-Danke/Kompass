@@ -31,6 +31,9 @@ import type {
   SupplierUpdate,
   SupplierResponse,
   SupplierListResponse,
+  SupplierPipelineSummary,
+  SupplierPipelineResponse,
+  SupplierPipelineStatus,
   // Product types
   ProductCreate,
   ProductUpdate,
@@ -182,6 +185,26 @@ export const supplierService = {
     console.log(`INFO [supplierService]: Searching suppliers with query: ${query}`);
     const response = await apiClient.get<SupplierResponse[]>('/suppliers/search', {
       params: { q: query },
+    });
+    return response.data;
+  },
+
+  async getPipelineSummary(): Promise<SupplierPipelineSummary> {
+    console.log('INFO [supplierService]: Fetching pipeline summary');
+    const response = await apiClient.get<SupplierPipelineSummary>('/suppliers/pipeline-summary');
+    return response.data;
+  },
+
+  async getPipeline(): Promise<SupplierPipelineResponse> {
+    console.log('INFO [supplierService]: Fetching pipeline view');
+    const response = await apiClient.get<SupplierPipelineResponse>('/suppliers/pipeline');
+    return response.data;
+  },
+
+  async updatePipelineStatus(id: string, pipelineStatus: SupplierPipelineStatus): Promise<SupplierResponse> {
+    console.log(`INFO [supplierService]: Updating pipeline status for supplier ${id} to ${pipelineStatus}`);
+    const response = await apiClient.put<SupplierResponse>(`/suppliers/${id}/pipeline-status`, {
+      pipeline_status: pipelineStatus,
     });
     return response.data;
   },

@@ -9,6 +9,10 @@
 
 export type SupplierStatus = 'active' | 'inactive' | 'pending_review';
 
+export type SupplierPipelineStatus = 'contacted' | 'potential' | 'quoted' | 'certified' | 'active' | 'inactive';
+
+export type CertificationStatus = 'uncertified' | 'pending_review' | 'certified_a' | 'certified_b' | 'certified_c';
+
 export type ProductStatus = 'active' | 'inactive' | 'draft' | 'discontinued';
 
 export type ClientStatus = 'lead' | 'qualified' | 'quoting' | 'negotiating' | 'won' | 'lost';
@@ -222,6 +226,10 @@ export interface SupplierResponse {
   country: string;
   website: string | null;
   notes: string | null;
+  certification_status: CertificationStatus;
+  pipeline_status: SupplierPipelineStatus;
+  latest_audit_id: string | null;
+  certified_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -229,6 +237,28 @@ export interface SupplierResponse {
 export interface SupplierListResponse {
   items: SupplierResponse[];
   pagination: Pagination;
+}
+
+export interface SupplierPipelineSummary {
+  contacted: number;
+  potential: number;
+  quoted: number;
+  certified: number;
+  active: number;
+  inactive: number;
+}
+
+export interface SupplierWithProductCount extends SupplierResponse {
+  product_count: number;
+}
+
+export interface SupplierPipelineResponse {
+  contacted: SupplierWithProductCount[];
+  potential: SupplierWithProductCount[];
+  quoted: SupplierWithProductCount[];
+  certified: SupplierWithProductCount[];
+  active: SupplierWithProductCount[];
+  inactive: SupplierWithProductCount[];
 }
 
 // =============================================================================

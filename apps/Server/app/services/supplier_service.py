@@ -15,10 +15,13 @@ from app.models.kompass_dto import (
     SupplierCertificationSummaryDTO,
     SupplierCreateDTO,
     SupplierListResponseDTO,
+    SupplierPipelineResponseDTO,
     SupplierPipelineStatus,
+    SupplierPipelineSummaryDTO,
     SupplierResponseDTO,
     SupplierStatus,
     SupplierUpdateDTO,
+    SupplierWithProductCountDTO,
 )
 from app.repository.kompass_repository import product_repository, supplier_repository
 
@@ -466,6 +469,41 @@ class SupplierService:
 
         print(f"INFO [SupplierService]: Retrieved certification summary for {supplier_id}")
         return SupplierCertificationSummaryDTO(**result)
+
+    def get_pipeline_summary(self) -> SupplierPipelineSummaryDTO:
+        """Get counts of suppliers grouped by pipeline status.
+
+        Returns:
+            Pipeline summary with counts for each status
+        """
+        result = supplier_repository.get_pipeline_summary()
+        print("INFO [SupplierService]: Retrieved pipeline summary")
+        return SupplierPipelineSummaryDTO(**result)
+
+    def get_pipeline(self) -> SupplierPipelineResponseDTO:
+        """Get all suppliers grouped by pipeline status for Kanban view.
+
+        Returns:
+            Suppliers grouped by pipeline status
+        """
+        result = supplier_repository.get_all_grouped_by_pipeline()
+
+        # Convert dict data to DTOs
+        pipeline_response = SupplierPipelineResponseDTO(
+            contacted=[SupplierWithProductCountDTO(**s) for s in result.get("contacted", [])],
+            potential=[SupplierWithProductCountDTO(**s) for s in result.get("potential", [])],
+            quoted=[SupplierWithProductCountDTO(**s) for s in result.get("quoted", [])],
+            certified=[SupplierWithProductCountDTO(**s) for s in result.get("certified", [])],
+            active=[SupplierWithProductCountDTO(**s) for s in result.get("active", [])],
+            inactive=[SupplierWithProductCountDTO(**s) for s in result.get("inactive", [])],
+        )
+
+        total_count = sum(
+            len(result.get(status, []))
+            for status in ["contacted", "potential", "quoted", "certified", "active", "inactive"]
+        )
+        print(f"INFO [SupplierService]: Retrieved pipeline with {total_count} total suppliers")
+        return pipeline_response
 
 
 # Singleton instance

@@ -455,6 +455,54 @@ class SupplierCertificationSummaryDTO(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SupplierPipelineSummaryDTO(BaseModel):
+    """Response model for supplier pipeline summary counts."""
+
+    contacted: int = 0
+    potential: int = 0
+    quoted: int = 0
+    certified: int = 0
+    active: int = 0
+    inactive: int = 0
+
+
+class SupplierWithProductCountDTO(BaseModel):
+    """Response model for supplier data with product count."""
+
+    id: UUID
+    name: str
+    code: Optional[str] = None
+    status: SupplierStatus
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: str
+    website: Optional[str] = None
+    notes: Optional[str] = None
+    certification_status: CertificationStatus = CertificationStatus.UNCERTIFIED
+    pipeline_status: SupplierPipelineStatus = SupplierPipelineStatus.CONTACTED
+    latest_audit_id: Optional[UUID] = None
+    certified_at: Optional[datetime] = None
+    product_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SupplierPipelineResponseDTO(BaseModel):
+    """Response model for supplier pipeline grouped by status (Kanban view)."""
+
+    contacted: List[SupplierWithProductCountDTO]
+    potential: List[SupplierWithProductCountDTO]
+    quoted: List[SupplierWithProductCountDTO]
+    certified: List[SupplierWithProductCountDTO]
+    active: List[SupplierWithProductCountDTO]
+    inactive: List[SupplierWithProductCountDTO]
+
+
 # =============================================================================
 # SUPPLIER AUDIT DTOs
 # =============================================================================

@@ -1614,3 +1614,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying the tabbed SupplierForm dialog
     - When troubleshooting audit upload, extraction display, or classification badge issues
     - When working with auditService in kompassService.ts
+
+- app_docs/feature-a3855a57-supplier-pipeline-kanban-workflow.md
+  - Conditions:
+    - When working with the Supplier Pipeline Kanban board
+    - When implementing or modifying drag-and-drop status changes for suppliers
+    - When working with SupplierPipelineKanban, SupplierCard, or SupplierKanbanColumn components
+    - When using the useSupplierPipeline hook
+    - When working with PipelineStatusBadge component
+    - When implementing view toggle between List and Kanban views
+    - When working with /suppliers/pipeline-summary or /suppliers/pipeline endpoints
+    - When troubleshooting supplier pipeline status updates or Kanban board issues
