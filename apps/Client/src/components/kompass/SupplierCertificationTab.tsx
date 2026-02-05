@@ -35,9 +35,9 @@ const SupplierCertificationTab: React.FC<SupplierCertificationTabProps> = ({
   const [overrideDialogOpen, setOverrideDialogOpen] = useState(false);
   const [selectedAudit, setSelectedAudit] = useState<SupplierAuditResponse | null>(null);
 
-  const fetchAudits = useCallback(async () => {
+  const fetchAudits = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError(null);
       console.log(`INFO [SupplierCertificationTab]: Fetching audits for supplier ${supplierId}`);
       const response = await auditService.list(supplierId);
@@ -46,13 +46,32 @@ const SupplierCertificationTab: React.FC<SupplierCertificationTabProps> = ({
       console.log('ERROR [SupplierCertificationTab]: Failed to fetch audits', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch audits');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [supplierId]);
 
   useEffect(() => {
     fetchAudits();
   }, [fetchAudits]);
+
+  // Poll for status updates when there are pending/processing audits
+  useEffect(() => {
+    const hasPendingAudits = audits.some(
+      (audit) => audit.extraction_status === 'pending' || audit.extraction_status === 'processing'
+    );
+
+    if (!hasPendingAudits) return;
+
+    console.log('INFO [SupplierCertificationTab]: Starting polling for pending audits');
+    const pollInterval = setInterval(() => {
+      fetchAudits(false); // Silent refresh (no loading spinner)
+    }, 5000); // Poll every 5 seconds
+
+    return () => {
+      console.log('INFO [SupplierCertificationTab]: Stopping polling');
+      clearInterval(pollInterval);
+    };
+  }, [audits, fetchAudits]);
 
   const handleUploadComplete = (audit: SupplierAuditResponse) => {
     console.log(`INFO [SupplierCertificationTab]: Audit uploaded successfully, ID: ${audit.id}`);
