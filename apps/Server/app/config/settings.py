@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     EXTRACTION_MAX_RETRIES: int = 3
     EXTRACTION_TIMEOUT_SECONDS: int = 60
 
+    # Supabase Storage
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_SERVICE_KEY: Optional[str] = None
+    SUPABASE_STORAGE_BUCKET: str = "audits"
+
     def get_cors_origins(self) -> List[str]:
         """Parse CORS_ORIGINS from JSON string to list."""
         try:

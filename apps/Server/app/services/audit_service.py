@@ -250,10 +250,20 @@ Only return valid JSON, no additional text or explanation."""
 
         Returns:
             List of (image_bytes, media_type) tuples
+
+        Raises:
+            RuntimeError: If pdf2image is not installed or poppler is missing
         """
         try:
             from pdf2image import convert_from_bytes
+        except ImportError:
+            print("ERROR [AuditService]: pdf2image package not installed")
+            raise RuntimeError(
+                "pdf2image package required for PDF processing. "
+                "Install with: pip install pdf2image"
+            )
 
+        try:
             # Convert PDF to images (limit to first MAX_PDF_PAGES_TO_PROCESS pages)
             images = convert_from_bytes(
                 pdf_content,
@@ -274,13 +284,16 @@ Only return valid JSON, no additional text or explanation."""
             print(f"INFO [AuditService]: Converted {len(result)} PDF pages to images")
             return result
 
-        except ImportError:
-            print("ERROR [AuditService]: pdf2image package not installed")
-            raise RuntimeError(
-                "pdf2image package required for PDF processing. "
-                "Install with: pip install pdf2image"
-            )
         except Exception as e:
+            error_msg = str(e).lower()
+            # Check for poppler-specific errors
+            if "poppler" in error_msg or "pdftoppm" in error_msg or "unable to get page count" in error_msg:
+                print("ERROR [AuditService]: poppler-utils not installed")
+                raise RuntimeError(
+                    "poppler-utils system package required for PDF processing. "
+                    "Install with: sudo apt-get install poppler-utils (Ubuntu/Debian) "
+                    "or brew install poppler (macOS)"
+                )
             print(f"ERROR [AuditService]: Failed to convert PDF to images: {e}")
             raise RuntimeError(f"Failed to convert PDF: {e}")
 
@@ -348,18 +361,29 @@ Only return valid JSON, no additional text or explanation."""
         audit_repository.update_extraction_status(audit_id, "processing")
 
         try:
-            # Fetch PDF content from URL
-            import httpx
-
+            # Fetch PDF content from URL or local file
             document_url = audit_data["document_url"]
             print(f"INFO [AuditService]: Fetching document from {document_url[:50]}...")
 
-            with httpx.Client(timeout=120.0) as client:
-                response = client.get(document_url)
-                response.raise_for_status()
-                pdf_content = response.content
+            if document_url.startswith("file://"):
+                # Read local file directly (for development)
+                local_path = document_url[7:]  # Remove "file://" prefix
+                try:
+                    with open(local_path, "rb") as f:
+                        pdf_content = f.read()
+                except FileNotFoundError:
+                    raise ValueError(f"Local file not found: {local_path}")
+                except PermissionError:
+                    raise ValueError(f"Permission denied reading file: {local_path}")
+            else:
+                # Fetch from remote URL (for production)
+                import httpx
+                with httpx.Client(timeout=120.0) as client:
+                    response = client.get(document_url)
+                    response.raise_for_status()
+                    pdf_content = response.content
 
-            print(f"INFO [AuditService]: Downloaded {len(pdf_content)} bytes")
+            print(f"INFO [AuditService]: Read {len(pdf_content)} bytes")
 
             # Convert PDF to images
             images_with_types = self._convert_pdf_to_images(pdf_content)

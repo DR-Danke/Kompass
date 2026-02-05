@@ -16,6 +16,10 @@ Brief description of your project.
 - Node.js 18+
 - Python 3.11.9
 - uv (Python package manager)
+- poppler-utils (required for PDF processing in Supplier Certification)
+  - Ubuntu/Debian: `sudo apt-get install poppler-utils`
+  - macOS: `brew install poppler`
+  - Windows: Download from [poppler releases](https://github.com/osber/poppler-windows/releases) and add to PATH
 
 ### Setup
 

@@ -22,6 +22,7 @@ from app.models.kompass_dto import (
     SupplierAuditResponseDTO,
 )
 from app.services.audit_service import audit_service
+from app.services.storage_service import storage_service
 
 
 router = APIRouter(tags=["Supplier Audits"])
@@ -114,17 +115,34 @@ async def upload_audit(
             detail=f"File exceeds maximum size of {MAX_AUDIT_FILE_SIZE_BYTES // (1024*1024)}MB",
         )
 
-    # Save to temp file and create a data URI
-    # In production, this would upload to cloud storage and use that URL
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    with tempfile.NamedTemporaryFile(
-        delete=False, suffix=ext, prefix="audit_"
-    ) as tmp:
-        tmp.write(content)
-        temp_path = tmp.name
-
-    # For now, use file:// URL - in production, upload to S3/R2/Supabase Storage
-    document_url = f"file://{temp_path}"
+    # Upload to Supabase Storage (production) or fallback to local file (development)
+    temp_path = None
+    if storage_service.is_configured():
+        # Upload to Supabase Storage - returns HTTPS URL
+        try:
+            document_url = storage_service.upload_file(
+                file_content=content,
+                file_name=file.filename or "audit.pdf",
+                content_type="application/pdf",
+                folder=f"suppliers/{supplier_id}/audits",
+            )
+            print(f"INFO [AuditRoutes]: File uploaded to Supabase Storage: {document_url}")
+        except Exception as e:
+            print(f"ERROR [AuditRoutes]: Supabase Storage upload failed: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to upload file to storage",
+            )
+    else:
+        # Fallback to local file for development
+        print("WARN [AuditRoutes]: Supabase Storage not configured, using local file storage")
+        ext = os.path.splitext(file.filename or "")[1].lower()
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=ext, prefix="audit_"
+        ) as tmp:
+            tmp.write(content)
+            temp_path = tmp.name
+        document_url = f"file://{temp_path}"
 
     try:
         # Create audit record
@@ -143,18 +161,20 @@ async def upload_audit(
         return audit
 
     except ValueError as e:
-        # Clean up temp file on error
-        try:
-            os.unlink(temp_path)
-        except OSError:
-            pass
+        # Clean up temp file on error (only if using local storage)
+        if temp_path:
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Clean up temp file on error
-        try:
-            os.unlink(temp_path)
-        except OSError:
-            pass
+        # Clean up temp file on error (only if using local storage)
+        if temp_path:
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
         print(f"ERROR [AuditRoutes]: Failed to create audit: {e}")
         raise HTTPException(status_code=500, detail="Failed to create audit record")
 
