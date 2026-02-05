@@ -17,6 +17,7 @@ from fastapi import (
 from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
     AuditType,
+    SupplierAuditClassificationDTO,
     SupplierAuditListResponseDTO,
     SupplierAuditResponseDTO,
 )
@@ -334,3 +335,119 @@ async def delete_audit(
     success = audit_service.delete_audit(audit_id)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to delete audit")
+
+
+@router.post(
+    "/{supplier_id}/audits/{audit_id}/classify",
+    response_model=SupplierAuditResponseDTO,
+)
+async def classify_audit(
+    supplier_id: UUID,
+    audit_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> SupplierAuditResponseDTO:
+    """Classify a supplier based on extracted audit data.
+
+    Analyzes extracted audit data and generates an A/B/C classification
+    with human-readable reasoning. Also updates the supplier's
+    certification_status.
+
+    Args:
+        supplier_id: UUID of the supplier
+        audit_id: UUID of the audit
+        current_user: Authenticated user
+
+    Returns:
+        SupplierAuditResponseDTO with classification data
+
+    Raises:
+        HTTPException 404: If audit not found
+        HTTPException 400: If audit doesn't belong to supplier or extraction not completed
+    """
+    print(
+        f"INFO [AuditRoutes]: Classify request from user {current_user.get('email')} "
+        f"for audit {audit_id}"
+    )
+
+    # Verify audit exists and belongs to supplier
+    existing_audit = audit_service.get_audit(audit_id)
+    if not existing_audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    if existing_audit.supplier_id != supplier_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit does not belong to this supplier",
+        )
+
+    try:
+        return audit_service.classify_supplier(audit_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put(
+    "/{supplier_id}/audits/{audit_id}/classification",
+    response_model=SupplierAuditResponseDTO,
+)
+async def override_classification(
+    supplier_id: UUID,
+    audit_id: UUID,
+    classification_data: SupplierAuditClassificationDTO,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager"])
+    ),
+) -> SupplierAuditResponseDTO:
+    """Override the AI classification with a manual classification.
+
+    Allows admin/manager users to override the AI-generated classification
+    with a manual classification. Notes are required to document the
+    reasoning for the override.
+
+    Args:
+        supplier_id: UUID of the supplier
+        audit_id: UUID of the audit
+        classification_data: Classification grade (A/B/C) and required notes
+        current_user: Authenticated user
+
+    Returns:
+        SupplierAuditResponseDTO with updated classification
+
+    Raises:
+        HTTPException 404: If audit not found
+        HTTPException 400: If validation fails or audit doesn't belong to supplier
+    """
+    print(
+        f"INFO [AuditRoutes]: Override classification request from user "
+        f"{current_user.get('email')} for audit {audit_id}: {classification_data.classification}"
+    )
+
+    # Verify audit exists and belongs to supplier
+    existing_audit = audit_service.get_audit(audit_id)
+    if not existing_audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    if existing_audit.supplier_id != supplier_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit does not belong to this supplier",
+        )
+
+    # Notes are required for overrides
+    if not classification_data.notes or not classification_data.notes.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Notes are required when overriding classification",
+        )
+
+    try:
+        return audit_service.override_classification(
+            audit_id=audit_id,
+            classification=classification_data.classification,
+            notes=classification_data.notes,
+            user_id=current_user.get("id"),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

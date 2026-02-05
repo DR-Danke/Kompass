@@ -9,6 +9,7 @@ from uuid import UUID
 from app.config import get_settings
 from app.models.kompass_dto import (
     AuditType,
+    CertificationStatus,
     ExtractionStatus,
     PaginationDTO,
     SupplierAuditListResponseDTO,
@@ -16,6 +17,7 @@ from app.models.kompass_dto import (
     SupplierType,
 )
 from app.repository.audit_repository import audit_repository
+from app.repository.kompass_repository import SupplierRepository
 
 
 # Maximum number of pages to process from PDF for extraction
@@ -509,6 +511,269 @@ Only return valid JSON, no additional text or explanation."""
             True if deleted, False otherwise
         """
         return audit_repository.delete(audit_id)
+
+    def classify_supplier(self, audit_id: UUID) -> SupplierAuditResponseDTO:
+        """Classify a supplier based on extracted audit data.
+
+        Applies a scoring algorithm to the extracted data and generates
+        an A/B/C classification with human-readable reasoning.
+
+        Scoring system:
+        - supplier_type: manufacturer = +3, trader = +1, unknown = 0
+        - certifications count: 3+ = +2, 1-2 = +1, 0 = 0
+        - production_lines_count: 3+ = +1, 1-2 = +0.5, 0 = 0
+        - negative_points count: 0 = +1, 1-2 = 0, 3+ = -1
+        - positive_points count: 3+ = +1, 1-2 = +0.5, 0 = 0
+        - markets_served.south_america > 0 = +0.5 (bonus for SA experience)
+
+        Thresholds:
+        - Type A: score >= 6
+        - Type B: score >= 3 and < 6
+        - Type C: score < 3
+
+        Args:
+            audit_id: UUID of the audit to classify
+
+        Returns:
+            SupplierAuditResponseDTO with classification data
+
+        Raises:
+            ValueError: If audit not found or extraction not completed
+        """
+        print(f"INFO [AuditService]: Classifying audit {audit_id}")
+
+        # Get audit
+        audit_data = audit_repository.get_by_id(audit_id)
+        if not audit_data:
+            raise ValueError(f"Audit {audit_id} not found")
+
+        # Verify extraction is completed
+        if audit_data.get("extraction_status") != "completed":
+            raise ValueError(
+                f"Audit {audit_id} extraction not completed. "
+                f"Current status: {audit_data.get('extraction_status')}"
+            )
+
+        # Calculate score
+        score = 0.0
+        reason_parts = []
+
+        # Supplier type scoring
+        supplier_type = audit_data.get("supplier_type") or "unknown"
+        if supplier_type == "manufacturer":
+            score += 3.0
+            reason_parts.append("Verified manufacturer (+3)")
+        elif supplier_type == "trader":
+            score += 1.0
+            reason_parts.append("Identified as trader (+1)")
+        else:
+            reason_parts.append("Supplier type unknown (0)")
+
+        # Certifications scoring
+        certifications = audit_data.get("certifications") or []
+        cert_count = len(certifications)
+        if cert_count >= 3:
+            score += 2.0
+            reason_parts.append(f"{cert_count} certifications (+2)")
+        elif cert_count >= 1:
+            score += 1.0
+            reason_parts.append(f"{cert_count} certification(s) (+1)")
+        else:
+            reason_parts.append("No certifications (0)")
+
+        # Production lines scoring
+        production_lines = audit_data.get("production_lines_count") or 0
+        if production_lines >= 3:
+            score += 1.0
+            reason_parts.append(f"{production_lines} production lines (+1)")
+        elif production_lines >= 1:
+            score += 0.5
+            reason_parts.append(f"{production_lines} production line(s) (+0.5)")
+
+        # Negative points scoring (penalty)
+        negative_points = audit_data.get("negative_points") or []
+        neg_count = len(negative_points)
+        if neg_count == 0:
+            score += 1.0
+            reason_parts.append("No negative points (+1)")
+        elif neg_count >= 3:
+            score -= 1.0
+            reason_parts.append(f"{neg_count} negative points (-1)")
+        else:
+            reason_parts.append(f"{neg_count} negative point(s) (0)")
+
+        # Positive points scoring
+        positive_points = audit_data.get("positive_points") or []
+        pos_count = len(positive_points)
+        if pos_count >= 3:
+            score += 1.0
+            reason_parts.append(f"{pos_count} positive points (+1)")
+        elif pos_count >= 1:
+            score += 0.5
+            reason_parts.append(f"{pos_count} positive point(s) (+0.5)")
+
+        # South America market experience bonus
+        markets_served = audit_data.get("markets_served") or {}
+        sa_percentage = markets_served.get("south_america", 0)
+        if sa_percentage and sa_percentage > 0:
+            score += 0.5
+            reason_parts.append(f"South America export experience: {sa_percentage}% (+0.5)")
+
+        # Determine classification
+        if score >= 6:
+            classification = "A"
+            tier_description = "Type A - Preferred supplier"
+        elif score >= 3:
+            classification = "B"
+            tier_description = "Type B - Acceptable supplier"
+        else:
+            classification = "C"
+            tier_description = "Type C - Requires additional verification"
+
+        # Build human-readable reasoning
+        reason = (
+            f"{tier_description}. "
+            f"Total score: {score:.1f}/9 possible. "
+            f"Factors: {'; '.join(reason_parts)}."
+        )
+
+        print(
+            f"INFO [AuditService]: Classification for audit {audit_id}: "
+            f"{classification} (score: {score:.1f})"
+        )
+
+        # Update audit with classification
+        updated_audit = audit_repository.update_classification(
+            audit_id=audit_id,
+            classification=classification,
+            reason=reason,
+        )
+
+        if not updated_audit:
+            raise ValueError(f"Failed to update classification for audit {audit_id}")
+
+        # Update supplier certification status
+        supplier_id = updated_audit["supplier_id"]
+        self._update_supplier_certification(
+            supplier_id=supplier_id,
+            classification=classification,
+            audit_id=audit_id,
+        )
+
+        return self._dict_to_response_dto(updated_audit)
+
+    def override_classification(
+        self,
+        audit_id: UUID,
+        classification: str,
+        notes: str,
+        user_id: UUID,
+    ) -> SupplierAuditResponseDTO:
+        """Override the AI classification with a manual classification.
+
+        Args:
+            audit_id: UUID of the audit
+            classification: Classification grade (A, B, or C)
+            notes: Required notes explaining the override
+            user_id: UUID of the user making the override
+
+        Returns:
+            SupplierAuditResponseDTO with updated classification
+
+        Raises:
+            ValueError: If validation fails or audit not found
+        """
+        print(
+            f"INFO [AuditService]: Override classification for audit {audit_id} "
+            f"to {classification} by user {user_id}"
+        )
+
+        # Validate classification
+        if classification not in ("A", "B", "C"):
+            raise ValueError(f"Invalid classification '{classification}'. Must be A, B, or C.")
+
+        # Validate notes (required for overrides)
+        if not notes or not notes.strip():
+            raise ValueError("Notes are required when overriding classification.")
+
+        # Get audit
+        audit_data = audit_repository.get_by_id(audit_id)
+        if not audit_data:
+            raise ValueError(f"Audit {audit_id} not found")
+
+        # Update manual classification
+        updated_audit = audit_repository.update_manual_classification(
+            audit_id=audit_id,
+            classification=classification,
+            notes=notes.strip(),
+        )
+
+        if not updated_audit:
+            raise ValueError(f"Failed to update manual classification for audit {audit_id}")
+
+        # Update supplier certification status (manual takes precedence)
+        supplier_id = updated_audit["supplier_id"]
+        self._update_supplier_certification(
+            supplier_id=supplier_id,
+            classification=classification,
+            audit_id=audit_id,
+        )
+
+        print(
+            f"INFO [AuditService]: Override completed for audit {audit_id}: "
+            f"classification={classification}"
+        )
+
+        return self._dict_to_response_dto(updated_audit)
+
+    def _update_supplier_certification(
+        self,
+        supplier_id: UUID,
+        classification: str,
+        audit_id: UUID,
+    ) -> None:
+        """Update supplier certification status based on classification.
+
+        Maps classification grade to CertificationStatus enum and updates
+        the supplier record.
+
+        Args:
+            supplier_id: UUID of the supplier
+            classification: Classification grade (A, B, or C)
+            audit_id: UUID of the audit that triggered this update
+        """
+        # Map classification to certification status
+        classification_to_status = {
+            "A": CertificationStatus.CERTIFIED_A.value,
+            "B": CertificationStatus.CERTIFIED_B.value,
+            "C": CertificationStatus.CERTIFIED_C.value,
+        }
+
+        certification_status = classification_to_status.get(classification)
+        if not certification_status:
+            print(
+                f"WARN [AuditService]: Unknown classification '{classification}', "
+                "skipping supplier update"
+            )
+            return
+
+        supplier_repo = SupplierRepository()
+        result = supplier_repo.update_certification_status(
+            supplier_id=supplier_id,
+            certification_status=certification_status,
+            audit_id=audit_id,
+        )
+
+        if result:
+            print(
+                f"INFO [AuditService]: Updated supplier {supplier_id} "
+                f"certification to {certification_status}"
+            )
+        else:
+            print(
+                f"WARN [AuditService]: Failed to update supplier {supplier_id} "
+                f"certification status"
+            )
 
     def _dict_to_response_dto(self, data: Dict[str, Any]) -> SupplierAuditResponseDTO:
         """Convert audit dictionary to response DTO.

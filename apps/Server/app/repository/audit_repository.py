@@ -420,6 +420,112 @@ class AuditRepository:
         finally:
             close_database_connection(conn)
 
+    def update_classification(
+        self,
+        audit_id: UUID,
+        classification: str,
+        reason: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Update AI classification fields for an audit.
+
+        Args:
+            audit_id: UUID of the audit
+            classification: Classification grade (A, B, or C)
+            reason: Human-readable reasoning for the classification
+
+        Returns:
+            Updated audit dict if successful, None otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE supplier_audits
+                    SET ai_classification = %s,
+                        ai_classification_reason = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING id, supplier_id, audit_type, document_url, document_name,
+                              file_size_bytes, supplier_type, employee_count, factory_area_sqm,
+                              production_lines_count, markets_served, certifications,
+                              has_machinery_photos, positive_points, negative_points,
+                              products_verified, audit_date, inspector_name, extraction_status,
+                              extraction_raw_response, extracted_at, ai_classification,
+                              ai_classification_reason, manual_classification, classification_notes,
+                              created_at, updated_at
+                    """,
+                    (classification, reason, str(audit_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [AuditRepository]: Failed to update classification: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def update_manual_classification(
+        self,
+        audit_id: UUID,
+        classification: str,
+        notes: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Update manual classification fields for an audit (override).
+
+        Args:
+            audit_id: UUID of the audit
+            classification: Classification grade (A, B, or C)
+            notes: Required notes explaining the override
+
+        Returns:
+            Updated audit dict if successful, None otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE supplier_audits
+                    SET manual_classification = %s,
+                        classification_notes = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING id, supplier_id, audit_type, document_url, document_name,
+                              file_size_bytes, supplier_type, employee_count, factory_area_sqm,
+                              production_lines_count, markets_served, certifications,
+                              has_machinery_photos, positive_points, negative_points,
+                              products_verified, audit_date, inspector_name, extraction_status,
+                              extraction_raw_response, extracted_at, ai_classification,
+                              ai_classification_reason, manual_classification, classification_notes,
+                              created_at, updated_at
+                    """,
+                    (classification, notes, str(audit_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [AuditRepository]: Failed to update manual classification: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
     def _row_to_dict(self, row: tuple) -> Dict[str, Any]:
         """Convert a database row to a dictionary.
 
