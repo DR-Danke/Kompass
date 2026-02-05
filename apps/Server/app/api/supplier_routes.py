@@ -18,8 +18,10 @@ from app.models.kompass_dto import (
     SupplierCertificationSummaryDTO,
     SupplierCreateDTO,
     SupplierListResponseDTO,
+    SupplierPipelineResponseDTO,
     SupplierPipelineStatus,
     SupplierPipelineStatusUpdateDTO,
+    SupplierPipelineSummaryDTO,
     SupplierResponseDTO,
     SupplierStatus,
     SupplierUpdateDTO,
@@ -167,6 +169,44 @@ async def list_certified_suppliers(
     except ValueError as e:
         print(f"WARN [SupplierRoutes]: Invalid grade parameter: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/pipeline-summary", response_model=SupplierPipelineSummaryDTO)
+async def get_pipeline_summary(
+    current_user: dict = Depends(get_current_user),
+) -> SupplierPipelineSummaryDTO:
+    """Get summary of supplier counts by pipeline status.
+
+    Args:
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Pipeline summary with counts for each status
+    """
+    print("INFO [SupplierRoutes]: Getting pipeline summary")
+
+    result = supplier_service.get_pipeline_summary()
+    print("INFO [SupplierRoutes]: Pipeline summary retrieved")
+    return result
+
+
+@router.get("/pipeline", response_model=SupplierPipelineResponseDTO)
+async def get_pipeline(
+    current_user: dict = Depends(get_current_user),
+) -> SupplierPipelineResponseDTO:
+    """Get all suppliers grouped by pipeline status for Kanban view.
+
+    Args:
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Suppliers grouped by pipeline status
+    """
+    print("INFO [SupplierRoutes]: Getting pipeline view")
+
+    result = supplier_service.get_pipeline()
+    print("INFO [SupplierRoutes]: Pipeline view retrieved")
+    return result
 
 
 @router.get("/pipeline/{status}", response_model=SupplierListResponseDTO)
