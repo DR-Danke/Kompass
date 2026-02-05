@@ -1576,3 +1576,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing supplier classification (A/B/C grades)
     - When working with supplier pipeline status or certification status
     - When running database migrations for supplier audits
+
+- app_docs/feature-e8bfdee4-audit-service-ai-extraction.md
+  - Conditions:
+    - When working with audit_service.py or audit PDF processing
+    - When uploading or processing supplier audit documents
+    - When working with /api/suppliers/{id}/audits endpoints
+    - When implementing or modifying AI extraction from PDF documents
+    - When troubleshooting audit extraction status (pending/processing/completed/failed)
+    - When working with audit_repository.py or audit_routes.py
+    - When configuring PDF-to-image conversion or pdf2image library

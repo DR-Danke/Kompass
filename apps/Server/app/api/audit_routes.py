@@ -1,0 +1,336 @@
+"""API routes for supplier audit operations."""
+
+import os
+import tempfile
+from typing import Any, Dict
+from uuid import UUID
+
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    UploadFile,
+)
+
+from app.api.rbac_dependencies import require_roles
+from app.models.kompass_dto import (
+    AuditType,
+    SupplierAuditListResponseDTO,
+    SupplierAuditResponseDTO,
+)
+from app.services.audit_service import audit_service
+
+
+router = APIRouter(tags=["Supplier Audits"])
+
+# File constraints
+MAX_AUDIT_FILE_SIZE_BYTES = 25 * 1024 * 1024  # 25MB
+ALLOWED_EXTENSIONS = {".pdf"}
+
+
+def _validate_audit_file(file: UploadFile) -> str:
+    """Validate uploaded audit file.
+
+    Args:
+        file: Uploaded file
+
+    Returns:
+        Error message if validation fails, empty string if valid
+    """
+    if not file.filename:
+        return "File must have a filename"
+
+    # Check extension
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return f"File type '{ext}' not allowed. Only PDF files are supported."
+
+    return ""
+
+
+async def _process_audit_background(audit_id: UUID) -> None:
+    """Process audit extraction in the background.
+
+    Args:
+        audit_id: UUID of the audit to process
+    """
+    try:
+        audit_service.process_audit(audit_id)
+    except Exception as e:
+        print(f"ERROR [AuditRoutes]: Background processing failed for {audit_id}: {e}")
+
+
+@router.post(
+    "/{supplier_id}/audits",
+    response_model=SupplierAuditResponseDTO,
+    status_code=201,
+)
+async def upload_audit(
+    supplier_id: UUID,
+    file: UploadFile,
+    background_tasks: BackgroundTasks,
+    audit_type: AuditType = Query(default=AuditType.FACTORY_AUDIT),
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> SupplierAuditResponseDTO:
+    """Upload a PDF audit document for a supplier.
+
+    The document is uploaded and an audit record is created with 'pending' status.
+    AI extraction runs in the background and updates the record when complete.
+
+    Args:
+        supplier_id: UUID of the supplier
+        file: PDF file to upload
+        background_tasks: FastAPI background tasks
+        audit_type: Type of audit (factory_audit or container_inspection)
+        current_user: Authenticated user
+
+    Returns:
+        SupplierAuditResponseDTO with created audit record
+
+    Raises:
+        HTTPException 400: If file validation fails
+        HTTPException 500: If audit creation fails
+    """
+    print(
+        f"INFO [AuditRoutes]: Upload request from user {current_user.get('email')} "
+        f"for supplier {supplier_id}"
+    )
+
+    # Validate file
+    error = _validate_audit_file(file)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+
+    # Read file content and check size
+    content = await file.read()
+    if len(content) > MAX_AUDIT_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File exceeds maximum size of {MAX_AUDIT_FILE_SIZE_BYTES // (1024*1024)}MB",
+        )
+
+    # Save to temp file and create a data URI
+    # In production, this would upload to cloud storage and use that URL
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=ext, prefix="audit_"
+    ) as tmp:
+        tmp.write(content)
+        temp_path = tmp.name
+
+    # For now, use file:// URL - in production, upload to S3/R2/Supabase Storage
+    document_url = f"file://{temp_path}"
+
+    try:
+        # Create audit record
+        audit = audit_service.upload_audit(
+            supplier_id=supplier_id,
+            document_url=document_url,
+            document_name=file.filename or "audit.pdf",
+            file_size_bytes=len(content),
+            audit_type=audit_type,
+        )
+
+        # Schedule background processing
+        background_tasks.add_task(_process_audit_background, audit.id)
+
+        print(f"INFO [AuditRoutes]: Created audit {audit.id} for supplier {supplier_id}")
+        return audit
+
+    except ValueError as e:
+        # Clean up temp file on error
+        try:
+            os.unlink(temp_path)
+        except OSError:
+            pass
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # Clean up temp file on error
+        try:
+            os.unlink(temp_path)
+        except OSError:
+            pass
+        print(f"ERROR [AuditRoutes]: Failed to create audit: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create audit record")
+
+
+@router.get(
+    "/{supplier_id}/audits",
+    response_model=SupplierAuditListResponseDTO,
+)
+async def list_supplier_audits(
+    supplier_id: UUID,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=100),
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+) -> SupplierAuditListResponseDTO:
+    """List all audits for a supplier with pagination.
+
+    Args:
+        supplier_id: UUID of the supplier
+        page: Page number (1-indexed)
+        limit: Number of items per page
+        current_user: Authenticated user
+
+    Returns:
+        SupplierAuditListResponseDTO with paginated results
+    """
+    return audit_service.get_supplier_audits(
+        supplier_id=supplier_id,
+        page=page,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/{supplier_id}/audits/{audit_id}",
+    response_model=SupplierAuditResponseDTO,
+)
+async def get_audit(
+    supplier_id: UUID,
+    audit_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+) -> SupplierAuditResponseDTO:
+    """Get a single audit by ID.
+
+    Args:
+        supplier_id: UUID of the supplier
+        audit_id: UUID of the audit
+        current_user: Authenticated user
+
+    Returns:
+        SupplierAuditResponseDTO
+
+    Raises:
+        HTTPException 404: If audit not found
+        HTTPException 400: If audit doesn't belong to supplier
+    """
+    audit = audit_service.get_audit(audit_id)
+
+    if not audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    if audit.supplier_id != supplier_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit does not belong to this supplier",
+        )
+
+    return audit
+
+
+@router.post(
+    "/{supplier_id}/audits/{audit_id}/reprocess",
+    response_model=SupplierAuditResponseDTO,
+)
+async def reprocess_audit(
+    supplier_id: UUID,
+    audit_id: UUID,
+    background_tasks: BackgroundTasks,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager"])
+    ),
+) -> SupplierAuditResponseDTO:
+    """Reprocess an audit to re-run AI extraction.
+
+    This resets the extraction fields and schedules a new extraction.
+
+    Args:
+        supplier_id: UUID of the supplier
+        audit_id: UUID of the audit
+        background_tasks: FastAPI background tasks
+        current_user: Authenticated user
+
+    Returns:
+        SupplierAuditResponseDTO with reset status
+
+    Raises:
+        HTTPException 404: If audit not found
+        HTTPException 400: If audit doesn't belong to supplier
+    """
+    print(
+        f"INFO [AuditRoutes]: Reprocess request from user {current_user.get('email')} "
+        f"for audit {audit_id}"
+    )
+
+    # Verify audit exists and belongs to supplier
+    existing_audit = audit_service.get_audit(audit_id)
+    if not existing_audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    if existing_audit.supplier_id != supplier_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit does not belong to this supplier",
+        )
+
+    try:
+        # Reset extraction fields first
+        from app.repository.audit_repository import audit_repository
+        reset_audit = audit_repository.reset_extraction(audit_id)
+        if not reset_audit:
+            raise HTTPException(status_code=500, detail="Failed to reset audit")
+
+        # Schedule background reprocessing
+        background_tasks.add_task(_process_audit_background, audit_id)
+
+        # Return the reset audit (with pending status)
+        audit = audit_service.get_audit(audit_id)
+        if not audit:
+            raise HTTPException(status_code=500, detail="Failed to get audit after reset")
+
+        return audit
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete(
+    "/{supplier_id}/audits/{audit_id}",
+    status_code=204,
+)
+async def delete_audit(
+    supplier_id: UUID,
+    audit_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager"])
+    ),
+) -> None:
+    """Delete an audit document.
+
+    Args:
+        supplier_id: UUID of the supplier
+        audit_id: UUID of the audit
+        current_user: Authenticated user
+
+    Raises:
+        HTTPException 404: If audit not found
+        HTTPException 400: If audit doesn't belong to supplier
+    """
+    print(
+        f"INFO [AuditRoutes]: Delete request from user {current_user.get('email')} "
+        f"for audit {audit_id}"
+    )
+
+    # Verify audit exists and belongs to supplier
+    existing_audit = audit_service.get_audit(audit_id)
+    if not existing_audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    if existing_audit.supplier_id != supplier_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit does not belong to this supplier",
+        )
+
+    success = audit_service.delete_audit(audit_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete audit")
