@@ -1594,3 +1594,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When troubleshooting classification reasoning or override functionality
     - When working with audit_repository.py or audit_routes.py
     - When configuring PDF-to-image conversion or pdf2image library
+
+- app_docs/feature-9b1fc60c-supplier-audit-api-routes.md
+  - Conditions:
+    - When working with supplier certification filtering or listing certified suppliers
+    - When implementing or modifying supplier pipeline status endpoints
+    - When filtering suppliers by certification grade (A/B/C)
+    - When filtering suppliers by pipeline status (contacted/potential/quoted/certified/active/inactive)
+    - When working with certification summary endpoints
+    - When troubleshooting supplier certification or pipeline status API issues
