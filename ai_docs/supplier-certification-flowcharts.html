@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Certification System - Flowcharts</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #1976d2;
+            --secondary: #424242;
+            --success: #2e7d32;
+            --warning: #ed6c02;
+            --error: #d32f2f;
+            --info: #0288d1;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--secondary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--success), #1b5e20);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .version-info {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .toc {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .toc a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 10px 14px;
+            display: block;
+            border-radius: 6px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .toc a:hover {
+            background: var(--bg);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .diagram-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .diagram-section h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg);
+        }
+
+        .diagram-section h3 {
+            color: var(--secondary);
+            margin: 20px 0 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .diagram-section p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .mermaid {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid var(--info);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-a { background: #c8e6c9; color: #1b5e20; }
+        .badge-b { background: #ffe0b2; color: #e65100; }
+        .badge-c { background: #ffcdd2; color: #c62828; }
+        .badge-pending { background: #e0e0e0; color: #424242; }
+        .badge-processing { background: #bbdefb; color: #1565c0; }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .diagram-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Supplier Certification System</h1>
+            <p>AI-Powered Factory Audit Processing & Supplier Classification</p>
+            <div class="version-info">
+                Based on PRD v1.0 | February 2026
+            </div>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#pipeline-workflow">1. Supplier Pipeline Workflow</a></li>
+                <li><a href="#audit-processing">2. Audit Document Processing Flow</a></li>
+                <li><a href="#ai-extraction">3. AI Extraction Pipeline</a></li>
+                <li><a href="#classification">4. Classification Decision Tree</a></li>
+                <li><a href="#ui-workflow">5. User Interface Workflow</a></li>
+                <li><a href="#api-sequence">6. API Sequence Diagram</a></li>
+                <li><a href="#status-matrix">7. Status Transition Matrix</a></li>
+                <li><a href="#data-model">8. Data Model Relationships</a></li>
+            </ul>
+        </nav>
+
+        <!-- Section 1: Supplier Pipeline Workflow -->
+        <section id="pipeline-workflow" class="diagram-section">
+            <h2>1. Supplier Pipeline Workflow</h2>
+            <p>The supplier lifecycle from initial contact through certification to active ordering status.</p>
+
+            <div class="mermaid">
+flowchart LR
+    subgraph ONBOARDING["Onboarding Phase"]
+        A[("Contacted<br/>Basic Info")]
+        B[("Potential<br/>Catalog Received")]
+        C[("Quoted<br/>Products Evaluated")]
+    end
+
+    subgraph CERTIFICATION["Certification Phase"]
+        D[("Certified<br/>Audit Approved")]
+    end
+
+    subgraph OPERATIONS["Operations Phase"]
+        E[("Active<br/>Has Orders")]
+        F[("Inactive<br/>Paused")]
+    end
+
+    A -->|"Catalog<br/>received"| B
+    B -->|"Products<br/>quoted"| C
+    C -->|"Audit<br/>approved"| D
+    D -->|"First<br/>order"| E
+    E -->|"No recent<br/>activity"| F
+    F -->|"New<br/>order"| E
+    D -->|"Issues<br/>found"| C
+
+    style A fill:#e0e0e0,stroke:#757575
+    style B fill:#bbdefb,stroke:#1976d2
+    style C fill:#ffe0b2,stroke:#f57c00
+    style D fill:#c8e6c9,stroke:#388e3c
+    style E fill:#a5d6a7,stroke:#2e7d32
+    style F fill:#ffcdd2,stroke:#d32f2f
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#e0e0e0"></div>
+                    <span>Contacted - Initial contact made</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#bbdefb"></div>
+                    <span>Potential - Shows promise</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#ffe0b2"></div>
+                    <span>Quoted - Awaiting certification</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#c8e6c9"></div>
+                    <span>Certified - Can place orders</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#a5d6a7"></div>
+                    <span>Active - Orders in progress</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#ffcdd2"></div>
+                    <span>Inactive - Temporarily paused</span>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Description</th>
+                        <th>Can Order?</th>
+                        <th>Required Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-pending">Contacted</span></td>
+                        <td>Initial contact made, basic info only</td>
+                        <td>No</td>
+                        <td>Request catalog</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-processing">Potential</span></td>
+                        <td>Catalog received, products being evaluated</td>
+                        <td>No</td>
+                        <td>Evaluate products, request quotes</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-b">Quoted</span></td>
+                        <td>Products quoted to clients, awaiting certification</td>
+                        <td>No</td>
+                        <td>Upload factory audit</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-a">Certified</span></td>
+                        <td>Factory audit completed and approved</td>
+                        <td>Yes</td>
+                        <td>Ready for orders</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-a">Active</span></td>
+                        <td>Has active orders in progress</td>
+                        <td>Yes</td>
+                        <td>Monitor orders</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-c">Inactive</span></td>
+                        <td>Previously certified, not currently active</td>
+                        <td>No</td>
+                        <td>Re-evaluate before new orders</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section 2: Audit Document Processing -->
+        <section id="audit-processing" class="diagram-section">
+            <h2>2. Audit Document Processing Flow</h2>
+            <p>Complete workflow from document upload through AI processing to classification.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph UPLOAD["Upload Phase"]
+        U1[User selects PDF file]
+        U2{File valid?}
+        U3[Upload to storage]
+        U4[Create audit record]
+        U5[Display error message]
+    end
+
+    subgraph PROCESS["Processing Phase"]
+        P1[Queue for extraction]
+        P2[Parse PDF document]
+        P3[Send to AI for analysis]
+        P4[Extract key data points]
+        P5{Extraction success?}
+        P6[Store extracted data]
+        P7[Mark as failed]
+    end
+
+    subgraph CLASSIFY["Classification Phase"]
+        C1[Analyze extracted data]
+        C2[Calculate classification score]
+        C3[Generate AI recommendation]
+        C4[Display to user]
+        C5{User accepts?}
+        C6[Apply classification]
+        C7[Manual override with notes]
+    end
+
+    subgraph COMPLETE["Completion"]
+        F1[Update supplier status]
+        F2[Notify team]
+        F3[Supplier certified]
+    end
+
+    U1 --> U2
+    U2 -->|"PDF ≤25MB"| U3
+    U2 -->|"Invalid"| U5
+    U3 --> U4
+    U4 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
+    P5 -->|"Success"| P6
+    P5 -->|"Failed"| P7
+    P6 --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> C4
+    C4 --> C5
+    C5 -->|"Yes"| C6
+    C5 -->|"No"| C7
+    C6 --> F1
+    C7 --> F1
+    F1 --> F2
+    F2 --> F3
+    P7 -->|"Retry"| P1
+
+    style U1 fill:#e3f2fd,stroke:#1976d2
+    style F3 fill:#c8e6c9,stroke:#388e3c
+    style P7 fill:#ffcdd2,stroke:#d32f2f
+    style C7 fill:#fff3e0,stroke:#f57c00
+            </div>
+
+            <div class="info-box">
+                <strong>Supported Document Types:</strong>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>Factory Audit</strong> (Primary) - Initial certification, typically 70+ pages</li>
+                    <li><strong>Container Inspection</strong> (Secondary) - Pre-shipment verification, shorter format</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 3: AI Extraction Pipeline -->
+        <section id="ai-extraction" class="diagram-section">
+            <h2>3. AI Extraction Pipeline</h2>
+            <p>Detailed view of the AI-powered data extraction process from factory audit documents.</p>
+
+            <div class="mermaid">
+flowchart LR
+    subgraph INPUT["Input Document"]
+        I1[Factory Audit PDF<br/>70+ pages / ~21MB]
+    end
+
+    subgraph PARSE["Document Parsing"]
+        P1[Extract text content]
+        P2[Identify sections]
+        P3[Extract images]
+    end
+
+    subgraph AI["AI Analysis"]
+        A1[Claude/GPT Vision API]
+        A2[Structured extraction prompt]
+        A3[JSON response parsing]
+    end
+
+    subgraph EXTRACT["Extracted Fields"]
+        E1[supplier_type<br/>manufacturer/trader]
+        E2[employee_count<br/>factory workers]
+        E3[factory_area_sqm<br/>production space]
+        E4[production_lines<br/>active lines count]
+        E5[markets_served<br/>% by region]
+        E6[certifications<br/>ISO, CE, etc.]
+        E7[positive_points<br/>strengths list]
+        E8[negative_points<br/>concerns list]
+        E9[products_verified<br/>inspected items]
+        E10[audit_date<br/>inspection date]
+        E11[inspector_name<br/>auditor info]
+        E12[has_machinery_photos<br/>documentation]
+    end
+
+    I1 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> A1
+    A1 --> A2
+    A2 --> A3
+    A3 --> E1
+    A3 --> E2
+    A3 --> E3
+    A3 --> E4
+    A3 --> E5
+    A3 --> E6
+    A3 --> E7
+    A3 --> E8
+    A3 --> E9
+    A3 --> E10
+    A3 --> E11
+    A3 --> E12
+
+    style I1 fill:#fff3e0,stroke:#f57c00
+    style A1 fill:#e8eaf6,stroke:#3f51b5
+    style E1 fill:#c8e6c9,stroke:#388e3c
+    style E7 fill:#c8e6c9,stroke:#388e3c
+    style E8 fill:#ffcdd2,stroke:#d32f2f
+            </div>
+
+            <h3>Extraction Status States</h3>
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> pending : Upload complete
+    pending --> processing : Extraction starts
+    processing --> completed : Success
+    processing --> failed : Error
+    failed --> processing : Reprocess
+    completed --> [*]
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Priority</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>supplier_type</td><td>Enum</td><td>Critical</td><td>manufacturer or trader - Most important criterion</td></tr>
+                    <tr><td>2</td><td>employee_count</td><td>Integer</td><td>High</td><td>Total number of factory workers</td></tr>
+                    <tr><td>3</td><td>factory_area_sqm</td><td>Integer</td><td>Medium</td><td>Factory size in square meters</td></tr>
+                    <tr><td>4</td><td>production_lines</td><td>Integer</td><td>High</td><td>Number of active production lines</td></tr>
+                    <tr><td>5</td><td>markets_served</td><td>JSON</td><td>High</td><td>Markets with percentages by region</td></tr>
+                    <tr><td>6</td><td>certifications</td><td>Array</td><td>High</td><td>List of certifications (ISO, CE, etc.)</td></tr>
+                    <tr><td>7</td><td>has_machinery_photos</td><td>Boolean</td><td>Medium</td><td>Production machinery documented</td></tr>
+                    <tr><td>8</td><td>positive_points</td><td>Array</td><td>Critical</td><td>Strengths identified in audit</td></tr>
+                    <tr><td>9</td><td>negative_points</td><td>Array</td><td>Critical</td><td>Weaknesses/concerns identified</td></tr>
+                    <tr><td>10</td><td>products_verified</td><td>Array</td><td>High</td><td>Products physically verified during audit</td></tr>
+                    <tr><td>11</td><td>audit_date</td><td>Date</td><td>High</td><td>Date of factory inspection</td></tr>
+                    <tr><td>12</td><td>inspector_name</td><td>String</td><td>Medium</td><td>Name of inspector/auditor</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section 4: Classification Decision Tree -->
+        <section id="classification" class="diagram-section">
+            <h2>4. Classification Decision Tree</h2>
+            <p>AI-suggested classification tiers based on extracted audit data.</p>
+
+            <div class="mermaid">
+flowchart TB
+    START[Extracted Audit Data] --> Q1{Is supplier a<br/>Manufacturer?}
+
+    Q1 -->|"Yes"| Q2{3+ Certifications?}
+    Q1 -->|"No (Trader)"| Q5{Verified by<br/>inspector?}
+
+    Q2 -->|"Yes"| Q3{Active production<br/>lines?}
+    Q2 -->|"No"| Q4{Some<br/>certifications?}
+
+    Q3 -->|"Yes"| Q6{Minimal negative<br/>points?}
+    Q3 -->|"No"| TIER_B1
+
+    Q4 -->|"Yes"| TIER_B2
+    Q4 -->|"No"| TIER_C1
+
+    Q5 -->|"Yes"| Q7{Good track<br/>record?}
+    Q5 -->|"No"| TIER_C2
+
+    Q6 -->|"Yes"| TIER_A
+    Q6 -->|"No"| TIER_B3
+
+    Q7 -->|"Yes"| TIER_B4
+    Q7 -->|"No"| TIER_C3
+
+    TIER_A[("Type A<br/>Recommended")]
+    TIER_B1[("Type B<br/>Recommended")]
+    TIER_B2[("Type B<br/>Recommended")]
+    TIER_B3[("Type B<br/>Recommended")]
+    TIER_B4[("Type B<br/>Recommended")]
+    TIER_C1[("Type C<br/>Recommended")]
+    TIER_C2[("Type C<br/>Recommended")]
+    TIER_C3[("Type C<br/>Recommended")]
+
+    style TIER_A fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
+    style TIER_B1 fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
+    style TIER_B2 fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
+    style TIER_B3 fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
+    style TIER_B4 fill:#ffe0b2,stroke:#f57c00,stroke-width:2px
+    style TIER_C1 fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
+    style TIER_C2 fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
+    style TIER_C3 fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
+    style START fill:#e3f2fd,stroke:#1976d2
+            </div>
+
+            <div class="warning-box">
+                <strong>Important:</strong> Classification is a <em>recommendation</em>, not a final decision. Human judgment is required based on:
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Specific product requirements</li>
+                    <li>Client needs and preferences</li>
+                    <li>Price competitiveness</li>
+                    <li>Input from China-based agent (Hijin)</li>
+                </ul>
+            </div>
+
+            <h3>Classification Tiers Summary</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Badge</th>
+                        <th>Criteria (AI Suggested)</th>
+                        <th>Human Override</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Type A</strong></td>
+                        <td><span class="badge badge-a">A</span></td>
+                        <td>Manufacturer, 3+ certifications, active production lines, minimal negative points</td>
+                        <td>Always allowed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Type B</strong></td>
+                        <td><span class="badge badge-b">B</span></td>
+                        <td>Manufacturer or verified trader, some certifications, moderate concerns</td>
+                        <td>Always allowed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Type C</strong></td>
+                        <td><span class="badge badge-c">C</span></td>
+                        <td>Trader without verification, significant concerns, limited documentation</td>
+                        <td>Always allowed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section 5: UI Workflow -->
+        <section id="ui-workflow" class="diagram-section">
+            <h2>5. User Interface Workflow</h2>
+            <p>User journey through the supplier certification interface.</p>
+
+            <div class="mermaid">
+flowchart TB
+    subgraph SUPPLIERS_PAGE["Suppliers Page"]
+        SP1[View supplier list]
+        SP2[Filter by certification]
+        SP3[Sort by status]
+        SP4[Quick actions menu]
+    end
+
+    subgraph SUPPLIER_DIALOG["Supplier Dialog"]
+        SD1[General Tab]
+        SD2[Certification Tab]
+    end
+
+    subgraph CERT_TAB["Certification Tab Components"]
+        CT1[Audit Uploader<br/>Drag & Drop PDF]
+        CT2[Audit Summary Card<br/>Key Metrics Display]
+        CT3[Classification Badge<br/>A/B/C with Color]
+        CT4[Markets Served Chart<br/>Bar Visualization]
+        CT5[Positive Points<br/>Green Checklist]
+        CT6[Negative Points<br/>Red Warning List]
+        CT7[Override Dialog<br/>Manual Classification]
+        CT8[Audit History Table<br/>Previous Audits]
+    end
+
+    subgraph ACTIONS["User Actions"]
+        A1[Upload new audit]
+        A2[View PDF document]
+        A3[Reprocess extraction]
+        A4[Override classification]
+        A5[Change pipeline status]
+    end
+
+    SP1 --> SP2
+    SP2 --> SP3
+    SP3 --> SP4
+    SP4 -->|"Edit"| SD1
+    SP4 -->|"Upload Audit"| CT1
+    SP4 -->|"View Certification"| SD2
+
+    SD1 <-->|"Tab switch"| SD2
+    SD2 --> CT1
+    SD2 --> CT2
+    CT2 --> CT3
+    CT2 --> CT4
+    CT2 --> CT5
+    CT2 --> CT6
+    SD2 --> CT8
+
+    CT1 --> A1
+    CT2 --> A2
+    CT2 --> A3
+    CT3 --> A4
+    A4 --> CT7
+    SP4 --> A5
+
+    style SP1 fill:#e3f2fd,stroke:#1976d2
+    style SD2 fill:#e8f5e9,stroke:#388e3c
+    style CT3 fill:#fff3e0,stroke:#f57c00
+            </div>
+
+            <h3>Supplier Certification Tab Layout</h3>
+            <div class="mermaid">
+block-beta
+    columns 3
+
+    block:header:3
+        title["Supplier: Hilda Furniture Co."]
+        status["Status: Certified (A)"]
+    end
+
+    block:tabs:3
+        tab1["General"]
+        tab2["Products"]
+        tab3["Certification"]
+    end
+
+    block:summary:1
+        sumtitle["QUICK SUMMARY"]
+        type["Type: Manufacturer"]
+        emp["Employees: 156"]
+        area["Factory: 5,200 m2"]
+        lines["Lines: 4 active"]
+        certs["Certs: ISO 9001, CE"]
+    end
+
+    block:class:1
+        classtitle["CLASSIFICATION"]
+        badge["A - Recommended"]
+        override["Override Button"]
+    end
+
+    block:chart:1
+        charttitle["MARKETS SERVED"]
+        sa["South America 40%"]
+        us["USA 35%"]
+        eu["Europe 15%"]
+        as["Asia 10%"]
+    end
+
+    block:positive:1
+        postitle["POSITIVE POINTS"]
+        pos1["Direct manufacturer"]
+        pos2["Multiple lines"]
+        pos3["ISO certified"]
+    end
+
+    block:negative:2
+        negtitle["NEGATIVE POINTS"]
+        neg1["No client references"]
+        neg2["Some machinery idle"]
+        neg3["Limited SA experience"]
+    end
+
+    block:docs:3
+        doctitle["AUDIT DOCUMENTS"]
+        doc1["Factory_Audit_2026.pdf - View - Reprocess"]
+        upload["+ Upload New Audit Document"]
+    end
+            </div>
+        </section>
+
+        <!-- Section 6: API Sequence -->
+        <section id="api-sequence" class="diagram-section">
+            <h2>6. API Sequence Diagram</h2>
+            <p>Backend API call sequence for audit upload and processing.</p>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant API as Backend API
+    participant S3 as Cloud Storage
+    participant AI as AI Service
+    participant DB as Database
+
+    Note over U,DB: Audit Upload Flow
+    U->>FE: Select PDF file
+    FE->>FE: Validate file (type, size)
+    FE->>API: POST /suppliers/{id}/audits
+    API->>S3: Upload PDF
+    S3-->>API: Return URL
+    API->>DB: Create audit record (pending)
+    API-->>FE: 201 Created + audit ID
+    FE-->>U: Show upload progress
+
+    Note over U,DB: AI Extraction Flow
+    API->>AI: Send PDF for analysis
+    AI->>AI: Extract key data points
+    AI-->>API: Return JSON extraction
+    API->>DB: Update audit (completed)
+    API->>DB: Store extracted data
+
+    Note over U,DB: Classification Flow
+    FE->>API: POST /audits/{id}/classify
+    API->>API: Calculate classification
+    API->>DB: Store AI classification
+    API-->>FE: Return classification + reason
+    FE-->>U: Display badge + summary
+
+    Note over U,DB: Override Flow (Optional)
+    U->>FE: Click override
+    FE->>FE: Open override dialog
+    U->>FE: Select grade + notes
+    FE->>API: PUT /audits/{id}/override
+    API->>DB: Store manual override
+    API->>DB: Update supplier status
+    API-->>FE: 200 OK
+    FE-->>U: Update badge (Manual)
+            </div>
+
+            <h3>API Endpoints</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>RBAC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>POST</td><td>/api/suppliers/{id}/audits</td><td>Upload new audit document</td><td>user+</td></tr>
+                    <tr><td>GET</td><td>/api/suppliers/{id}/audits</td><td>List supplier audits</td><td>viewer+</td></tr>
+                    <tr><td>GET</td><td>/api/suppliers/{id}/audits/{audit_id}</td><td>Get audit details</td><td>viewer+</td></tr>
+                    <tr><td>POST</td><td>/api/suppliers/{id}/audits/{audit_id}/reprocess</td><td>Reprocess extraction</td><td>admin/manager</td></tr>
+                    <tr><td>PUT</td><td>/api/suppliers/{id}/audits/{audit_id}/classification</td><td>Override classification</td><td>admin/manager</td></tr>
+                    <tr><td>DELETE</td><td>/api/suppliers/{id}/audits/{audit_id}</td><td>Delete audit</td><td>admin/manager</td></tr>
+                    <tr><td>GET</td><td>/api/suppliers/certified</td><td>List certified suppliers</td><td>viewer+</td></tr>
+                    <tr><td>GET</td><td>/api/suppliers/pipeline/{status}</td><td>List by pipeline status</td><td>viewer+</td></tr>
+                    <tr><td>PUT</td><td>/api/suppliers/{id}/pipeline-status</td><td>Update pipeline status</td><td>user+</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section 7: Status Matrix -->
+        <section id="status-matrix" class="diagram-section">
+            <h2>7. Status Transition Matrix</h2>
+            <p>Valid transitions between certification and pipeline statuses.</p>
+
+            <h3>Certification Status Transitions</h3>
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> uncertified : New supplier
+    uncertified --> pending_review : Audit uploaded
+    pending_review --> certified_a : AI/Manual: Type A
+    pending_review --> certified_b : AI/Manual: Type B
+    pending_review --> certified_c : AI/Manual: Type C
+    pending_review --> uncertified : Audit deleted
+    certified_a --> certified_b : Manual override
+    certified_a --> certified_c : Manual override
+    certified_b --> certified_a : Manual override
+    certified_b --> certified_c : Manual override
+    certified_c --> certified_a : Manual override
+    certified_c --> certified_b : Manual override
+    certified_a --> pending_review : New audit
+    certified_b --> pending_review : New audit
+    certified_c --> pending_review : New audit
+            </div>
+
+            <h3>Pipeline Status Transitions</h3>
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> contacted : New supplier
+    contacted --> potential : Catalog received
+    potential --> quoted : Products evaluated
+    quoted --> certified : Audit approved
+    certified --> active : First order placed
+    active --> inactive : No recent activity
+    inactive --> active : New order
+
+    quoted --> potential : Re-evaluation needed
+    certified --> quoted : Certification issues
+    inactive --> certified : Re-activated
+            </div>
+
+            <div class="success-box">
+                <strong>Order Eligibility:</strong> Only suppliers with <code>pipeline_status = 'certified'</code> or <code>'active'</code> can receive orders. The system will warn users when attempting to quote products from uncertified suppliers.
+            </div>
+        </section>
+
+        <!-- Section 8: Data Model -->
+        <section id="data-model" class="diagram-section">
+            <h2>8. Data Model Relationships</h2>
+            <p>Database schema for supplier certification system.</p>
+
+            <div class="mermaid">
+erDiagram
+    SUPPLIERS ||--o{ SUPPLIER_AUDITS : "has many"
+    SUPPLIERS ||--o{ PRODUCTS : "has many"
+    SUPPLIERS {
+        uuid id PK
+        string name
+        string email
+        string phone
+        string certification_status
+        string pipeline_status
+        uuid latest_audit_id FK
+        timestamp certified_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SUPPLIER_AUDITS {
+        uuid id PK
+        uuid supplier_id FK
+        string audit_type
+        string document_url
+        string document_name
+        bigint file_size_bytes
+        string supplier_type
+        int employee_count
+        int factory_area_sqm
+        int production_lines_count
+        json markets_served
+        array certifications
+        boolean has_machinery_photos
+        array positive_points
+        array negative_points
+        array products_verified
+        date audit_date
+        string inspector_name
+        string extraction_status
+        json extraction_raw_response
+        timestamp extracted_at
+        string ai_classification
+        text ai_classification_reason
+        string manual_classification
+        text classification_notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCTS {
+        uuid id PK
+        uuid supplier_id FK
+        string name
+        string sku
+        decimal fob_price
+        string status
+    }
+            </div>
+
+            <h3>Key Enums</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Enum</th>
+                        <th>Values</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>certification_status</td>
+                        <td><code>uncertified</code>, <code>pending_review</code>, <code>certified_a</code>, <code>certified_b</code>, <code>certified_c</code></td>
+                    </tr>
+                    <tr>
+                        <td>pipeline_status</td>
+                        <td><code>contacted</code>, <code>potential</code>, <code>quoted</code>, <code>certified</code>, <code>active</code>, <code>inactive</code></td>
+                    </tr>
+                    <tr>
+                        <td>audit_type</td>
+                        <td><code>factory_audit</code>, <code>container_inspection</code></td>
+                    </tr>
+                    <tr>
+                        <td>extraction_status</td>
+                        <td><code>pending</code>, <code>processing</code>, <code>completed</code>, <code>failed</code></td>
+                    </tr>
+                    <tr>
+                        <td>supplier_type</td>
+                        <td><code>manufacturer</code>, <code>trader</code>, <code>unknown</code></td>
+                    </tr>
+                    <tr>
+                        <td>classification_grade</td>
+                        <td><code>A</code>, <code>B</code>, <code>C</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            <p>Kompass Supplier Certification System | Generated February 2026</p>
+            <p>Based on PRD-Supplier-Certification-System.md v1.0</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                showSequenceNumbers: false
+            }
+        });
+    </script>
+</body>
+</html>
