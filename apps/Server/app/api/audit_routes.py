@@ -13,6 +13,7 @@ from fastapi import (
     Query,
     UploadFile,
 )
+from fastapi.responses import RedirectResponse, Response
 
 from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
@@ -246,6 +247,82 @@ async def get_audit(
         )
 
     return audit
+
+
+@router.get(
+    "/{supplier_id}/audits/{audit_id}/download",
+)
+async def download_audit_pdf(
+    supplier_id: UUID,
+    audit_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+):
+    """Download or view the audit PDF document.
+
+    For local file:// URLs, reads and serves the file content.
+    For HTTPS URLs (Supabase Storage), redirects to the URL.
+
+    Args:
+        supplier_id: UUID of the supplier
+        audit_id: UUID of the audit
+        current_user: Authenticated user
+
+    Returns:
+        PDF file content or redirect to storage URL
+
+    Raises:
+        HTTPException 404: If audit not found or file not found
+        HTTPException 400: If audit doesn't belong to supplier
+    """
+    # Verify audit exists and belongs to supplier
+    audit = audit_service.get_audit(audit_id)
+    if not audit:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    if audit.supplier_id != supplier_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Audit does not belong to this supplier",
+        )
+
+    document_url = audit.document_url
+    if not document_url:
+        raise HTTPException(status_code=404, detail="No document URL for this audit")
+
+    # Handle local file:// URLs
+    if document_url.startswith("file://"):
+        local_path = document_url[7:]  # Remove "file://" prefix
+        if not os.path.exists(local_path):
+            raise HTTPException(
+                status_code=404,
+                detail="PDF file not found. It may have been deleted after server restart.",
+            )
+
+        try:
+            with open(local_path, "rb") as f:
+                content = f.read()
+
+            return Response(
+                content=content,
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'inline; filename="{audit.document_name or "audit.pdf"}"',
+                },
+            )
+        except PermissionError:
+            raise HTTPException(status_code=500, detail="Permission denied reading file")
+        except Exception as e:
+            print(f"ERROR [AuditRoutes]: Failed to read PDF file: {e}")
+            raise HTTPException(status_code=500, detail="Failed to read PDF file")
+
+    # Handle HTTPS URLs (Supabase Storage) - redirect to the URL
+    if document_url.startswith("https://"):
+        return RedirectResponse(url=document_url, status_code=302)
+
+    # Unknown URL scheme
+    raise HTTPException(status_code=400, detail="Unsupported document URL scheme")
 
 
 @router.post(

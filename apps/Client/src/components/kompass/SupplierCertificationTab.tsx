@@ -96,9 +96,13 @@ const SupplierCertificationTab: React.FC<SupplierCertificationTabProps> = ({
     }
   };
 
-  const handleViewPdf = (documentUrl: string) => {
-    console.log(`INFO [SupplierCertificationTab]: Opening PDF: ${documentUrl}`);
-    window.open(documentUrl, '_blank');
+  const handleViewPdf = (auditId: string) => {
+    // Use the backend download endpoint to serve the PDF
+    // This works for both local file:// URLs and Supabase Storage URLs
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const downloadUrl = `${apiUrl}/suppliers/${supplierId}/audits/${auditId}/download`;
+    console.log(`INFO [SupplierCertificationTab]: Opening PDF via backend: ${downloadUrl}`);
+    window.open(downloadUrl, '_blank');
   };
 
   const handleOverrideClick = (audit: SupplierAuditResponse) => {

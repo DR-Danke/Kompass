@@ -28,7 +28,7 @@ import type { SupplierAuditResponse } from '@/types/kompass';
 interface AuditSummaryCardProps {
   audit: SupplierAuditResponse;
   onReprocess?: (auditId: string) => void;
-  onViewPdf?: (documentUrl: string) => void;
+  onViewPdf?: (auditId: string) => void;
   onOverrideClick?: () => void;
   showClassification?: boolean;
 }
@@ -116,7 +116,7 @@ const AuditSummaryCard: React.FC<AuditSummaryCardProps> = ({
                 variant="outlined"
                 size="small"
                 startIcon={<VisibilityIcon />}
-                onClick={() => onViewPdf(audit.document_url)}
+                onClick={() => onViewPdf(audit.id)}
               >
                 View Full PDF
               </Button>
@@ -314,7 +314,7 @@ const AuditSummaryCard: React.FC<AuditSummaryCardProps> = ({
               variant="outlined"
               size="small"
               startIcon={<VisibilityIcon />}
-              onClick={() => onViewPdf(audit.document_url)}
+              onClick={() => onViewPdf(audit.id)}
             >
               View Full PDF
             </Button>
