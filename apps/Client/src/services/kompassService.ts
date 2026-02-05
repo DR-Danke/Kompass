@@ -94,6 +94,11 @@ import type {
   ConfirmImportResponseDTO,
   // Dashboard types
   DashboardStats,
+  // Audit types
+  AuditType,
+  SupplierAuditResponse,
+  SupplierAuditListResponse,
+  ClassificationOverride,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -905,5 +910,116 @@ export const dashboardService = {
         createdAt: c.created_at,
       })),
     };
+  },
+};
+
+// =============================================================================
+// AUDIT SERVICE
+// =============================================================================
+
+export const auditService = {
+  async upload(
+    supplierId: string,
+    file: File,
+    auditType: AuditType = 'factory_audit',
+    onProgress?: (percent: number) => void
+  ): Promise<SupplierAuditResponse> {
+    console.log(`INFO [auditService]: Uploading audit for supplier ${supplierId}`);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('audit_type', auditType);
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${apiClient.defaults.baseURL}/suppliers/${supplierId}/audits`);
+
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress(percent);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch {
+            reject(new Error('Failed to parse response'));
+          }
+        } else {
+          try {
+            const error = JSON.parse(xhr.responseText);
+            reject(new Error(error.detail || 'Upload failed'));
+          } catch {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('Network error during upload'));
+      };
+
+      xhr.send(formData);
+    });
+  },
+
+  async list(supplierId: string, page = 1, limit = 20): Promise<SupplierAuditListResponse> {
+    console.log(`INFO [auditService]: Fetching audits for supplier ${supplierId}`);
+    const response = await apiClient.get<SupplierAuditListResponse>(
+      `/suppliers/${supplierId}/audits`,
+      { params: { page, limit } }
+    );
+    return response.data;
+  },
+
+  async get(supplierId: string, auditId: string): Promise<SupplierAuditResponse> {
+    console.log(`INFO [auditService]: Fetching audit ${auditId} for supplier ${supplierId}`);
+    const response = await apiClient.get<SupplierAuditResponse>(
+      `/suppliers/${supplierId}/audits/${auditId}`
+    );
+    return response.data;
+  },
+
+  async reprocess(supplierId: string, auditId: string): Promise<SupplierAuditResponse> {
+    console.log(`INFO [auditService]: Reprocessing audit ${auditId} for supplier ${supplierId}`);
+    const response = await apiClient.post<SupplierAuditResponse>(
+      `/suppliers/${supplierId}/audits/${auditId}/reprocess`
+    );
+    return response.data;
+  },
+
+  async classify(supplierId: string, auditId: string): Promise<SupplierAuditResponse> {
+    console.log(`INFO [auditService]: Classifying audit ${auditId} for supplier ${supplierId}`);
+    const response = await apiClient.post<SupplierAuditResponse>(
+      `/suppliers/${supplierId}/audits/${auditId}/classify`
+    );
+    return response.data;
+  },
+
+  async overrideClassification(
+    supplierId: string,
+    auditId: string,
+    data: ClassificationOverride
+  ): Promise<SupplierAuditResponse> {
+    console.log(`INFO [auditService]: Overriding classification for audit ${auditId}`);
+    const response = await apiClient.put<SupplierAuditResponse>(
+      `/suppliers/${supplierId}/audits/${auditId}/classification`,
+      data
+    );
+    return response.data;
+  },
+
+  async delete(supplierId: string, auditId: string): Promise<void> {
+    console.log(`INFO [auditService]: Deleting audit ${auditId} for supplier ${supplierId}`);
+    await apiClient.delete(`/suppliers/${supplierId}/audits/${auditId}`);
   },
 };

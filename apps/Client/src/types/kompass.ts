@@ -1004,3 +1004,80 @@ export interface DashboardStats {
   recentQuotations: RecentQuotation[];
   recentClients: RecentClient[];
 }
+
+// =============================================================================
+// SUPPLIER AUDIT DTOs
+// =============================================================================
+
+export type AuditType = 'factory_audit' | 'container_inspection';
+export type SupplierType = 'manufacturer' | 'trader' | 'unknown';
+export type AuditExtractionStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type ClassificationGrade = 'A' | 'B' | 'C';
+
+export interface MarketsServed {
+  south_america?: number;
+  north_america?: number;
+  europe?: number;
+  asia?: number;
+  other?: number;
+}
+
+export interface SupplierAuditCreate {
+  supplier_id: string;
+  audit_type?: AuditType;
+  document_url: string;
+  document_name?: string | null;
+  file_size_bytes?: number | null;
+  audit_date?: string | null;
+  inspector_name?: string | null;
+}
+
+export interface SupplierAuditResponse {
+  id: string;
+  supplier_id: string;
+  audit_type: AuditType;
+  document_url: string;
+  document_name: string | null;
+  file_size_bytes: number | null;
+
+  // Extracted data
+  supplier_type: SupplierType | null;
+  employee_count: number | null;
+  factory_area_sqm: number | null;
+  production_lines_count: number | null;
+  markets_served: MarketsServed | null;
+  certifications: string[] | null;
+  has_machinery_photos: boolean;
+  positive_points: string[] | null;
+  negative_points: string[] | null;
+  products_verified: string[] | null;
+
+  // Audit metadata
+  audit_date: string | null;
+  inspector_name: string | null;
+
+  // Processing
+  extraction_status: AuditExtractionStatus;
+  extraction_raw_response: Record<string, unknown> | null;
+  extracted_at: string | null;
+
+  // Classification
+  ai_classification: ClassificationGrade | null;
+  ai_classification_reason: string | null;
+  manual_classification: ClassificationGrade | null;
+  classification_notes: string | null;
+
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierAuditListResponse {
+  items: SupplierAuditResponse[];
+  pagination: Pagination;
+}
+
+export interface ClassificationOverride {
+  classification: ClassificationGrade;
+  notes: string;
+}

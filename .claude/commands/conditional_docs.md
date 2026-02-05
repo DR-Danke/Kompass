@@ -1603,3 +1603,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When filtering suppliers by pipeline status (contacted/potential/quoted/certified/active/inactive)
     - When working with certification summary endpoints
     - When troubleshooting supplier certification or pipeline status API issues
+
+- app_docs/feature-2805baf7-supplier-certification-tab.md
+  - Conditions:
+    - When working with the Supplier Certification tab UI
+    - When implementing or modifying audit upload functionality
+    - When working with AuditUploader, AuditSummaryCard, or ClassificationBadge components
+    - When implementing classification override dialogs
+    - When working with SupplierCertificationTab or MarketsServedChart components
+    - When modifying the tabbed SupplierForm dialog
+    - When troubleshooting audit upload, extraction display, or classification badge issues
+    - When working with auditService in kompassService.ts
