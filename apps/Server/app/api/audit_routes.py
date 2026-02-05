@@ -2,7 +2,7 @@
 
 import os
 import tempfile
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 from fastapi import (
@@ -23,6 +23,7 @@ from app.models.kompass_dto import (
     SupplierAuditResponseDTO,
 )
 from app.services.audit_service import audit_service
+from app.services.auth_service import auth_service
 from app.services.storage_service import storage_service
 
 
@@ -255,27 +256,37 @@ async def get_audit(
 async def download_audit_pdf(
     supplier_id: UUID,
     audit_id: UUID,
-    current_user: Dict[str, Any] = Depends(
-        require_roles(["admin", "manager", "user", "viewer"])
-    ),
+    token: Optional[str] = Query(default=None),
 ):
     """Download or view the audit PDF document.
 
     For local file:// URLs, reads and serves the file content.
     For HTTPS URLs (Supabase Storage), redirects to the URL.
 
+    Authentication is via query parameter token (since browsers can't send
+    Authorization headers when opening URLs in new tabs).
+
     Args:
         supplier_id: UUID of the supplier
         audit_id: UUID of the audit
-        current_user: Authenticated user
+        token: JWT token for authentication (passed as query parameter)
 
     Returns:
         PDF file content or redirect to storage URL
 
     Raises:
+        HTTPException 401: If not authenticated or token invalid
         HTTPException 404: If audit not found or file not found
         HTTPException 400: If audit doesn't belong to supplier
     """
+    # Validate token from query parameter
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    payload = auth_service.decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
     # Verify audit exists and belongs to supplier
     audit = audit_service.get_audit(audit_id)
     if not audit:

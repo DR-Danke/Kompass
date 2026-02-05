@@ -71,20 +71,34 @@ As a sourcing manager, I want to view the original audit PDF document so that I 
    - **Verify** PDF opens in new tab
    - **Verify** no console errors
 
-### Scenario 3: Verify Backend Download Endpoint
+### Scenario 3: Verify Backend Download Endpoint with Authentication
 
-**Objective:** Confirm the backend serves PDF files correctly.
+**Objective:** Confirm the backend serves PDF files correctly with token authentication.
 
 #### Steps
 
 8. **Check Network Request**
    - Open browser developer tools > Network tab
    - Click "View Full PDF"
-   - **Verify** request goes to `/api/suppliers/{id}/audits/{id}/download`
+   - **Verify** request goes to `/api/suppliers/{id}/audits/{id}/download?token=...`
+   - **Verify** the URL includes a `token` query parameter (JWT token for authentication)
    - **Verify** response is either:
      - 200 with PDF content (for local files)
      - 302 redirect to Supabase Storage URL (for cloud files)
+   - **Critical Check**: No "Not authenticated" error ({"detail":"Not authenticated"})
    - **Screenshot**: `07_network_request.png`
+
+### Scenario 4: Verify Authentication is Required
+
+**Objective:** Confirm the endpoint rejects unauthenticated requests.
+
+#### Steps
+
+9. **Test Without Token**
+   - Open a new incognito/private browser window
+   - Try to access the download URL directly without logging in
+   - **Verify** the response is `{"detail":"Not authenticated"}`
+   - This confirms the endpoint properly requires authentication
 
 ## Success Criteria Checklist
 
@@ -93,9 +107,11 @@ As a sourcing manager, I want to view the original audit PDF document so that I 
 - [ ] Clicking button opens PDF in new browser tab
 - [ ] **CRITICAL**: No "Not allowed to load local resource" error in console
 - [ ] PDF content displays correctly in browser
-- [ ] Network request goes to backend `/download` endpoint
+- [ ] Network request goes to backend `/download` endpoint with `?token=...` parameter
+- [ ] **CRITICAL**: No "Not authenticated" error in response
 - [ ] Backend returns PDF content or redirects to storage URL
 - [ ] Works for both local file:// URLs and Supabase Storage URLs
+- [ ] Unauthenticated requests (no token) are properly rejected
 
 ## Manual Verification Steps
 
@@ -113,11 +129,15 @@ As a sourcing manager, I want to view the original audit PDF document so that I 
 
 2. Test the download endpoint directly:
    ```bash
-   # Get a valid audit ID from the database or UI
-   curl -I "http://localhost:8000/api/suppliers/{supplier_id}/audits/{audit_id}/download" \
-     -H "Authorization: Bearer {token}"
+   # Get a valid audit ID and token from the database or UI
+   # Note: Token is passed as query parameter, not header
+   curl -I "http://localhost:8000/api/suppliers/{supplier_id}/audits/{audit_id}/download?token={token}"
 
    # Should return 200 with application/pdf or 302 redirect
+
+   # Test without token (should return 401)
+   curl -I "http://localhost:8000/api/suppliers/{supplier_id}/audits/{audit_id}/download"
+   # Should return {"detail":"Not authenticated"}
    ```
 
 3. Upload a new PDF and verify View Full PDF works:
@@ -132,4 +152,5 @@ As a sourcing manager, I want to view the original audit PDF document so that I 
 - For local `file://` URLs, the backend reads and serves the file content
 - For Supabase Storage `https://` URLs, the backend redirects to the storage URL
 - This approach works uniformly regardless of storage location
-- Authentication is still required to access the download endpoint
+- Authentication is via query parameter `?token=...` since browsers can't send headers when opening new tabs
+- The token is the same JWT token stored in localStorage after login
