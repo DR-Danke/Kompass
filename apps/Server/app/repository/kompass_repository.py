@@ -1525,6 +1525,11 @@ class SupplierRepository:
         status: Optional[str] = None,
         country: Optional[str] = None,
         has_products: Optional[bool] = None,
+        certification_status: Optional[str] = None,
+        pipeline_status: Optional[str] = None,
+        search: Optional[str] = None,
+        sort_by: str = "name",
+        sort_order: str = "asc",
     ) -> Tuple[List[Dict[str, Any]], int]:
         """Get all suppliers with extended filtering options.
 
@@ -1534,6 +1539,11 @@ class SupplierRepository:
             status: Filter by supplier status
             country: Filter by country
             has_products: Filter by whether supplier has products
+            certification_status: Filter by certification status (certified, certified_a, certified_b, certified_c, uncertified)
+            pipeline_status: Filter by pipeline status
+            search: Search query for name, email, phone, code
+            sort_by: Field to sort by (name, certification_status, pipeline_status, certified_at)
+            sort_order: Sort direction (asc, desc)
 
         Returns:
             Tuple of (list of suppliers, total count)
@@ -1564,6 +1574,34 @@ class SupplierRepository:
                         "NOT EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
                     )
 
+                # Handle certification_status filter
+                if certification_status:
+                    if certification_status == "certified":
+                        # Any certified status (A, B, or C)
+                        conditions.append(
+                            "s.certification_status IN ('certified_a', 'certified_b', 'certified_c')"
+                        )
+                    elif certification_status == "uncertified":
+                        conditions.append(
+                            "s.certification_status IN ('uncertified', 'pending_review')"
+                        )
+                    else:
+                        conditions.append("s.certification_status = %s")
+                        params.append(certification_status)
+
+                # Handle pipeline_status filter
+                if pipeline_status:
+                    conditions.append("s.pipeline_status = %s")
+                    params.append(pipeline_status)
+
+                # Handle search filter
+                if search:
+                    search_pattern = f"%{search}%"
+                    conditions.append(
+                        "(s.name ILIKE %s OR s.contact_email ILIKE %s OR s.contact_phone ILIKE %s OR s.code ILIKE %s)"
+                    )
+                    params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
+
                 where_clause = (
                     "WHERE " + " AND ".join(conditions) if conditions else ""
                 )
@@ -1578,22 +1616,35 @@ class SupplierRepository:
                 offset = (page - 1) * limit
                 params.extend([limit, offset])
 
-                # Main query
+                # Build ORDER BY clause
+                valid_sort_fields = {
+                    "name": "s.name",
+                    "certification_status": "s.certification_status",
+                    "pipeline_status": "s.pipeline_status",
+                    "certified_at": "s.certified_at",
+                    "created_at": "s.created_at",
+                }
+                sort_field = valid_sort_fields.get(sort_by, "s.name")
+                sort_dir = "DESC" if sort_order.lower() == "desc" else "ASC"
+                order_clause = f"ORDER BY {sort_field} {sort_dir}"
+
+                # Main query with extended fields
                 cur.execute(
                     f"""
                     SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
                            s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
-                           s.created_at, s.updated_at
+                           s.certification_status, s.pipeline_status, s.latest_audit_id,
+                           s.certified_at, s.created_at, s.updated_at
                     FROM suppliers s
                     {where_clause}
-                    ORDER BY s.name
+                    {order_clause}
                     LIMIT %s OFFSET %s
                     """,
                     params,
                 )
                 rows = cur.fetchall()
 
-                items = [self._row_to_dict(row) for row in rows]
+                items = [self._row_to_dict_extended(row) for row in rows]
                 return items, total
         except Exception as e:
             print(f"ERROR [SupplierRepository]: Failed to get suppliers with filters: {e}")
