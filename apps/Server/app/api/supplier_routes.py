@@ -15,8 +15,11 @@ from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
     ProductFilterDTO,
     ProductListResponseDTO,
+    SupplierCertificationSummaryDTO,
     SupplierCreateDTO,
     SupplierListResponseDTO,
+    SupplierPipelineStatus,
+    SupplierPipelineStatusUpdateDTO,
     SupplierResponseDTO,
     SupplierStatus,
     SupplierUpdateDTO,
@@ -127,6 +130,85 @@ async def search_suppliers(
     results = supplier_service.search_suppliers(query)
     print(f"INFO [SupplierRoutes]: Search returned {len(results)} results")
     return results
+
+
+@router.get("/certified", response_model=SupplierListResponseDTO)
+async def list_certified_suppliers(
+    grade: Optional[str] = Query(
+        None, description="Filter by certification grade: A | B | C"
+    ),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    current_user: dict = Depends(get_current_user),
+) -> SupplierListResponseDTO:
+    """List only certified suppliers (certified_a, certified_b, certified_c).
+
+    Args:
+        grade: Optional filter by grade (A, B, C)
+        page: Page number (1-indexed)
+        limit: Items per page (max 100)
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Paginated list of certified suppliers
+    """
+    print(f"INFO [SupplierRoutes]: Listing certified suppliers, grade={grade}, page {page}")
+
+    try:
+        result = supplier_service.list_certified_suppliers(
+            grade=grade,
+            page=page,
+            limit=limit,
+        )
+        print(
+            f"INFO [SupplierRoutes]: Found {result.pagination.total} certified suppliers"
+        )
+        return result
+    except ValueError as e:
+        print(f"WARN [SupplierRoutes]: Invalid grade parameter: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/pipeline/{status}", response_model=SupplierListResponseDTO)
+async def list_suppliers_by_pipeline(
+    status: str,
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+    current_user: dict = Depends(get_current_user),
+) -> SupplierListResponseDTO:
+    """List suppliers filtered by pipeline status.
+
+    Args:
+        status: Pipeline status (contacted/potential/quoted/certified/active/inactive)
+        page: Page number (1-indexed)
+        limit: Items per page (max 100)
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Paginated list of suppliers with the specified pipeline status
+    """
+    print(f"INFO [SupplierRoutes]: Listing suppliers by pipeline status={status}, page {page}")
+
+    # Validate pipeline status
+    try:
+        pipeline_status = SupplierPipelineStatus(status)
+    except ValueError:
+        valid_statuses = ", ".join([s.value for s in SupplierPipelineStatus])
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid pipeline status: {status}. Must be one of: {valid_statuses}",
+        )
+
+    result = supplier_service.list_suppliers_by_pipeline(
+        pipeline_status=pipeline_status,
+        page=page,
+        limit=limit,
+    )
+    print(
+        f"INFO [SupplierRoutes]: Found {result.pagination.total} suppliers "
+        f"with pipeline_status={status}"
+    )
+    return result
 
 
 @router.get("/{supplier_id}")
@@ -267,4 +349,70 @@ async def get_supplier_products(
     print(
         f"INFO [SupplierRoutes]: Found {result.pagination.total} products for supplier"
     )
+    return result
+
+
+@router.put("/{supplier_id}/pipeline-status", response_model=SupplierResponseDTO)
+async def update_pipeline_status(
+    supplier_id: UUID,
+    request: SupplierPipelineStatusUpdateDTO,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> SupplierResponseDTO:
+    """Update supplier pipeline status (admin/manager only).
+
+    Args:
+        supplier_id: UUID of the supplier
+        request: Pipeline status update data
+        current_user: Authenticated admin/manager user (injected)
+
+    Returns:
+        Updated supplier
+
+    Raises:
+        HTTPException 404: If supplier not found
+    """
+    print(
+        f"INFO [SupplierRoutes]: Updating pipeline status for {supplier_id} "
+        f"to {request.pipeline_status.value}"
+    )
+
+    result = supplier_service.update_pipeline_status(
+        supplier_id=supplier_id,
+        pipeline_status=request.pipeline_status,
+    )
+
+    if not result:
+        print(f"WARN [SupplierRoutes]: Supplier not found: {supplier_id}")
+        raise HTTPException(status_code=404, detail="Supplier not found")
+
+    print(f"INFO [SupplierRoutes]: Pipeline status updated successfully: {supplier_id}")
+    return result
+
+
+@router.get("/{supplier_id}/certification", response_model=SupplierCertificationSummaryDTO)
+async def get_certification_summary(
+    supplier_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> SupplierCertificationSummaryDTO:
+    """Get certification summary for a supplier including latest audit info.
+
+    Args:
+        supplier_id: UUID of the supplier
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Certification summary with audit details
+
+    Raises:
+        HTTPException 404: If supplier not found
+    """
+    print(f"INFO [SupplierRoutes]: Getting certification summary for: {supplier_id}")
+
+    result = supplier_service.get_certification_summary(supplier_id)
+
+    if not result:
+        print(f"WARN [SupplierRoutes]: Supplier not found: {supplier_id}")
+        raise HTTPException(status_code=404, detail="Supplier not found")
+
+    print(f"INFO [SupplierRoutes]: Found certification summary for: {supplier_id}")
     return result

@@ -1726,6 +1726,288 @@ class SupplierRepository:
             "updated_at": row[17],
         }
 
+    def get_by_certification_status(
+        self,
+        certification_status: Optional[str] = None,
+        grade: Optional[str] = None,
+        page: int = 1,
+        limit: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """Get suppliers filtered by certification status.
+
+        Args:
+            certification_status: Filter by specific certification status
+            grade: Filter by certification grade (A, B, C) - if provided,
+                   will filter for certified_a, certified_b, or certified_c
+            page: Page number (1-indexed)
+            limit: Items per page
+
+        Returns:
+            Tuple of (list of suppliers, total count)
+        """
+        conn = get_database_connection()
+        if not conn:
+            return [], 0
+
+        try:
+            with conn.cursor() as cur:
+                conditions = []
+                params: List[Any] = []
+
+                if grade:
+                    # Filter by specific grade (A, B, C)
+                    grade_status = f"certified_{grade.lower()}"
+                    conditions.append("certification_status = %s")
+                    params.append(grade_status)
+                elif certification_status:
+                    conditions.append("certification_status = %s")
+                    params.append(certification_status)
+                else:
+                    # Default: get all certified suppliers (A, B, or C)
+                    conditions.append(
+                        "certification_status IN ('certified_a', 'certified_b', 'certified_c')"
+                    )
+
+                where_clause = (
+                    "WHERE " + " AND ".join(conditions) if conditions else ""
+                )
+
+                # Count query
+                cur.execute(
+                    f"SELECT COUNT(*) FROM suppliers {where_clause}",
+                    params,
+                )
+                total = cur.fetchone()[0]
+
+                offset = (page - 1) * limit
+                params.extend([limit, offset])
+
+                # Main query
+                cur.execute(
+                    f"""
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           certification_status, pipeline_status, latest_audit_id, certified_at,
+                           created_at, updated_at
+                    FROM suppliers
+                    {where_clause}
+                    ORDER BY name
+                    LIMIT %s OFFSET %s
+                    """,
+                    params,
+                )
+                rows = cur.fetchall()
+
+                items = [self._row_to_dict_extended(row) for row in rows]
+                return items, total
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get suppliers by certification: {e}")
+            return [], 0
+        finally:
+            close_database_connection(conn)
+
+    def get_by_pipeline_status(
+        self,
+        pipeline_status: str,
+        page: int = 1,
+        limit: int = 20,
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """Get suppliers filtered by pipeline status.
+
+        Args:
+            pipeline_status: Filter by pipeline status
+            page: Page number (1-indexed)
+            limit: Items per page
+
+        Returns:
+            Tuple of (list of suppliers, total count)
+        """
+        conn = get_database_connection()
+        if not conn:
+            return [], 0
+
+        try:
+            with conn.cursor() as cur:
+                # Count query
+                cur.execute(
+                    "SELECT COUNT(*) FROM suppliers WHERE pipeline_status = %s",
+                    (pipeline_status,),
+                )
+                total = cur.fetchone()[0]
+
+                offset = (page - 1) * limit
+
+                # Main query
+                cur.execute(
+                    """
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           certification_status, pipeline_status, latest_audit_id, certified_at,
+                           created_at, updated_at
+                    FROM suppliers
+                    WHERE pipeline_status = %s
+                    ORDER BY name
+                    LIMIT %s OFFSET %s
+                    """,
+                    (pipeline_status, limit, offset),
+                )
+                rows = cur.fetchall()
+
+                items = [self._row_to_dict_extended(row) for row in rows]
+                return items, total
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get suppliers by pipeline: {e}")
+            return [], 0
+        finally:
+            close_database_connection(conn)
+
+    def update_pipeline_status(
+        self,
+        supplier_id: UUID,
+        pipeline_status: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Update only the pipeline status of a supplier.
+
+        Args:
+            supplier_id: UUID of the supplier
+            pipeline_status: New pipeline status
+
+        Returns:
+            Updated supplier dict if successful, None otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE suppliers
+                    SET pipeline_status = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING id, name, code, status, contact_name, contact_email,
+                              contact_phone, address, city, country, website, notes,
+                              certification_status, pipeline_status, latest_audit_id, certified_at,
+                              created_at, updated_at
+                    """,
+                    (pipeline_status, str(supplier_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_extended(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to update pipeline status: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def get_with_certification_details(
+        self,
+        supplier_id: UUID,
+    ) -> Optional[Dict[str, Any]]:
+        """Get supplier with certification details including latest audit info.
+
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Supplier dict with certification and audit details
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
+                           s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
+                           s.certification_status, s.pipeline_status, s.latest_audit_id,
+                           s.certified_at, s.created_at, s.updated_at,
+                           a.audit_date, a.ai_classification, a.manual_classification
+                    FROM suppliers s
+                    LEFT JOIN supplier_audits a ON s.latest_audit_id = a.id
+                    WHERE s.id = %s
+                    """,
+                    (str(supplier_id),),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return {
+                        "id": row[0],
+                        "name": row[1],
+                        "code": row[2],
+                        "status": row[3],
+                        "contact_name": row[4],
+                        "contact_email": row[5],
+                        "contact_phone": row[6],
+                        "address": row[7],
+                        "city": row[8],
+                        "country": row[9],
+                        "website": row[10],
+                        "notes": row[11],
+                        "certification_status": row[12],
+                        "pipeline_status": row[13],
+                        "latest_audit_id": row[14],
+                        "certified_at": row[15],
+                        "created_at": row[16],
+                        "updated_at": row[17],
+                        "latest_audit_date": row[18],
+                        "ai_classification": row[19],
+                        "manual_classification": row[20],
+                    }
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get supplier certification details: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def get_by_id_extended(self, supplier_id: UUID) -> Optional[Dict[str, Any]]:
+        """Get supplier by UUID with all fields including certification fields.
+
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Supplier dict with all fields including certification data
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           certification_status, pipeline_status, latest_audit_id, certified_at,
+                           created_at, updated_at
+                    FROM suppliers
+                    WHERE id = %s
+                    """,
+                    (str(supplier_id),),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_extended(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get supplier extended: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
 
 # =============================================================================
 # PRODUCT REPOSITORY

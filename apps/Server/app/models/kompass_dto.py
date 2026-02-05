@@ -430,6 +430,31 @@ class SupplierListResponseDTO(BaseModel):
     pagination: PaginationDTO
 
 
+class SupplierPipelineStatusUpdateDTO(BaseModel):
+    """Request model for updating supplier pipeline status."""
+
+    pipeline_status: SupplierPipelineStatus
+
+
+class SupplierCertificationSummaryDTO(BaseModel):
+    """Response model for supplier certification summary with audit info."""
+
+    id: UUID
+    name: str
+    code: Optional[str] = None
+    status: SupplierStatus
+    country: str
+    certification_status: CertificationStatus = CertificationStatus.UNCERTIFIED
+    pipeline_status: SupplierPipelineStatus = SupplierPipelineStatus.CONTACTED
+    certified_at: Optional[datetime] = None
+    latest_audit_id: Optional[UUID] = None
+    latest_audit_date: Optional[date] = None
+    ai_classification: Optional[str] = None
+    manual_classification: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
 # =============================================================================
 # SUPPLIER AUDIT DTOs
 # =============================================================================
