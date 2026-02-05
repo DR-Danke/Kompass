@@ -12,8 +12,10 @@ from uuid import UUID
 
 from app.models.kompass_dto import (
     PaginationDTO,
+    SupplierCertificationSummaryDTO,
     SupplierCreateDTO,
     SupplierListResponseDTO,
+    SupplierPipelineStatus,
     SupplierResponseDTO,
     SupplierStatus,
     SupplierUpdateDTO,
@@ -318,6 +320,152 @@ class SupplierService:
         print(f"INFO [SupplierService]: Search for '{query}' returned {len(items)} results")
 
         return [SupplierResponseDTO(**item) for item in items]
+
+    def list_certified_suppliers(
+        self,
+        grade: Optional[str] = None,
+        page: int = 1,
+        limit: int = 20,
+    ) -> SupplierListResponseDTO:
+        """List only certified suppliers (certified_a, certified_b, certified_c).
+
+        Args:
+            grade: Optional filter by grade (A, B, C)
+            page: Page number (1-indexed)
+            limit: Items per page
+
+        Returns:
+            Paginated list of certified suppliers
+
+        Raises:
+            ValueError: If invalid grade is provided
+        """
+        # Validate grade if provided
+        if grade and grade.upper() not in ["A", "B", "C"]:
+            raise ValueError(
+                f"Invalid grade: {grade}. Must be one of: A, B, C"
+            )
+
+        items, total = supplier_repository.get_by_certification_status(
+            grade=grade,
+            page=page,
+            limit=limit,
+        )
+
+        pages = math.ceil(total / limit) if total > 0 else 0
+
+        supplier_responses = [SupplierResponseDTO(**item) for item in items]
+
+        print(
+            f"INFO [SupplierService]: Listed {len(supplier_responses)} certified suppliers "
+            f"(grade={grade}, page {page}/{pages})"
+        )
+
+        return SupplierListResponseDTO(
+            items=supplier_responses,
+            pagination=PaginationDTO(
+                page=page,
+                limit=limit,
+                total=total,
+                pages=pages,
+            ),
+        )
+
+    def list_suppliers_by_pipeline(
+        self,
+        pipeline_status: SupplierPipelineStatus,
+        page: int = 1,
+        limit: int = 20,
+    ) -> SupplierListResponseDTO:
+        """List suppliers filtered by pipeline status.
+
+        Args:
+            pipeline_status: Pipeline status to filter by
+            page: Page number (1-indexed)
+            limit: Items per page
+
+        Returns:
+            Paginated list of suppliers
+        """
+        items, total = supplier_repository.get_by_pipeline_status(
+            pipeline_status=pipeline_status.value,
+            page=page,
+            limit=limit,
+        )
+
+        pages = math.ceil(total / limit) if total > 0 else 0
+
+        supplier_responses = [SupplierResponseDTO(**item) for item in items]
+
+        print(
+            f"INFO [SupplierService]: Listed {len(supplier_responses)} suppliers "
+            f"with pipeline_status={pipeline_status.value} (page {page}/{pages})"
+        )
+
+        return SupplierListResponseDTO(
+            items=supplier_responses,
+            pagination=PaginationDTO(
+                page=page,
+                limit=limit,
+                total=total,
+                pages=pages,
+            ),
+        )
+
+    def update_pipeline_status(
+        self,
+        supplier_id: UUID,
+        pipeline_status: SupplierPipelineStatus,
+    ) -> Optional[SupplierResponseDTO]:
+        """Update the pipeline status of a supplier.
+
+        Args:
+            supplier_id: UUID of the supplier
+            pipeline_status: New pipeline status
+
+        Returns:
+            Updated supplier response, or None if not found
+        """
+        # Check if supplier exists
+        existing = supplier_repository.get_by_id(supplier_id)
+        if not existing:
+            return None
+
+        result = supplier_repository.update_pipeline_status(
+            supplier_id=supplier_id,
+            pipeline_status=pipeline_status.value,
+        )
+
+        if not result:
+            print(f"ERROR [SupplierService]: Failed to update pipeline status for {supplier_id}")
+            return None
+
+        print(
+            f"INFO [SupplierService]: Updated pipeline status for {supplier_id} "
+            f"to {pipeline_status.value}"
+        )
+        return SupplierResponseDTO(**result)
+
+    def get_certification_summary(
+        self,
+        supplier_id: UUID,
+    ) -> Optional[SupplierCertificationSummaryDTO]:
+        """Get certification summary for a supplier including latest audit info.
+
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Certification summary with audit details, or None if not found
+        """
+        result = supplier_repository.get_with_certification_details(supplier_id)
+
+        if not result:
+            print(f"INFO [SupplierService]: Supplier {supplier_id} not found")
+            return None
+
+        print(f"INFO [SupplierService]: Retrieved certification summary for {supplier_id}")
+        return SupplierCertificationSummaryDTO(**result)
 
 
 # Singleton instance
