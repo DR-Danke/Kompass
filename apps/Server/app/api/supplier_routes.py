@@ -312,7 +312,7 @@ async def export_verification_excel(
     Returns:
         StreamingResponse with Excel file
     """
-    print(f"INFO [SupplierRoutes]: Exporting supplier verification data to Excel")
+    print("INFO [SupplierRoutes]: Exporting supplier verification data to Excel")
 
     try:
         excel_bytes = supplier_service.export_verification_excel(
