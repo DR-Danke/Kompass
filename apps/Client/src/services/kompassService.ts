@@ -224,6 +224,15 @@ export const supplierService = {
     const response = await apiClient.get<SupplierCertificationSummary>(`/suppliers/${id}/certification`);
     return response.data;
   },
+
+  async exportVerificationExcel(filters?: SupplierListFilters): Promise<Blob> {
+    console.log('INFO [supplierService]: Exporting supplier verification data to Excel');
+    const response = await apiClient.get('/suppliers/export/excel', {
+      params: { ...filters },
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 // =============================================================================

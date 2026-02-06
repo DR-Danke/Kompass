@@ -1652,6 +1652,149 @@ class SupplierRepository:
         finally:
             close_database_connection(conn)
 
+    def get_all_with_audit_data(
+        self,
+        status: Optional[str] = None,
+        country: Optional[str] = None,
+        has_products: Optional[bool] = None,
+        certification_status: Optional[str] = None,
+        pipeline_status: Optional[str] = None,
+        search: Optional[str] = None,
+        sort_by: str = "name",
+        sort_order: str = "asc",
+    ) -> List[Dict[str, Any]]:
+        """Get all suppliers with their latest audit data for Excel export.
+
+        Args:
+            status: Filter by supplier status
+            country: Filter by country
+            has_products: Filter by whether supplier has products
+            certification_status: Filter by certification status
+            pipeline_status: Filter by pipeline status
+            search: Search query for name, email, phone, code
+            sort_by: Field to sort by
+            sort_order: Sort direction (asc, desc)
+
+        Returns:
+            List of supplier dicts with joined audit fields (max 5000 rows)
+        """
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                conditions: List[str] = []
+                params: List[Any] = []
+
+                if status:
+                    conditions.append("s.status = %s")
+                    params.append(status)
+                if country:
+                    conditions.append("s.country = %s")
+                    params.append(country)
+
+                if has_products is True:
+                    conditions.append(
+                        "EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
+                    )
+                elif has_products is False:
+                    conditions.append(
+                        "NOT EXISTS (SELECT 1 FROM products p WHERE p.supplier_id = s.id)"
+                    )
+
+                if certification_status:
+                    if certification_status == "certified":
+                        conditions.append(
+                            "s.certification_status IN ('certified_a', 'certified_b', 'certified_c')"
+                        )
+                    elif certification_status == "uncertified":
+                        conditions.append(
+                            "s.certification_status IN ('uncertified', 'pending_review')"
+                        )
+                    else:
+                        conditions.append("s.certification_status = %s")
+                        params.append(certification_status)
+
+                if pipeline_status:
+                    conditions.append("s.pipeline_status = %s")
+                    params.append(pipeline_status)
+
+                if search:
+                    search_pattern = f"%{search}%"
+                    conditions.append(
+                        "(s.name ILIKE %s OR s.contact_email ILIKE %s OR s.contact_phone ILIKE %s OR s.code ILIKE %s)"
+                    )
+                    params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
+
+                where_clause = (
+                    "WHERE " + " AND ".join(conditions) if conditions else ""
+                )
+
+                valid_sort_fields = {
+                    "name": "s.name",
+                    "certification_status": "s.certification_status",
+                    "pipeline_status": "s.pipeline_status",
+                    "certified_at": "s.certified_at",
+                    "created_at": "s.created_at",
+                }
+                sort_field = valid_sort_fields.get(sort_by, "s.name")
+                sort_dir = "DESC" if sort_order.lower() == "desc" else "ASC"
+                order_clause = f"ORDER BY {sort_field} {sort_dir}"
+
+                cur.execute(
+                    f"""
+                    SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
+                           s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
+                           s.certification_status, s.pipeline_status, s.latest_audit_id,
+                           s.certified_at, s.created_at, s.updated_at,
+                           a.supplier_type, a.employee_count, a.factory_area_sqm,
+                           a.production_lines_count, a.markets_served, a.certifications,
+                           a.has_machinery_photos, a.positive_points, a.negative_points,
+                           a.products_verified, a.audit_date, a.inspector_name,
+                           a.extraction_status, a.ai_classification, a.ai_classification_reason,
+                           a.manual_classification, a.classification_notes
+                    FROM suppliers s
+                    LEFT JOIN supplier_audits a ON s.latest_audit_id = a.id
+                    {where_clause}
+                    {order_clause}
+                    LIMIT 5000
+                    """,
+                    params,
+                )
+                rows = cur.fetchall()
+
+                items = []
+                for row in rows:
+                    item = self._row_to_dict_extended(row[:18])
+                    item.update({
+                        "supplier_type": row[18],
+                        "employee_count": row[19],
+                        "factory_area_sqm": row[20],
+                        "production_lines_count": row[21],
+                        "markets_served": row[22],
+                        "certifications": row[23],
+                        "has_machinery_photos": row[24],
+                        "positive_points": row[25],
+                        "negative_points": row[26],
+                        "products_verified": row[27],
+                        "audit_date": row[28],
+                        "inspector_name": row[29],
+                        "extraction_status": row[30],
+                        "ai_classification": row[31],
+                        "ai_classification_reason": row[32],
+                        "manual_classification": row[33],
+                        "classification_notes": row[34],
+                    })
+                    items.append(item)
+
+                return items
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get suppliers with audit data: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
     def search(
         self,
         query: str,

@@ -27,6 +27,7 @@ import {
   ToggleButtonGroup,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import SearchIcon from '@mui/icons-material/Search';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
@@ -165,6 +166,9 @@ const SuppliersPage: React.FC = () => {
   // Pipeline status update loading state
   const [pipelineStatusLoading, setPipelineStatusLoading] = useState<string | null>(null);
 
+  // Excel export loading state
+  const [exporting, setExporting] = useState(false);
+
   // Debounce search query for list view
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -282,6 +286,42 @@ const SuppliersPage: React.FC = () => {
       setSortOrder('asc');
     }
     setPage(0);
+  };
+
+  // Handle Excel export
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      const filters: {
+        status?: string;
+        search?: string;
+        pipeline_status?: string;
+        certification_status?: string;
+        sort_by?: string;
+        sort_order?: 'asc' | 'desc';
+      } = {};
+      if (statusFilter !== 'all') filters.status = statusFilter;
+      if (pipelineFilter !== 'all') filters.pipeline_status = pipelineFilter;
+      if (certificationFilter !== 'all') filters.certification_status = certificationFilter;
+      if (debouncedSearch) filters.search = debouncedSearch;
+      filters.sort_by = sortField;
+      filters.sort_order = sortOrder;
+
+      const blob = await supplierService.exportVerificationExcel(filters);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `supplier_verification_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.log('ERROR [SuppliersPage]: Failed to export Excel', err);
+      setError(err instanceof Error ? err.message : 'Failed to export supplier data');
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Handle add/edit
@@ -440,6 +480,14 @@ const SuppliersPage: React.FC = () => {
               <ViewKanbanIcon />
             </ToggleButton>
           </ToggleButtonGroup>
+          <Button
+            variant="outlined"
+            startIcon={exporting ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+            onClick={handleExportExcel}
+            disabled={exporting}
+          >
+            Export Excel
+          </Button>
           <Button
             variant="contained"
             startIcon={<AddIcon />}

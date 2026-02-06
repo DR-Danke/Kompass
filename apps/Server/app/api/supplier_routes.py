@@ -5,10 +5,13 @@ pagination, filtering, search, and related product listing. All endpoints
 require authentication and some require admin/manager roles.
 """
 
+import io
+from datetime import date
 from typing import Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 
 from app.api.dependencies import get_current_user
 from app.api.rbac_dependencies import require_roles
@@ -279,6 +282,60 @@ async def list_suppliers_by_pipeline(
         f"with pipeline_status={status}"
     )
     return result
+
+
+@router.get("/export/excel")
+async def export_verification_excel(
+    status: Optional[str] = Query(None, description="Filter by status"),
+    country: Optional[str] = Query(None, description="Filter by country"),
+    has_products: Optional[bool] = Query(None, description="Filter by whether supplier has products"),
+    certification_status: Optional[str] = Query(None, description="Filter by certification status"),
+    pipeline_status: Optional[str] = Query(None, description="Filter by pipeline status"),
+    search: Optional[str] = Query(None, description="Search by name, email, phone, or code"),
+    sort_by: str = Query("name", description="Sort by field"),
+    sort_order: str = Query("asc", description="Sort order: asc | desc"),
+    current_user: dict = Depends(get_current_user),
+) -> StreamingResponse:
+    """Export supplier verification data to Excel file.
+
+    Args:
+        status: Filter by supplier status
+        country: Filter by country
+        has_products: Filter by whether supplier has products
+        certification_status: Filter by certification status
+        pipeline_status: Filter by pipeline status
+        search: Search query
+        sort_by: Field to sort by
+        sort_order: Sort direction
+        current_user: Authenticated user (injected)
+
+    Returns:
+        StreamingResponse with Excel file
+    """
+    print("INFO [SupplierRoutes]: Exporting supplier verification data to Excel")
+
+    try:
+        excel_bytes = supplier_service.export_verification_excel(
+            status=status,
+            country=country,
+            has_products=has_products,
+            certification_status=certification_status,
+            pipeline_status=pipeline_status,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+
+        filename = f"supplier_verification_export_{date.today().isoformat()}.xlsx"
+
+        return StreamingResponse(
+            io.BytesIO(excel_bytes),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except Exception as e:
+        print(f"ERROR [SupplierRoutes]: Failed to export Excel: {e}")
+        raise HTTPException(status_code=500, detail="Failed to export supplier data")
 
 
 @router.get("/{supplier_id}")
