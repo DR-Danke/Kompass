@@ -1755,7 +1755,12 @@ class SupplierRepository:
                            a.extraction_status, a.ai_classification, a.ai_classification_reason,
                            a.manual_classification, a.classification_notes
                     FROM suppliers s
-                    LEFT JOIN supplier_audits a ON s.latest_audit_id = a.id
+                    LEFT JOIN supplier_audits a ON a.id = (
+                        SELECT sa.id FROM supplier_audits sa
+                        WHERE sa.supplier_id = s.id
+                        ORDER BY sa.created_at DESC
+                        LIMIT 1
+                    )
                     {where_clause}
                     {order_clause}
                     LIMIT 5000

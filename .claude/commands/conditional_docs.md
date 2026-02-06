@@ -1653,3 +1653,10 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with openpyxl Excel generation in the supplier service
     - When troubleshooting supplier verification export or download issues
     - When implementing new export formats for supplier data
+
+- app_docs/bugfix-edbd41a6-supplier-certification-excel-export.md
+  - Conditions:
+    - When working with supplier certification data in Excel exports
+    - When modifying the get_all_with_audit_data() SQL query in kompass_repository.py
+    - When troubleshooting missing audit data in supplier Excel exports
+    - When working with the LEFT JOIN between suppliers and supplier_audits tables
