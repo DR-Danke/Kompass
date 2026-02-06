@@ -574,3 +574,40 @@ class TestExportVerificationExcel:
 
         assert response.status_code == 500
         assert "Failed to export" in response.json()["detail"]
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_export_excel_contains_audit_data(self, mock_service, client):
+        """Test that Excel export includes audit data for suppliers without classification."""
+        from io import BytesIO
+        from openpyxl import Workbook, load_workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Supplier Verification Data"
+        headers = [
+            "Name", "Code", "Status", "Certification Status",
+            "Supplier Type", "Employee Count", "Factory Area (sqm)",
+            "Certifications", "Positive Points", "Negative Points",
+        ]
+        for col, header in enumerate(headers, 1):
+            ws.cell(row=1, column=col, value=header)
+        # Row with audit data populated (simulating supplier with audit but no classification)
+        row_data = [
+            "Test Supplier", "TS-001", "active", "pending_review",
+            "Manufacturer", "250", "5000",
+            "ISO 9001, ISO 14001", "Good quality control", "Limited capacity",
+        ]
+        for col, value in enumerate(row_data, 1):
+            ws.cell(row=2, column=col, value=value)
+        buffer = BytesIO()
+        wb.save(buffer)
+        mock_service.export_verification_excel.return_value = buffer.getvalue()
+
+        response = client.get("/api/suppliers/export/excel")
+
+        assert response.status_code == 200
+        result_wb = load_workbook(BytesIO(response.content))
+        ws = result_wb["Supplier Verification Data"]
+        assert ws.cell(row=2, column=5).value == "Manufacturer"
+        assert ws.cell(row=2, column=6).value == "250"
+        assert ws.cell(row=2, column=8).value == "ISO 9001, ISO 14001"
