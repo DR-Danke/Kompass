@@ -1643,3 +1643,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When writing E2E tests for supplier certification features
     - When troubleshooting audit upload, classification, or override test failures
     - When understanding test coverage for the certification system
+
+- app_docs/feature-28c175cd-supplier-verification-export-excel.md
+  - Conditions:
+    - When working with supplier verification data export to Excel
+    - When implementing or modifying the /api/suppliers/export/excel endpoint
+    - When working with supplier audit data aggregation or bulk export
+    - When modifying the Export Excel button on the Suppliers page
+    - When working with openpyxl Excel generation in the supplier service
+    - When troubleshooting supplier verification export or download issues
+    - When implementing new export formats for supplier data
