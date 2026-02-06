@@ -5,10 +5,14 @@ repository layer for supplier CRUD operations, filtering, search, and
 business rule enforcement.
 """
 
+import io
 import math
 import re
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
 
 from app.models.kompass_dto import (
     PaginationDTO,
@@ -517,6 +521,161 @@ class SupplierService:
         )
         print(f"INFO [SupplierService]: Retrieved pipeline with {total_count} total suppliers")
         return pipeline_response
+
+    def _format_markets_served(self, markets: Any) -> str:
+        """Format markets_served JSONB dict to readable string.
+
+        Args:
+            markets: Dict like {"Asia": 60, "Europe": 30} or None
+
+        Returns:
+            Formatted string like "Asia: 60%, Europe: 30%"
+        """
+        if not markets or not isinstance(markets, dict):
+            return ""
+        return ", ".join(f"{k}: {v}%" for k, v in markets.items())
+
+    def _format_list(self, items: Any, separator: str = ", ") -> str:
+        """Format a list/array field to a joined string.
+
+        Args:
+            items: List of strings or None
+            separator: Separator to join with
+
+        Returns:
+            Joined string or empty string
+        """
+        if not items or not isinstance(items, list):
+            return ""
+        return separator.join(str(item) for item in items)
+
+    def export_verification_excel(
+        self,
+        status: Optional[str] = None,
+        country: Optional[str] = None,
+        has_products: Optional[bool] = None,
+        certification_status: Optional[str] = None,
+        pipeline_status: Optional[str] = None,
+        search: Optional[str] = None,
+        sort_by: str = "name",
+        sort_order: str = "asc",
+    ) -> bytes:
+        """Export supplier verification data to Excel.
+
+        Args:
+            status: Filter by supplier status
+            country: Filter by country
+            has_products: Filter by whether supplier has products
+            certification_status: Filter by certification status
+            pipeline_status: Filter by pipeline status
+            search: Search query
+            sort_by: Field to sort by
+            sort_order: Sort direction
+
+        Returns:
+            Excel file bytes
+        """
+        items = supplier_repository.get_all_with_audit_data(
+            status=status,
+            country=country,
+            has_products=has_products,
+            certification_status=certification_status,
+            pipeline_status=pipeline_status,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Supplier Verification Data"
+
+        # Define columns
+        columns = [
+            # Supplier Info
+            ("Name", "name"),
+            ("Code", "code"),
+            ("Status", "status"),
+            ("Country", "country"),
+            ("City", "city"),
+            ("Contact Name", "contact_name"),
+            ("Contact Email", "contact_email"),
+            ("Contact Phone", "contact_phone"),
+            ("Website", "website"),
+            # Certification Info
+            ("Certification Status", "certification_status"),
+            ("Pipeline Status", "pipeline_status"),
+            ("Certified At", "certified_at"),
+            # Audit Info
+            ("Audit Date", "audit_date"),
+            ("Inspector Name", "inspector_name"),
+            ("Extraction Status", "extraction_status"),
+            # Extracted Data
+            ("Supplier Type", "supplier_type"),
+            ("Employee Count", "employee_count"),
+            ("Factory Area (sqm)", "factory_area_sqm"),
+            ("Production Lines", "production_lines_count"),
+            ("Certifications", "certifications"),
+            ("Markets Served", "markets_served"),
+            ("Has Machinery Photos", "has_machinery_photos"),
+            ("Positive Points", "positive_points"),
+            ("Negative Points", "negative_points"),
+            ("Products Verified", "products_verified"),
+            # Classification
+            ("AI Classification", "ai_classification"),
+            ("AI Classification Reason", "ai_classification_reason"),
+            ("Manual Classification", "manual_classification"),
+            ("Classification Notes", "classification_notes"),
+        ]
+
+        # Write header row with formatting
+        header_font = Font(bold=True)
+        header_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
+
+        for col_idx, (header, _) in enumerate(columns, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+
+        # Write data rows
+        for row_idx, item in enumerate(items, 2):
+            for col_idx, (_, field) in enumerate(columns, 1):
+                value = item.get(field)
+
+                # Format special fields
+                if field == "certifications":
+                    value = self._format_list(value, ", ")
+                elif field == "markets_served":
+                    value = self._format_markets_served(value)
+                elif field == "positive_points":
+                    value = self._format_list(value, "; ")
+                elif field == "negative_points":
+                    value = self._format_list(value, "; ")
+                elif field == "products_verified":
+                    value = self._format_list(value, ", ")
+                elif field == "has_machinery_photos":
+                    value = "Yes" if value else ("No" if value is False else "")
+                elif value is None:
+                    value = ""
+
+                ws.cell(row=row_idx, column=col_idx, value=str(value) if value != "" else value)
+
+        # Auto-size columns (approximate)
+        for col_idx, (header, _) in enumerate(columns, 1):
+            max_length = len(header)
+            for row_idx in range(2, min(len(items) + 2, 52)):  # Sample first 50 rows
+                cell_value = ws.cell(row=row_idx, column=col_idx).value
+                if cell_value:
+                    max_length = max(max_length, len(str(cell_value)))
+            ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = min(max_length + 2, 50)
+
+        # Save to buffer
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+
+        print(f"INFO [SupplierService]: Exported {len(items)} suppliers to Excel")
+        return buffer.getvalue()
 
 
 # Singleton instance

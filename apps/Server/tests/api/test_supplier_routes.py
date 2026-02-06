@@ -479,3 +479,98 @@ class TestGetSupplierProducts:
         call_kwargs = mock_product_service.list_products.call_args.kwargs
         assert call_kwargs["page"] == 2
         assert call_kwargs["limit"] == 10
+
+
+class TestExportVerificationExcel:
+    """Tests for GET /suppliers/export/excel endpoint."""
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_export_excel_success(self, mock_service, client):
+        """Test successful Excel export returns correct content type."""
+        # Create minimal valid Excel bytes using openpyxl
+        from io import BytesIO
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Supplier Verification Data"
+        ws.cell(row=1, column=1, value="Name")
+        buffer = BytesIO()
+        wb.save(buffer)
+        mock_service.export_verification_excel.return_value = buffer.getvalue()
+
+        response = client.get("/api/suppliers/export/excel")
+
+        assert response.status_code == 200
+        assert (
+            response.headers["content-type"]
+            == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        assert "attachment" in response.headers["content-disposition"]
+        assert "supplier_verification_export_" in response.headers["content-disposition"]
+        assert ".xlsx" in response.headers["content-disposition"]
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_export_excel_with_filters(self, mock_service, client):
+        """Test that filters are passed through to service."""
+        from io import BytesIO
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        buffer = BytesIO()
+        wb.save(buffer)
+        mock_service.export_verification_excel.return_value = buffer.getvalue()
+
+        response = client.get(
+            "/api/suppliers/export/excel?certification_status=certified&search=test&sort_by=name&sort_order=desc"
+        )
+
+        assert response.status_code == 200
+        mock_service.export_verification_excel.assert_called_once()
+        call_kwargs = mock_service.export_verification_excel.call_args.kwargs
+        assert call_kwargs["certification_status"] == "certified"
+        assert call_kwargs["search"] == "test"
+        assert call_kwargs["sort_by"] == "name"
+        assert call_kwargs["sort_order"] == "desc"
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_export_excel_parseable(self, mock_service, client):
+        """Test that returned Excel file can be parsed by openpyxl."""
+        from io import BytesIO
+        from openpyxl import Workbook, load_workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Supplier Verification Data"
+        ws.cell(row=1, column=1, value="Name")
+        ws.cell(row=1, column=2, value="Code")
+        buffer = BytesIO()
+        wb.save(buffer)
+        mock_service.export_verification_excel.return_value = buffer.getvalue()
+
+        response = client.get("/api/suppliers/export/excel")
+
+        assert response.status_code == 200
+        result_wb = load_workbook(BytesIO(response.content))
+        assert "Supplier Verification Data" in result_wb.sheetnames
+        ws = result_wb["Supplier Verification Data"]
+        assert ws.cell(row=1, column=1).value == "Name"
+
+    def test_export_excel_unauthenticated(self):
+        """Test that unauthenticated requests are rejected."""
+        test_app = FastAPI()
+        test_app.include_router(router, prefix="/api/suppliers")
+        unauth_client = TestClient(test_app)
+        response = unauth_client.get("/api/suppliers/export/excel")
+
+        assert response.status_code in [401, 403]
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_export_excel_service_error(self, mock_service, client):
+        """Test error handling when service raises exception."""
+        mock_service.export_verification_excel.side_effect = Exception("DB error")
+
+        response = client.get("/api/suppliers/export/excel")
+
+        assert response.status_code == 500
+        assert "Failed to export" in response.json()["detail"]
