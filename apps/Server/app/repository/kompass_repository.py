@@ -1469,10 +1469,117 @@ class SupplierRepository:
         finally:
             close_database_connection(conn)
 
-    def delete(self, supplier_id: UUID) -> bool:
-        """Delete a supplier (soft delete by setting status to inactive)."""
-        result = self.update(supplier_id, status="inactive")
-        return result is not None
+    def delete(self, supplier_id: UUID) -> Optional[Dict[str, Any]]:
+        """Hard delete a supplier and all associated data.
+
+        Performs cascading deletion within a single transaction:
+        1. Clears latest_audit_id FK to avoid circular reference
+        2. Deletes all products (cascades to product_images, product_tags, portfolio_items)
+        3. Deletes the supplier (cascades to supplier_audits)
+
+        Args:
+            supplier_id: UUID of the supplier to delete
+
+        Returns:
+            Dict with deletion counts, or None if supplier not found
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                # Clear circular FK reference
+                cur.execute(
+                    "UPDATE suppliers SET latest_audit_id = NULL WHERE id = %s",
+                    (str(supplier_id),),
+                )
+
+                # Count and delete products (cascades to images, tags, portfolio_items; sets null on quotation_items)
+                cur.execute(
+                    "DELETE FROM products WHERE supplier_id = %s",
+                    (str(supplier_id),),
+                )
+                products_deleted = cur.rowcount
+
+                # Count audits before they cascade-delete with the supplier
+                cur.execute(
+                    "SELECT COUNT(*) FROM supplier_audits WHERE supplier_id = %s",
+                    (str(supplier_id),),
+                )
+                audits_deleted = cur.fetchone()[0]
+
+                # Delete the supplier (cascades to supplier_audits)
+                cur.execute(
+                    "DELETE FROM suppliers WHERE id = %s RETURNING id",
+                    (str(supplier_id),),
+                )
+                row = cur.fetchone()
+
+                if not row:
+                    conn.rollback()
+                    return None
+
+                conn.commit()
+                return {
+                    "deleted": True,
+                    "products_deleted": products_deleted,
+                    "audits_deleted": audits_deleted,
+                }
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to hard delete supplier: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def get_delete_preview(self, supplier_id: UUID) -> Optional[Dict[str, Any]]:
+        """Get counts of associated records that would be deleted.
+
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Dict with supplier_name, products_count, audits_count, or None if not found
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT name FROM suppliers WHERE id = %s",
+                    (str(supplier_id),),
+                )
+                row = cur.fetchone()
+                if not row:
+                    return None
+
+                supplier_name = row[0]
+
+                cur.execute(
+                    "SELECT COUNT(*) FROM products WHERE supplier_id = %s",
+                    (str(supplier_id),),
+                )
+                products_count = cur.fetchone()[0]
+
+                cur.execute(
+                    "SELECT COUNT(*) FROM supplier_audits WHERE supplier_id = %s",
+                    (str(supplier_id),),
+                )
+                audits_count = cur.fetchone()[0]
+
+                return {
+                    "supplier_name": supplier_name,
+                    "products_count": products_count,
+                    "audits_count": audits_count,
+                }
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get delete preview: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
 
     def _row_to_dict(self, row: tuple) -> Dict[str, Any]:
         return {

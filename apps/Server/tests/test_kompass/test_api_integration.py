@@ -231,10 +231,14 @@ class TestRBACEnforcement:
         self, mock_service, admin_supplier_client
     ):
         """Test delete allowed for admin users."""
-        mock_service.delete_supplier.return_value = True
+        mock_service.delete_supplier.return_value = {
+            "deleted": True,
+            "products_deleted": 0,
+            "audits_deleted": 0,
+        }
         response = admin_supplier_client.delete(f"/api/suppliers/{uuid4()}")
         assert response.status_code == 200
-        assert response.json()["message"] == "Supplier deleted successfully"
+        assert response.json()["message"] == "Supplier permanently deleted"
 
     @patch("app.api.supplier_routes.supplier_service")
     def test_list_suppliers_allowed_for_all_roles(
@@ -270,23 +274,32 @@ class TestCrossServiceIntegration:
     """Tests for cross-service interactions."""
 
     @patch("app.api.supplier_routes.supplier_service")
-    def test_delete_supplier_fails_when_products_exist(
+    def test_delete_supplier_hard_deletes_with_counts(
         self, mock_service, admin_supplier_client
     ):
-        """Test delete blocked when supplier has active products."""
-        mock_service.delete_supplier.side_effect = ValueError(
-            "Cannot delete supplier with active products"
-        )
+        """Test hard delete returns counts of deleted associated data."""
+        mock_service.delete_supplier.return_value = {
+            "deleted": True,
+            "products_deleted": 5,
+            "audits_deleted": 2,
+        }
         response = admin_supplier_client.delete(f"/api/suppliers/{uuid4()}")
-        assert response.status_code == 400
-        assert "Cannot delete supplier with active products" in response.json()["detail"]
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "Supplier permanently deleted"
+        assert data["products_deleted"] == 5
+        assert data["audits_deleted"] == 2
 
     @patch("app.api.supplier_routes.supplier_service")
-    def test_delete_supplier_succeeds_when_no_products(
+    def test_delete_supplier_succeeds_when_no_associated_data(
         self, mock_service, admin_supplier_client
     ):
-        """Test delete succeeds when supplier has no products."""
-        mock_service.delete_supplier.return_value = True
+        """Test hard delete succeeds when supplier has no associated data."""
+        mock_service.delete_supplier.return_value = {
+            "deleted": True,
+            "products_deleted": 0,
+            "audits_deleted": 0,
+        }
         response = admin_supplier_client.delete(f"/api/suppliers/{uuid4()}")
         assert response.status_code == 200
 

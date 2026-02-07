@@ -403,41 +403,73 @@ async def update_supplier(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/{supplier_id}/delete-preview")
+async def get_delete_preview(
+    supplier_id: UUID,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> Dict:
+    """Get preview of what would be deleted for a supplier (admin/manager only).
+
+    Returns counts of associated records that will be permanently deleted.
+
+    Args:
+        supplier_id: UUID of the supplier
+        current_user: Authenticated admin/manager user (injected)
+
+    Returns:
+        Preview with supplier_name, products_count, audits_count
+
+    Raises:
+        HTTPException 404: If supplier not found
+    """
+    print(f"INFO [SupplierRoutes]: Getting delete preview for supplier: {supplier_id}")
+
+    result = supplier_service.get_delete_preview(supplier_id)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+
+    return result
+
+
 @router.delete("/{supplier_id}")
 async def delete_supplier(
     supplier_id: UUID,
     current_user: dict = Depends(require_roles(["admin", "manager"])),
-) -> Dict[str, str]:
-    """Soft delete a supplier (admin/manager only).
+) -> Dict:
+    """Permanently delete a supplier and all associated data (admin/manager only).
 
-    Sets the supplier status to inactive. Cannot delete suppliers
-    with active products.
+    Hard deletes the supplier and cascades to: products, product images,
+    product tags, portfolio items, and supplier audits. Quotation items
+    referencing deleted products will have their product_id set to NULL.
 
     Args:
         supplier_id: UUID of the supplier to delete
         current_user: Authenticated admin/manager user (injected)
 
     Returns:
-        Success message
+        Success message with counts of deleted records
 
     Raises:
-        HTTPException 400: If supplier has active products
         HTTPException 404: If supplier not found
     """
-    print(f"INFO [SupplierRoutes]: Deleting supplier: {supplier_id}")
+    print(f"INFO [SupplierRoutes]: Hard deleting supplier: {supplier_id}")
 
-    try:
-        result = supplier_service.delete_supplier(supplier_id)
+    result = supplier_service.delete_supplier(supplier_id)
 
-        if not result:
-            print(f"WARN [SupplierRoutes]: Supplier not found: {supplier_id}")
-            raise HTTPException(status_code=404, detail="Supplier not found")
+    if not result:
+        print(f"WARN [SupplierRoutes]: Supplier not found: {supplier_id}")
+        raise HTTPException(status_code=404, detail="Supplier not found")
 
-        print(f"INFO [SupplierRoutes]: Supplier deleted successfully: {supplier_id}")
-        return {"message": "Supplier deleted successfully"}
-    except ValueError as e:
-        print(f"WARN [SupplierRoutes]: Blocked deletion of supplier: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+    print(
+        f"INFO [SupplierRoutes]: Supplier hard deleted successfully: {supplier_id} "
+        f"(products: {result['products_deleted']}, audits: {result['audits_deleted']})"
+    )
+    return {
+        "message": "Supplier permanently deleted",
+        "products_deleted": result["products_deleted"],
+        "audits_deleted": result["audits_deleted"],
+    }
 
 
 @router.get("/{supplier_id}/products", response_model=ProductListResponseDTO)
