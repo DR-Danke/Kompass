@@ -28,6 +28,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CategoryIcon from '@mui/icons-material/Category';
 import LabelIcon from '@mui/icons-material/Label';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -38,6 +39,7 @@ interface NavItem {
   title: string;
   icon: React.ReactElement;
   path: string;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -51,6 +53,7 @@ const navItems: NavItem[] = [
   { title: 'Quotations', icon: <DescriptionIcon />, path: '/quotations' },
   { title: 'Niches', icon: <LabelIcon />, path: '/niches' },
   { title: 'Pricing', icon: <AttachMoneyIcon />, path: '/pricing' },
+  { title: 'Users', icon: <AdminPanelSettingsIcon />, path: '/users', adminOnly: true },
   { title: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   { title: 'Help & Docs', icon: <HelpOutlineIcon />, path: '/docs' },
 ];
@@ -116,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, width }
 
       {/* Navigation */}
       <List sx={{ flexGrow: 1, py: 2 }}>
-        {navItems.map((item) => {
+        {navItems.filter((item) => !item.adminOnly || user?.role === 'admin').map((item) => {
           const isActive = location.pathname === item.path;
 
           return (
