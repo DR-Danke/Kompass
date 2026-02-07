@@ -1669,3 +1669,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying the supplier delete confirmation dialog on SuppliersPage
     - When troubleshooting FK constraint issues during supplier deletion
     - When working with transactional cascade ordering in kompass_repository.py
+
+- app_docs/bug-fcc6b612-fix-mixed-content-https.md
+  - Conditions:
+    - When working with API client configuration or base URL setup
+    - When troubleshooting mixed content or HTTPS errors in production
+    - When modifying apps/Client/src/api/clients/index.ts
+    - When working with VITE_API_URL environment variable
+    - When deploying the frontend to Vercel or any HTTPS host
+    - When constructing direct API URLs outside the central API client
