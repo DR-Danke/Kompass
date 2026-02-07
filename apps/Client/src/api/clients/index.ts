@@ -1,6 +1,10 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+if (window.location.protocol === 'https:' && apiUrl.startsWith('http://')) {
+  apiUrl = apiUrl.replace('http://', 'https://');
+}
+const API_URL = apiUrl;
 
 console.log('INFO [apiClient]: Initializing API client with base URL:', API_URL);
 
