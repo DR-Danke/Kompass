@@ -1660,3 +1660,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying the get_all_with_audit_data() SQL query in kompass_repository.py
     - When troubleshooting missing audit data in supplier Excel exports
     - When working with the LEFT JOIN between suppliers and supplier_audits tables
+
+- app_docs/feature-ddc57f21-supplier-hard-delete.md
+  - Conditions:
+    - When working with supplier deletion functionality
+    - When modifying the DELETE /suppliers/{id} endpoint or delete-preview endpoint
+    - When working with cascade deletion of products, audits, or related supplier data
+    - When modifying the supplier delete confirmation dialog on SuppliersPage
+    - When troubleshooting FK constraint issues during supplier deletion
+    - When working with transactional cascade ordering in kompass_repository.py
