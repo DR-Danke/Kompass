@@ -100,7 +100,10 @@ const SupplierCertificationTab: React.FC<SupplierCertificationTabProps> = ({
     // Use the backend download endpoint to serve the PDF
     // This works for both local file:// URLs and Supabase Storage URLs
     // Token is passed as query parameter since browsers don't send headers when opening new tabs
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    if (window.location.protocol === 'https:' && apiUrl.startsWith('http://')) {
+      apiUrl = apiUrl.replace('http://', 'https://');
+    }
     const token = localStorage.getItem('token');
     const downloadUrl = `${apiUrl}/suppliers/${supplierId}/audits/${auditId}/download?token=${token}`;
     console.log(`INFO [SupplierCertificationTab]: Opening PDF via backend: ${downloadUrl}`);
