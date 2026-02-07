@@ -27,7 +27,7 @@ from app.models.kompass_dto import (
     SupplierUpdateDTO,
     SupplierWithProductCountDTO,
 )
-from app.repository.kompass_repository import product_repository, supplier_repository
+from app.repository.kompass_repository import supplier_repository
 
 
 class SupplierService:
