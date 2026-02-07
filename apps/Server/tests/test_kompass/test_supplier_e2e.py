@@ -86,21 +86,24 @@ class TestSupplierCRUDWorkflow:
         # DELETE
         mock_repo.get_by_id.return_value = sample_supplier_data
 
-    @patch("app.services.supplier_service.product_repository")
     @patch("app.services.supplier_service.supplier_repository")
     def test_delete_supplier_flow(
-        self, mock_supplier_repo, mock_product_repo, supplier_service, sample_supplier_data
+        self, mock_supplier_repo, supplier_service, sample_supplier_data
     ):
-        """Test supplier deletion flow."""
+        """Test supplier hard deletion flow."""
         supplier_id = sample_supplier_data["id"]
 
         mock_supplier_repo.get_by_id.return_value = sample_supplier_data
-        mock_product_repo.get_all.return_value = ([], 0)  # No products
-        mock_supplier_repo.delete.return_value = True
+        mock_supplier_repo.delete.return_value = {
+            "deleted": True,
+            "products_deleted": 0,
+            "audits_deleted": 0,
+        }
 
         result = supplier_service.delete_supplier(supplier_id)
 
-        assert result is True
+        assert result is not None
+        assert result["deleted"] is True
         mock_supplier_repo.delete.assert_called_once_with(supplier_id)
 
     @patch("app.services.supplier_service.supplier_repository")
@@ -351,51 +354,57 @@ class TestSupplierSearch:
 class TestSupplierWithProducts:
     """Tests for supplier-product integration."""
 
-    @patch("app.services.supplier_service.product_repository")
     @patch("app.services.supplier_service.supplier_repository")
-    def test_delete_blocked_when_products_exist(
-        self, mock_supplier_repo, mock_product_repo, supplier_service, sample_supplier_data
+    def test_delete_hard_deletes_with_products(
+        self, mock_supplier_repo, supplier_service, sample_supplier_data
     ):
-        """Test that deletion fails when supplier has active products."""
+        """Test that hard delete removes supplier even with products."""
         mock_supplier_repo.get_by_id.return_value = sample_supplier_data
-        mock_product_repo.get_all.return_value = ([{"id": uuid4()}], 1)
-
-        supplier_id = sample_supplier_data["id"]
-
-        with pytest.raises(ValueError, match="Cannot delete supplier with active products"):
-            supplier_service.delete_supplier(supplier_id)
-
-        mock_supplier_repo.delete.assert_not_called()
-
-    @patch("app.services.supplier_service.product_repository")
-    @patch("app.services.supplier_service.supplier_repository")
-    def test_delete_succeeds_when_no_products(
-        self, mock_supplier_repo, mock_product_repo, supplier_service, sample_supplier_data
-    ):
-        """Test that deletion succeeds when supplier has no products."""
-        mock_supplier_repo.get_by_id.return_value = sample_supplier_data
-        mock_product_repo.get_all.return_value = ([], 0)
-        mock_supplier_repo.delete.return_value = True
+        mock_supplier_repo.delete.return_value = {
+            "deleted": True,
+            "products_deleted": 3,
+            "audits_deleted": 1,
+        }
 
         supplier_id = sample_supplier_data["id"]
         result = supplier_service.delete_supplier(supplier_id)
 
-        assert result is True
+        assert result is not None
+        assert result["products_deleted"] == 3
+        assert result["audits_deleted"] == 1
         mock_supplier_repo.delete.assert_called_once_with(supplier_id)
 
-    @patch("app.services.supplier_service.product_repository")
     @patch("app.services.supplier_service.supplier_repository")
-    def test_delete_not_found_returns_false(
-        self, mock_supplier_repo, mock_product_repo, supplier_service
+    def test_delete_succeeds_when_no_products(
+        self, mock_supplier_repo, supplier_service, sample_supplier_data
     ):
-        """Test deleting non-existent supplier returns False."""
+        """Test that hard delete succeeds when supplier has no products."""
+        mock_supplier_repo.get_by_id.return_value = sample_supplier_data
+        mock_supplier_repo.delete.return_value = {
+            "deleted": True,
+            "products_deleted": 0,
+            "audits_deleted": 0,
+        }
+
+        supplier_id = sample_supplier_data["id"]
+        result = supplier_service.delete_supplier(supplier_id)
+
+        assert result is not None
+        assert result["products_deleted"] == 0
+        mock_supplier_repo.delete.assert_called_once_with(supplier_id)
+
+    @patch("app.services.supplier_service.supplier_repository")
+    def test_delete_not_found_returns_none(
+        self, mock_supplier_repo, supplier_service
+    ):
+        """Test deleting non-existent supplier returns None."""
         mock_supplier_repo.get_by_id.return_value = None
         supplier_id = uuid4()
 
         result = supplier_service.delete_supplier(supplier_id)
 
-        assert result is False
-        mock_product_repo.get_all.assert_not_called()
+        assert result is None
+        mock_supplier_repo.delete.assert_not_called()
 
 
 # =============================================================================

@@ -369,42 +369,73 @@ class TestUpdateSupplier:
 
 
 class TestDeleteSupplier:
-    """Tests for DELETE /suppliers/{supplier_id} endpoint."""
+    """Tests for DELETE /suppliers/{supplier_id} endpoint (hard delete)."""
 
     @patch("app.api.supplier_routes.supplier_service")
     def test_delete_supplier_success(self, mock_service, admin_client):
-        """Test successful supplier deletion."""
-        mock_service.delete_supplier.return_value = True
+        """Test successful hard delete with counts."""
+        mock_service.delete_supplier.return_value = {
+            "deleted": True,
+            "products_deleted": 3,
+            "audits_deleted": 1,
+        }
 
         response = admin_client.delete(f"/api/suppliers/{uuid4()}")
 
         assert response.status_code == 200
-        assert response.json()["message"] == "Supplier deleted successfully"
+        data = response.json()
+        assert data["message"] == "Supplier permanently deleted"
+        assert data["products_deleted"] == 3
+        assert data["audits_deleted"] == 1
 
     @patch("app.api.supplier_routes.supplier_service")
     def test_delete_supplier_not_found(self, mock_service, admin_client):
         """Test delete supplier not found."""
-        mock_service.delete_supplier.return_value = False
+        mock_service.delete_supplier.return_value = None
 
         response = admin_client.delete(f"/api/suppliers/{uuid4()}")
 
         assert response.status_code == 404
 
-    @patch("app.api.supplier_routes.supplier_service")
-    def test_delete_supplier_with_active_products(self, mock_service, admin_client):
-        """Test delete blocked when supplier has active products."""
-        mock_service.delete_supplier.side_effect = ValueError(
-            "Cannot delete supplier with active products"
-        )
-
-        response = admin_client.delete(f"/api/suppliers/{uuid4()}")
-
-        assert response.status_code == 400
-        assert "Cannot delete supplier with active products" in response.json()["detail"]
-
     def test_delete_supplier_forbidden_for_regular_user(self, client):
         """Test delete forbidden for regular users."""
         response = client.delete(f"/api/suppliers/{uuid4()}")
+
+        assert response.status_code == 403
+
+
+class TestDeletePreview:
+    """Tests for GET /suppliers/{supplier_id}/delete-preview endpoint."""
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_delete_preview_success(self, mock_service, admin_client):
+        """Test successful delete preview."""
+        mock_service.get_delete_preview.return_value = {
+            "supplier_name": "Test Supplier",
+            "products_count": 5,
+            "audits_count": 2,
+        }
+
+        response = admin_client.get(f"/api/suppliers/{uuid4()}/delete-preview")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["supplier_name"] == "Test Supplier"
+        assert data["products_count"] == 5
+        assert data["audits_count"] == 2
+
+    @patch("app.api.supplier_routes.supplier_service")
+    def test_delete_preview_not_found(self, mock_service, admin_client):
+        """Test delete preview for non-existent supplier."""
+        mock_service.get_delete_preview.return_value = None
+
+        response = admin_client.get(f"/api/suppliers/{uuid4()}/delete-preview")
+
+        assert response.status_code == 404
+
+    def test_delete_preview_forbidden_for_regular_user(self, client):
+        """Test delete preview forbidden for regular users."""
+        response = client.get(f"/api/suppliers/{uuid4()}/delete-preview")
 
         assert response.status_code == 403
 

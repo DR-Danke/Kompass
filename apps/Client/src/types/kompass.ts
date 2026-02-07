@@ -239,6 +239,18 @@ export interface SupplierListResponse {
   pagination: Pagination;
 }
 
+export interface SupplierDeletePreview {
+  supplier_name: string;
+  products_count: number;
+  audits_count: number;
+}
+
+export interface SupplierDeleteResponse {
+  message: string;
+  products_deleted: number;
+  audits_deleted: number;
+}
+
 export interface SupplierPipelineSummary {
   contacted: number;
   potential: number;

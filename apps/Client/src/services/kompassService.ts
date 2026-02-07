@@ -35,6 +35,8 @@ import type {
   SupplierPipelineResponse,
   SupplierPipelineStatus,
   SupplierCertificationSummary,
+  SupplierDeletePreview,
+  SupplierDeleteResponse,
   // Product types
   ProductCreate,
   ProductUpdate,
@@ -186,9 +188,16 @@ export const supplierService = {
     return response.data;
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<SupplierDeleteResponse> {
     console.log(`INFO [supplierService]: Deleting supplier ${id}`);
-    await apiClient.delete(`/suppliers/${id}`);
+    const response = await apiClient.delete<SupplierDeleteResponse>(`/suppliers/${id}`);
+    return response.data;
+  },
+
+  async getDeletePreview(id: string): Promise<SupplierDeletePreview> {
+    console.log(`INFO [supplierService]: Getting delete preview for supplier ${id}`);
+    const response = await apiClient.get<SupplierDeletePreview>(`/suppliers/${id}/delete-preview`);
+    return response.data;
   },
 
   async search(query: string): Promise<SupplierResponse[]> {

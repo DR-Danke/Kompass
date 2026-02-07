@@ -37,6 +37,7 @@ import type {
   SupplierPipelineStatus,
   SupplierWithProductCount,
   CertificationStatus,
+  SupplierDeletePreview,
 } from '@/types/kompass';
 import { supplierService } from '@/services/kompassService';
 import SupplierForm from '@/components/kompass/SupplierForm';
@@ -158,6 +159,8 @@ const SuppliersPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [supplierToDelete, setSupplierToDelete] = useState<SupplierResponse | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deletePreview, setDeletePreview] = useState<SupplierDeletePreview | null>(null);
+  const [deletePreviewLoading, setDeletePreviewLoading] = useState(false);
 
   // Audit upload dialog state
   const [auditUploadOpen, setAuditUploadOpen] = useState(false);
@@ -358,14 +361,25 @@ const SuppliersPage: React.FC = () => {
   };
 
   // Handle delete
-  const handleDeleteClick = (supplier: SupplierResponse) => {
+  const handleDeleteClick = async (supplier: SupplierResponse) => {
     setSupplierToDelete(supplier);
     setDeleteDialogOpen(true);
+    setDeletePreviewLoading(true);
+    try {
+      const preview = await supplierService.getDeletePreview(supplier.id);
+      setDeletePreview(preview);
+    } catch (err) {
+      console.log('ERROR [SuppliersPage]: Failed to fetch delete preview', err);
+      setDeletePreview(null);
+    } finally {
+      setDeletePreviewLoading(false);
+    }
   };
 
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setSupplierToDelete(null);
+    setDeletePreview(null);
   };
 
   const handleDeleteConfirm = async () => {
@@ -373,10 +387,14 @@ const SuppliersPage: React.FC = () => {
 
     setDeleteLoading(true);
     try {
-      console.log(`INFO [SuppliersPage]: Deleting supplier ${supplierToDelete.id}`);
-      await supplierService.delete(supplierToDelete.id);
+      console.log(`INFO [SuppliersPage]: Hard deleting supplier ${supplierToDelete.id}`);
+      const result = await supplierService.delete(supplierToDelete.id);
+      console.log(
+        `INFO [SuppliersPage]: Supplier deleted - products: ${result.products_deleted}, audits: ${result.audits_deleted}`
+      );
       setDeleteDialogOpen(false);
       setSupplierToDelete(null);
+      setDeletePreview(null);
       if (viewMode === 'list') {
         fetchSuppliers();
       } else {
@@ -720,12 +738,33 @@ const SuppliersPage: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-        <DialogTitle>Delete Supplier</DialogTitle>
+        <DialogTitle sx={{ color: 'error.main' }}>Permanently Delete Supplier</DialogTitle>
         <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            This action is irreversible. All associated data will be permanently removed.
+          </Alert>
           <DialogContentText>
-            Are you sure you want to delete the supplier "{supplierToDelete?.name}"? This action
-            cannot be undone.
+            Are you sure you want to permanently delete the supplier &quot;{supplierToDelete?.name}&quot;?
           </DialogContentText>
+          {deletePreviewLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : deletePreview && (deletePreview.products_count > 0 || deletePreview.audits_count > 0) ? (
+            <DialogContentText sx={{ mt: 1 }}>
+              This will also delete:
+              {deletePreview.products_count > 0 && (
+                <Box component="span" sx={{ display: 'block', ml: 2 }}>
+                  - {deletePreview.products_count} product{deletePreview.products_count !== 1 ? 's' : ''} (and associated images, tags, portfolio references)
+                </Box>
+              )}
+              {deletePreview.audits_count > 0 && (
+                <Box component="span" sx={{ display: 'block', ml: 2 }}>
+                  - {deletePreview.audits_count} audit report{deletePreview.audits_count !== 1 ? 's' : ''}
+                </Box>
+              )}
+            </DialogContentText>
+          ) : null}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel} disabled={deleteLoading}>
@@ -735,9 +774,9 @@ const SuppliersPage: React.FC = () => {
             onClick={handleDeleteConfirm}
             color="error"
             variant="contained"
-            disabled={deleteLoading}
+            disabled={deleteLoading || deletePreviewLoading}
           >
-            {deleteLoading ? <CircularProgress size={20} /> : 'Delete'}
+            {deleteLoading ? <CircularProgress size={20} /> : 'Delete Permanently'}
           </Button>
         </DialogActions>
       </Dialog>

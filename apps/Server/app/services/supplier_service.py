@@ -8,7 +8,7 @@ business rule enforcement.
 import io
 import math
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from openpyxl import Workbook
@@ -27,7 +27,7 @@ from app.models.kompass_dto import (
     SupplierUpdateDTO,
     SupplierWithProductCountDTO,
 )
-from app.repository.kompass_repository import product_repository, supplier_repository
+from app.repository.kompass_repository import supplier_repository
 
 
 class SupplierService:
@@ -278,46 +278,43 @@ class SupplierService:
         print(f"INFO [SupplierService]: Updated supplier {supplier_id}")
         return SupplierResponseDTO(**result)
 
-    def delete_supplier(self, supplier_id: UUID) -> bool:
-        """Soft delete a supplier (set status to inactive).
+    def delete_supplier(self, supplier_id: UUID) -> Optional[Dict[str, Any]]:
+        """Hard delete a supplier and all associated data.
 
-        Cannot delete suppliers that have active products.
+        Permanently removes the supplier and cascades deletion to products,
+        audits, product images, product tags, and portfolio items.
 
         Args:
             supplier_id: UUID of the supplier to delete
 
         Returns:
-            True if deleted, False if supplier not found
-
-        Raises:
-            ValueError: If supplier has active products
+            Dict with deletion counts, or None if supplier not found
         """
         # Check if supplier exists
         existing = supplier_repository.get_by_id(supplier_id)
         if not existing:
-            return False
+            return None
 
-        # Check for active products
-        products, product_count = product_repository.get_all(
-            supplier_id=supplier_id,
-            status="active",
-            page=1,
-            limit=1,
-        )
+        result = supplier_repository.delete(supplier_id)
 
-        if product_count > 0:
+        if result:
             print(
-                f"WARN [SupplierService]: Blocked deletion of supplier {supplier_id} "
-                "- has active products"
+                f"INFO [SupplierService]: Hard deleted supplier {supplier_id} "
+                f"(products: {result['products_deleted']}, audits: {result['audits_deleted']})"
             )
-            raise ValueError("Cannot delete supplier with active products")
 
-        success = supplier_repository.delete(supplier_id)
+        return result
 
-        if success:
-            print(f"INFO [SupplierService]: Deleted supplier {supplier_id}")
+    def get_delete_preview(self, supplier_id: UUID) -> Optional[Dict[str, Any]]:
+        """Get preview of what would be deleted for a supplier.
 
-        return success
+        Args:
+            supplier_id: UUID of the supplier
+
+        Returns:
+            Dict with supplier_name, products_count, audits_count, or None if not found
+        """
+        return supplier_repository.get_delete_preview(supplier_id)
 
     def search_suppliers(self, query: str) -> List[SupplierResponseDTO]:
         """Search suppliers by name, email, or contact phone (WeChat).
