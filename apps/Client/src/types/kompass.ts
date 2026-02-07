@@ -4,6 +4,50 @@
  */
 
 // =============================================================================
+// USER ADMIN DTOs
+// =============================================================================
+
+export type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
+
+export interface UserAdminResponse {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserAdminCreate {
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  role: UserRole;
+}
+
+export interface UserAdminUpdate {
+  first_name?: string;
+  last_name?: string;
+  role?: UserRole;
+  is_active?: boolean;
+}
+
+export interface UserListResponse {
+  items: UserAdminResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
+export interface UserChangePassword {
+  new_password: string;
+}
+
+// =============================================================================
 // ENUMS / STATUS TYPES
 // =============================================================================
 

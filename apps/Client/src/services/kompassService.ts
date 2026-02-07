@@ -5,6 +5,12 @@
 
 import apiClient from '@/api/clients';
 import type {
+  // User admin types
+  UserAdminCreate,
+  UserAdminUpdate,
+  UserAdminResponse,
+  UserListResponse,
+  UserChangePassword,
   // Niche types
   NicheCreate,
   NicheUpdate,
@@ -106,6 +112,52 @@ import type {
   SupplierAuditListResponse,
   ClassificationOverride,
 } from '@/types/kompass';
+
+// =============================================================================
+// USER ADMIN SERVICE
+// =============================================================================
+
+export const userService = {
+  async list(
+    page = 1,
+    limit = 20,
+    filters?: { search?: string; role?: string; is_active?: boolean }
+  ): Promise<UserListResponse> {
+    console.log('INFO [userService]: Fetching users list');
+    const response = await apiClient.get<UserListResponse>('/users', {
+      params: { page, limit, ...filters },
+    });
+    return response.data;
+  },
+
+  async get(id: string): Promise<UserAdminResponse> {
+    console.log(`INFO [userService]: Fetching user ${id}`);
+    const response = await apiClient.get<UserAdminResponse>(`/users/${id}`);
+    return response.data;
+  },
+
+  async create(data: UserAdminCreate): Promise<UserAdminResponse> {
+    console.log('INFO [userService]: Creating user');
+    const response = await apiClient.post<UserAdminResponse>('/users', data);
+    return response.data;
+  },
+
+  async update(id: string, data: UserAdminUpdate): Promise<UserAdminResponse> {
+    console.log(`INFO [userService]: Updating user ${id}`);
+    const response = await apiClient.put<UserAdminResponse>(`/users/${id}`, data);
+    return response.data;
+  },
+
+  async changePassword(id: string, data: UserChangePassword): Promise<void> {
+    console.log(`INFO [userService]: Changing password for user ${id}`);
+    await apiClient.put(`/users/${id}/password`, data);
+  },
+
+  async delete(id: string): Promise<void> {
+    console.log(`INFO [userService]: Deleting user ${id}`);
+    await apiClient.delete(`/users/${id}`);
+  },
+};
 
 // =============================================================================
 // NICHE SERVICE

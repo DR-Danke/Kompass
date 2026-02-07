@@ -18,6 +18,7 @@ import ImportWizardPage from './pages/kompass/ImportWizardPage';
 import NichesPage from './pages/kompass/NichesPage';
 import PricingConfigPage from './pages/kompass/PricingConfigPage';
 import DocumentationPage from './pages/kompass/DocumentationPage';
+import UsersPage from './pages/kompass/UsersPage';
 
 function App() {
   const { isLoading } = useAuth();
@@ -56,6 +57,7 @@ function App() {
                 <Route path="quotations/:id" element={<QuotationCreatorPage />} />
                 <Route path="niches" element={<NichesPage />} />
                 <Route path="pricing" element={<PricingConfigPage />} />
+                <Route path="users" element={<UsersPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="docs" element={<DocumentationPage />} />
               </Routes>
