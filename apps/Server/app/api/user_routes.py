@@ -18,7 +18,7 @@ from app.services.user_service import user_service
 router = APIRouter(tags=["Users"])
 
 
-@router.get("/", response_model=UserListResponseDTO)
+@router.get("", response_model=UserListResponseDTO)
 async def list_users(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
@@ -71,7 +71,7 @@ async def get_user(
     return result
 
 
-@router.post("/", response_model=UserAdminResponseDTO, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserAdminResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_user(
     data: UserAdminCreateDTO,
     current_user: dict = Depends(require_roles(["admin"])),

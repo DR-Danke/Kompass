@@ -19,7 +19,7 @@ from app.services.tag_service import tag_service
 router = APIRouter(tags=["Tags"])
 
 
-@router.get("/", response_model=TagListResponseDTO)
+@router.get("", response_model=TagListResponseDTO)
 async def list_tags(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
@@ -58,7 +58,7 @@ async def search_tags(
     return tag_service.search_tags(query, limit)
 
 
-@router.post("/", response_model=TagResponseDTO, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TagResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_tag(
     data: TagCreateDTO,
     current_user: dict = Depends(get_current_user),

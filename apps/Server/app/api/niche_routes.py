@@ -18,7 +18,7 @@ from app.services.niche_service import niche_service
 router = APIRouter(tags=["Niches"])
 
 
-@router.get("/", response_model=List[NicheWithClientCountDTO])
+@router.get("", response_model=List[NicheWithClientCountDTO])
 async def list_niches(
     current_user: dict = Depends(get_current_user),
 ) -> List[NicheWithClientCountDTO]:
@@ -31,7 +31,7 @@ async def list_niches(
     return niche_service.list_niches()
 
 
-@router.post("/", response_model=NicheResponseDTO, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=NicheResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_niche(
     data: NicheCreateDTO,
     current_user: dict = Depends(get_current_user),

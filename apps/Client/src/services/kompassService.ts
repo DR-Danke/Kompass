@@ -124,7 +124,7 @@ export const userService = {
     filters?: { search?: string; role?: string; is_active?: boolean }
   ): Promise<UserListResponse> {
     console.log('INFO [userService]: Fetching users list');
-    const response = await apiClient.get<UserListResponse>('/users/', {
+    const response = await apiClient.get<UserListResponse>('/users', {
       params: { page, limit, ...filters },
     });
     return response.data;
@@ -138,7 +138,7 @@ export const userService = {
 
   async create(data: UserAdminCreate): Promise<UserAdminResponse> {
     console.log('INFO [userService]: Creating user');
-    const response = await apiClient.post<UserAdminResponse>('/users/', data);
+    const response = await apiClient.post<UserAdminResponse>('/users', data);
     return response.data;
   },
 
@@ -166,7 +166,7 @@ export const userService = {
 export const nicheService = {
   async list(page = 1, limit = 20): Promise<NicheListResponse> {
     console.log('INFO [nicheService]: Fetching niches list');
-    const response = await apiClient.get<NicheListResponse>('/niches/', {
+    const response = await apiClient.get<NicheListResponse>('/niches', {
       params: { page, limit },
     });
     return response.data;
@@ -180,7 +180,7 @@ export const nicheService = {
 
   async create(data: NicheCreate): Promise<NicheResponse> {
     console.log('INFO [nicheService]: Creating niche');
-    const response = await apiClient.post<NicheResponse>('/niches/', data);
+    const response = await apiClient.post<NicheResponse>('/niches', data);
     return response.data;
   },
 
@@ -390,7 +390,7 @@ export const productService = {
 export const categoryService = {
   async list(page = 1, limit = 20): Promise<CategoryListResponse> {
     console.log('INFO [categoryService]: Fetching categories list');
-    const response = await apiClient.get<CategoryListResponse>('/categories/', {
+    const response = await apiClient.get<CategoryListResponse>('/categories', {
       params: { page, limit },
     });
     return response.data;
@@ -398,7 +398,7 @@ export const categoryService = {
 
   async getTree(): Promise<CategoryTreeNode[]> {
     console.log('INFO [categoryService]: Fetching category tree');
-    const response = await apiClient.get<CategoryTreeNode[]>('/categories/');
+    const response = await apiClient.get<CategoryTreeNode[]>('/categories');
     return response.data;
   },
 
@@ -410,7 +410,7 @@ export const categoryService = {
 
   async create(data: CategoryCreate): Promise<CategoryResponse> {
     console.log('INFO [categoryService]: Creating category');
-    const response = await apiClient.post<CategoryResponse>('/categories/', data);
+    const response = await apiClient.post<CategoryResponse>('/categories', data);
     return response.data;
   },
 
@@ -441,7 +441,7 @@ export const categoryService = {
 export const tagService = {
   async list(page = 1, limit = 20): Promise<TagListResponse> {
     console.log('INFO [tagService]: Fetching tags list');
-    const response = await apiClient.get<TagListResponse>('/tags/', {
+    const response = await apiClient.get<TagListResponse>('/tags', {
       params: { page, limit },
     });
     return response.data;
@@ -455,7 +455,7 @@ export const tagService = {
 
   async create(data: TagCreate): Promise<TagResponse> {
     console.log('INFO [tagService]: Creating tag');
-    const response = await apiClient.post<TagResponse>('/tags/', data);
+    const response = await apiClient.post<TagResponse>('/tags', data);
     return response.data;
   },
 
@@ -490,7 +490,7 @@ export const portfolioService = {
     filters?: PortfolioFilter
   ): Promise<PortfolioListResponse> {
     console.log('INFO [portfolioService]: Fetching portfolios list');
-    const response = await apiClient.get<PortfolioListResponse>('/portfolios/', {
+    const response = await apiClient.get<PortfolioListResponse>('/portfolios', {
       params: { page, limit, ...filters },
     });
     return response.data;
@@ -504,7 +504,7 @@ export const portfolioService = {
 
   async create(data: PortfolioCreate): Promise<PortfolioResponse> {
     console.log('INFO [portfolioService]: Creating portfolio');
-    const response = await apiClient.post<PortfolioResponse>('/portfolios/', data);
+    const response = await apiClient.post<PortfolioResponse>('/portfolios', data);
     return response.data;
   },
 

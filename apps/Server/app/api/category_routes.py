@@ -25,7 +25,7 @@ class CategoryMoveDTO(BaseModel):
     new_parent_id: Optional[UUID] = None
 
 
-@router.get("/", response_model=List[CategoryTreeNode])
+@router.get("", response_model=List[CategoryTreeNode])
 async def list_categories(
     current_user: dict = Depends(get_current_user),
 ) -> List[CategoryTreeNode]:
@@ -38,7 +38,7 @@ async def list_categories(
     return category_service.list_categories()
 
 
-@router.post("/", response_model=CategoryResponseDTO, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CategoryResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_category(
     data: CategoryCreateDTO,
     current_user: dict = Depends(get_current_user),
