@@ -1686,3 +1686,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with trailing slash mismatches between frontend and backend
     - When debugging CORS-related failures caused by FastAPI 307 redirects
     - When adding new service methods that call category or tag API routes
+
+- app_docs/bug-d079f018-fix-portfolios-network-error.md
+  - Conditions:
+    - When troubleshooting network errors on the Portfolios page
+    - When adding or modifying API endpoint paths for portfolios or niches in kompassService.ts
+    - When working with trailing slash mismatches between frontend and backend
+    - When debugging CORS-related failures caused by FastAPI 307 redirects
+    - When adding new service methods that call portfolio or niche API routes

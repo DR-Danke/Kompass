@@ -166,7 +166,7 @@ export const userService = {
 export const nicheService = {
   async list(page = 1, limit = 20): Promise<NicheListResponse> {
     console.log('INFO [nicheService]: Fetching niches list');
-    const response = await apiClient.get<NicheListResponse>('/niches', {
+    const response = await apiClient.get<NicheListResponse>('/niches/', {
       params: { page, limit },
     });
     return response.data;
@@ -180,7 +180,7 @@ export const nicheService = {
 
   async create(data: NicheCreate): Promise<NicheResponse> {
     console.log('INFO [nicheService]: Creating niche');
-    const response = await apiClient.post<NicheResponse>('/niches', data);
+    const response = await apiClient.post<NicheResponse>('/niches/', data);
     return response.data;
   },
 
@@ -490,7 +490,7 @@ export const portfolioService = {
     filters?: PortfolioFilter
   ): Promise<PortfolioListResponse> {
     console.log('INFO [portfolioService]: Fetching portfolios list');
-    const response = await apiClient.get<PortfolioListResponse>('/portfolios', {
+    const response = await apiClient.get<PortfolioListResponse>('/portfolios/', {
       params: { page, limit, ...filters },
     });
     return response.data;
@@ -504,7 +504,7 @@ export const portfolioService = {
 
   async create(data: PortfolioCreate): Promise<PortfolioResponse> {
     console.log('INFO [portfolioService]: Creating portfolio');
-    const response = await apiClient.post<PortfolioResponse>('/portfolios', data);
+    const response = await apiClient.post<PortfolioResponse>('/portfolios/', data);
     return response.data;
   },
 
