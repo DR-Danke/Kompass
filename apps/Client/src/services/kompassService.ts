@@ -124,7 +124,7 @@ export const userService = {
     filters?: { search?: string; role?: string; is_active?: boolean }
   ): Promise<UserListResponse> {
     console.log('INFO [userService]: Fetching users list');
-    const response = await apiClient.get<UserListResponse>('/users', {
+    const response = await apiClient.get<UserListResponse>('/users/', {
       params: { page, limit, ...filters },
     });
     return response.data;
@@ -138,7 +138,7 @@ export const userService = {
 
   async create(data: UserAdminCreate): Promise<UserAdminResponse> {
     console.log('INFO [userService]: Creating user');
-    const response = await apiClient.post<UserAdminResponse>('/users', data);
+    const response = await apiClient.post<UserAdminResponse>('/users/', data);
     return response.data;
   },
 
