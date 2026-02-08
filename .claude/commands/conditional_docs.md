@@ -1678,3 +1678,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with VITE_API_URL environment variable
     - When deploying the frontend to Vercel or any HTTPS host
     - When constructing direct API URLs outside the central API client
+
+- app_docs/bug-12b2f588-fix-categories-network-error.md
+  - Conditions:
+    - When troubleshooting network errors on the Categories & Tags page
+    - When adding or modifying API endpoint paths in kompassService.ts
+    - When working with trailing slash mismatches between frontend and backend
+    - When debugging CORS-related failures caused by FastAPI 307 redirects
+    - When adding new service methods that call category or tag API routes
