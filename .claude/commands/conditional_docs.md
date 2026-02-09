@@ -1694,3 +1694,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with trailing slash mismatches between frontend and backend
     - When debugging CORS-related failures caused by FastAPI 307 redirects
     - When adding new service methods that call portfolio or niche API routes
+
+- app_docs/bug-f44ba4a1-fix-new-portfolio-map-error.md
+  - Conditions:
+    - When troubleshooting crashes or white screens on the Portfolio Builder page
+    - When working with ProductCatalogMini component
+    - When handling API response null safety for products or categories
+    - When debugging "Cannot read properties of undefined (reading 'map')" errors
+    - When creating or modifying portfolio creation flow
