@@ -61,11 +61,11 @@ const ProductCatalogMini: React.FC<ProductCatalogMiniProps> = ({
       });
 
       if (append) {
-        setProducts(prev => [...prev, ...response.items]);
+        setProducts(prev => [...prev, ...(response.items || [])]);
       } else {
-        setProducts(response.items);
+        setProducts(response.items || []);
       }
-      setHasMore(pageNum < response.pagination.pages);
+      setHasMore(pageNum < (response.pagination?.pages ?? 0));
     } catch (err) {
       console.error('ERROR [ProductCatalogMini]: Failed to fetch products:', err);
     } finally {
@@ -82,7 +82,7 @@ const ProductCatalogMini: React.FC<ProductCatalogMiniProps> = ({
     const fetchCategories = async () => {
       try {
         const response = await categoryService.list(1, 100);
-        setCategories(response.items);
+        setCategories(response.items || []);
       } catch (err) {
         console.error('ERROR [ProductCatalogMini]: Failed to fetch categories:', err);
       }
