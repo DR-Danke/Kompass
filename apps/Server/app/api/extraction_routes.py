@@ -414,14 +414,22 @@ async def confirm_import(
     # Convert ExtractedProduct to ProductCreateDTO
     product_create_dtos: List[ProductCreateDTO] = []
     for extracted in products:
+        # Build description, appending material if present
+        description = extracted.description
+        if extracted.material:
+            material_suffix = f"\nMaterial: {extracted.material}"
+            description = (description or "") + material_suffix
+
         product_dto = ProductCreateDTO(
             sku=extracted.sku,
             name=extracted.name or "Unnamed Product",
-            description=extracted.description,
+            description=description,
             supplier_id=request.supplier_id,
+            category_id=request.category_id,
             status=ProductStatus.DRAFT,
             unit_cost=extracted.price_fob_usd or 0,
             unit_price=extracted.price_fob_usd or 0,
+            unit_of_measure=extracted.unit_of_measure or "piece",
             minimum_order_qty=extracted.moq or 1,
             dimensions=extracted.dimensions,
         )

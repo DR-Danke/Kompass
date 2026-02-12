@@ -456,6 +456,333 @@ class TestFindHigherQualityImage:
         assert result is None
 
 
+class TestSmartHeaderDetection:
+    """Tests for multi-row header detection, Spanish columns, and substring matching."""
+
+    def test_finds_header_in_row_0(self, service):
+        """Test standard case — headers in first row (backward compatibility)."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["SKU", "Name", "Price", "MOQ", "Description"])
+        ws.append(["TEST-001", "Product One", "10.00", "100", "First product"])
+        ws.append(["TEST-002", "Product Two", "20.00", "50", "Second product"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 2
+            assert len(errors) == 0
+            assert products[0].sku == "TEST-001"
+            assert products[0].name == "Product One"
+            assert products[0].price_fob_usd == Decimal("10.00")
+            assert products[0].moq == 100
+        finally:
+            Path(temp_path).unlink()
+
+    def test_finds_header_in_row_3(self, service):
+        """Test headers in row 3 with empty/metadata rows above."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Company: ABC Corp"])
+        ws.append(["Date: 2024-01-01"])
+        ws.append([None])
+        ws.append(["SKU", "Product Name", "Unit Price", "MOQ"])
+        ws.append(["HDR3-001", "Widget A", "15.00", "50"])
+        ws.append(["HDR3-002", "Widget B", "25.00", "100"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 2
+            assert products[0].sku == "HDR3-001"
+            assert products[0].name == "Widget A"
+            assert products[0].price_fob_usd == Decimal("15.00")
+        finally:
+            Path(temp_path).unlink()
+
+    def test_finds_header_in_row_7(self, service):
+        """Test headers deep in the file (row 7)."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        # Rows 0-6: metadata
+        for i in range(7):
+            ws.append([f"Metadata row {i}"])
+        ws.append(["Reference", "Product", "FOB Price", "Minimum Order"])
+        ws.append(["DEEP-001", "Deep Product", "30.00", "200"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].sku == "DEEP-001"
+            assert products[0].name == "Deep Product"
+        finally:
+            Path(temp_path).unlink()
+
+    def test_spanish_column_names(self, service):
+        """Test headers like REFERENCIA, PRODUCTO, PRECIO, CANTIDAD."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["REFERENCIA", "PRODUCTO", "PRECIO", "CANTIDAD"])
+        ws.append(["ESP-001", "Producto Uno", "12.50", "75"])
+        ws.append(["ESP-002", "Producto Dos", "18.00", "120"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 2
+            assert products[0].sku == "ESP-001"
+            assert products[0].name == "Producto Uno"
+            assert products[0].price_fob_usd == Decimal("12.50")
+            assert products[0].moq == 75
+        finally:
+            Path(temp_path).unlink()
+
+    def test_mixed_language_columns(self, service):
+        """Test mix of English and Spanish headers."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Item No.", "Nombre", "Price USD", "Cantidad", "Material"])
+        ws.append(["MIX-001", "Mixed Product", "22.00", "60", "Ceramic"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].sku == "MIX-001"
+            assert products[0].name == "Mixed Product"
+            assert products[0].material == "Ceramic"
+        finally:
+            Path(temp_path).unlink()
+
+    def test_substring_matching_fob_up(self, service):
+        """Test header 'FOB U/P (USD)' matches price column."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Item Code", "Product Name", "FOB U/P (USD)", "MOQ"])
+        ws.append(["SUB-001", "Substring Product", "35.00", "25"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].price_fob_usd == Decimal("35.00")
+        finally:
+            Path(temp_path).unlink()
+
+    def test_substring_matching_unit_price_usd(self, service):
+        """Test header 'Unit Price(USD)' matches price column."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["SKU", "Name", "Unit Price(USD)"])
+        ws.append(["UP-001", "Unit Price Product", "42.50"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].price_fob_usd == Decimal("42.50")
+        finally:
+            Path(temp_path).unlink()
+
+    def test_unit_of_measure_from_price_header_m2(self, service):
+        """Test header 'Price (USD/m2)' → unit_of_measure = 'm2'."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["SKU", "Name", "Price (USD/m2)"])
+        ws.append(["UOM-001", "Tile Product", "8.50"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].unit_of_measure == "m2"
+        finally:
+            Path(temp_path).unlink()
+
+    def test_unit_of_measure_from_price_header_pcs(self, service):
+        """Test header 'Price/pcs' → unit_of_measure = 'piece'."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["SKU", "Name", "Price/pcs"])
+        ws.append(["UOM-002", "Piece Product", "3.25"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].unit_of_measure == "piece"
+        finally:
+            Path(temp_path).unlink()
+
+    def test_unit_of_measure_default_none(self, service):
+        """Test standard 'Price' header → unit_of_measure = None."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["SKU", "Name", "Price"])
+        ws.append(["UOM-003", "Standard Product", "5.00"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].unit_of_measure is None
+        finally:
+            Path(temp_path).unlink()
+
+
+class TestExcelAIFallback:
+    """Tests for AI fallback path when Excel columns are unrecognizable."""
+
+    @patch("app.services.extraction_service.ExtractionService._get_anthropic_client")
+    def test_ai_fallback_triggers_on_low_column_match(
+        self, mock_get_client, service, mock_settings
+    ):
+        """Test AI fallback triggers when fewer than 2 columns match."""
+        from openpyxl import Workbook
+
+        # Mock Anthropic client response
+        mock_client = MagicMock()
+        mock_message = MagicMock()
+        mock_message.content = [
+            MagicMock(text=json.dumps([
+                {"sku": "AI-001", "name": "AI Product", "price_fob_usd": 10.0, "moq": 50,
+                 "description": None, "dimensions": None, "material": None},
+            ]))
+        ]
+        mock_client.messages.create.return_value = mock_message
+        mock_get_client.return_value = mock_client
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Col A", "Col B", "Col C", "Col D"])  # Unrecognizable headers
+        ws.append(["val1", "val2", "val3", "val4"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            with patch.object(service, "_settings", mock_settings):
+                products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 1
+            assert products[0].sku == "AI-001"
+            assert products[0].name == "AI Product"
+        finally:
+            Path(temp_path).unlink()
+
+    def test_ai_fallback_skipped_when_ai_unavailable(
+        self, service, mock_settings_no_ai
+    ):
+        """Test AI fallback is skipped when no AI keys are configured."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Col A", "Col B", "Col C", "Col D"])  # Unrecognizable headers
+        ws.append(["val1", "val2", "val3", "val4"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            with patch.object(service, "_settings", mock_settings_no_ai):
+                products, errors = service.process_excel(temp_path)
+
+            assert len(products) == 0
+        finally:
+            Path(temp_path).unlink()
+
+    @patch("app.services.extraction_service.ExtractionService._extract_with_anthropic")
+    def test_ai_fallback_not_triggered_when_columns_match(
+        self, mock_extract, service, mock_settings
+    ):
+        """Test AI is NOT called when standard headers are recognized."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["SKU", "Name", "Price", "MOQ"])
+        ws.append(["STD-001", "Standard Product", "20.00", "100"])
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            wb.save(f.name)
+            temp_path = f.name
+
+        try:
+            with patch.object(service, "_settings", mock_settings):
+                products, errors = service.process_excel(temp_path)
+
+            # AI should NOT have been called
+            mock_extract.assert_not_called()
+            assert len(products) == 1
+            assert products[0].sku == "STD-001"
+        finally:
+            Path(temp_path).unlink()
+
+
 class TestExtractionDTOs:
     """Tests for extraction DTOs."""
 
