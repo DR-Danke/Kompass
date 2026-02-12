@@ -1722,3 +1722,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with seed_mappings.json or the SCD pipeline
     - When troubleshooting duplicate records during data seeding
     - When adding new seeding scripts or extending the seed_all.py runner
+
+- app_docs/feature-91779846-batch-product-import-catalog-files.md
+  - Conditions:
+    - When working with the batch product import script at apps/Server/scripts/import_products.py
+    - When importing products from supplier catalog files (Excel/PDF)
+    - When modifying the FILE_MAP or adding new catalog file mappings
+    - When troubleshooting product import errors or duplicate SKU handling
+    - When working with seed_mappings.json for supplier/category UUID resolution
+    - When extending the SCD pipeline for product data population
