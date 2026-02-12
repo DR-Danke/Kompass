@@ -1722,3 +1722,22 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with seed_mappings.json or the SCD pipeline
     - When troubleshooting duplicate records during data seeding
     - When adding new seeding scripts or extending the seed_all.py runner
+
+- app_docs/feature-ad808429-batch-product-import-catalog-files.md
+  - Conditions:
+    - When working with batch product import from supplier catalog files
+    - When implementing or modifying apps/Server/scripts/import_products.py
+    - When working with FILE_MAP dictionary or catalog file mappings
+    - When processing supplier catalogs (Excel/PDF) for product extraction
+    - When working with ExtractedProduct to ProductCreateDTO conversion
+    - When troubleshooting bulk product import or duplicate SKU handling
+    - When running import_products.py with --dry-run, --file, or --verbose flags
+    - When working with import_results.json output
+
+- app_docs/feature-cf702df2-category-dropdown-import-wizard.md
+  - Conditions:
+    - When working with the Import Wizard category assignment during product import
+    - When modifying the confirm step (Step 3) of ImportWizardPage.tsx
+    - When working with category selection in the import flow
+    - When working with unit_of_measure display in ExtractedProductTable
+    - When troubleshooting category dropdown or category tree flattening issues
