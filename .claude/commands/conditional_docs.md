@@ -1722,3 +1722,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with seed_mappings.json or the SCD pipeline
     - When troubleshooting duplicate records during data seeding
     - When adding new seeding scripts or extending the seed_all.py runner
+
+- app_docs/feature-7002513d-category-dropdown-import-wizard.md
+  - Conditions:
+    - When working with the Import Wizard confirm step or ImportWizardPage.tsx
+    - When modifying the ExtractedProductTable component or adding columns to it
+    - When working with category assignment during product import
+    - When implementing category tree flattening or hierarchical category display
+    - When troubleshooting category_id in the confirm import request flow
