@@ -1702,3 +1702,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When handling API response null safety for products or categories
     - When debugging "Cannot read properties of undefined (reading 'map')" errors
     - When creating or modifying portfolio creation flow
+
+- app_docs/feature-5694333e-smart-excel-header-ai-fallback.md
+  - Conditions:
+    - When working with Excel product extraction or the Import Wizard
+    - When modifying process_excel() or column detection logic in extraction_service.py
+    - When adding new column name variants or languages to Excel header detection
+    - When troubleshooting Excel files with headers not in the first row
+    - When working with AI fallback for data extraction
+    - When modifying the confirm import endpoint or product field mapping
+    - When working with unit_of_measure detection or category_id in extraction DTOs
