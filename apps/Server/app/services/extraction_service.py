@@ -334,10 +334,234 @@ Only return valid JSON, no additional text or explanation."""
 
         return products, errors
 
+    # Column name mappings (lowercase variations) including Spanish and format variants
+    _sku_columns = [
+        "sku", "reference", "code", "ref", "item code", "product code",
+        "referencia", "ref.", "modelo", "item no", "item no.", "no.",
+    ]
+    _name_columns = [
+        "name", "product", "item", "product name", "item name", "title",
+        "producto", "descripcion producto", "nombre", "product type",
+    ]
+    _price_columns = [
+        "price", "fob", "fob price", "unit price", "cost", "price usd",
+        "precio", "fob u/p", "u/p", "unit price(usd)", "price (usd/m2)",
+        "costo unitario",
+    ]
+    _moq_columns = [
+        "moq", "minimum", "min qty", "min order", "minimum order",
+        "qty", "quantity", "cantidad",
+    ]
+    _description_columns = [
+        "description", "desc", "details", "product description",
+    ]
+    _material_columns = [
+        "material", "materials", "composition",
+        "finish", "acabado", "surface", "collection",
+    ]
+    _dimensions_columns = [
+        "dimensions", "size", "sizes", "dim",
+        "size(mm)", "specification", "medida",
+    ]
+
+    # Unit-of-measure keywords to detect from price column headers
+    _unit_mapping = {
+        "m2": "m2", "sqm": "m2", "m²": "m2",
+        "pcs": "piece", "pc": "piece", "piece": "piece",
+        "set": "set", "pair": "pair",
+        "kg": "kg", "ton": "ton",
+        "meter": "meter", "m ": "meter",
+    }
+
+    @staticmethod
+    def _find_column(
+        headers: List[str], candidates: List[str]
+    ) -> Optional[int]:
+        """Find column index using exact-then-substring matching.
+
+        First tries exact match (lowercased). If no exact match found,
+        tries substring matching where any candidate is contained in
+        the lowercased header text.
+        """
+        # Pass 1: exact match
+        for idx, header in enumerate(headers):
+            if not header:
+                continue
+            header_lower = header.lower().strip()
+            if not header_lower:
+                continue
+            if header_lower in candidates:
+                return idx
+        # Pass 2: substring (candidate contained in header)
+        for idx, header in enumerate(headers):
+            if not header:
+                continue
+            header_lower = header.lower().strip()
+            if not header_lower:
+                continue
+            for candidate in candidates:
+                if candidate in header_lower:
+                    return idx
+        return None
+
+    def _find_best_header_row(
+        self, rows: list
+    ) -> Tuple[int, dict, int]:
+        """Scan up to the first 10 rows to find the best header row.
+
+        Returns:
+            Tuple of (header_row_index, column_mapping dict, score)
+            where column_mapping maps category name to column index.
+        """
+        # Ordered so that more specific categories are matched first,
+        # preventing generic candidates (e.g. "item") from stealing columns.
+        all_categories = [
+            ("sku", self._sku_columns),
+            ("price", self._price_columns),
+            ("moq", self._moq_columns),
+            ("description", self._description_columns),
+            ("material", self._material_columns),
+            ("dimensions", self._dimensions_columns),
+            ("name", self._name_columns),
+        ]
+
+        best_row_idx = 0
+        best_mapping: dict = {}
+        best_score = 0
+
+        scan_limit = min(10, len(rows))
+        for row_idx in range(scan_limit):
+            headers = [str(h) if h else "" for h in rows[row_idx]]
+            mapping: dict = {}
+            claimed_cols: set = set()
+            score = 0
+            for cat_name, candidates in all_categories:
+                col_idx = self._find_column(headers, candidates)
+                if col_idx is not None and col_idx not in claimed_cols:
+                    mapping[cat_name] = col_idx
+                    claimed_cols.add(col_idx)
+                    score += 1
+
+            if score > best_score:
+                best_score = score
+                best_row_idx = row_idx
+                best_mapping = mapping
+
+        return best_row_idx, best_mapping, best_score
+
+    def _detect_unit_of_measure(self, headers: List[str], price_idx: Optional[int]) -> Optional[str]:
+        """Detect unit of measure from the price column header text."""
+        if price_idx is None or price_idx >= len(headers):
+            return None
+        header_text = headers[price_idx].lower() if headers[price_idx] else ""
+        for keyword, unit in self._unit_mapping.items():
+            if keyword in header_text:
+                return unit
+        return None
+
+    def _extract_excel_with_ai(
+        self, rows: list, sheet_title: str
+    ) -> List[ExtractedProduct]:
+        """Use AI to extract products from unrecognized Excel data.
+
+        Serializes the first 50 data rows as a text table and sends
+        to the preferred AI provider for structured extraction.
+        """
+        # Serialize first 50 rows as pipe-separated table
+        data_rows = rows[:50]
+        lines: List[str] = []
+        for row in data_rows:
+            cells = [str(c) if c is not None else "" for c in row]
+            lines.append(" | ".join(cells))
+        table_text = "\n".join(lines)
+
+        prompt = (
+            "Extract product data from this spreadsheet table. Each row may represent a product.\n"
+            "Return a JSON array of objects, each with: sku, name, description, "
+            "price_fob_usd (decimal), moq (integer), dimensions, material.\n"
+            "Use null for missing values. Only return valid JSON array, no additional text.\n\n"
+            f"Table data:\n{table_text}"
+        )
+
+        provider = self._get_preferred_ai_provider()
+        try:
+            if provider == "anthropic":
+                client = self._get_anthropic_client()
+                if not client:
+                    raise RuntimeError("Anthropic client not available")
+                message = client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=4096,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                response_text = message.content[0].text
+            elif provider == "openai":
+                client = self._get_openai_client()
+                if not client:
+                    raise RuntimeError("OpenAI client not available")
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    max_tokens=4096,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                response_text = response.choices[0].message.content
+            else:
+                return []
+
+            # Parse JSON array response
+            json_start = response_text.find("[")
+            json_end = response_text.rfind("]") + 1
+            if json_start >= 0 and json_end > json_start:
+                items = json.loads(response_text[json_start:json_end])
+            else:
+                # Try single object fallback
+                product = self._parse_extraction_response(response_text)
+                return [product] if product.name or product.sku else []
+
+            products: List[ExtractedProduct] = []
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                # Calculate confidence
+                fields_present = sum(
+                    1 for k in ["sku", "name", "description", "price_fob_usd", "moq"]
+                    if item.get(k) is not None
+                )
+                confidence = fields_present / 5.0
+
+                price_fob_usd = None
+                if item.get("price_fob_usd") is not None:
+                    try:
+                        price_fob_usd = Decimal(str(item["price_fob_usd"]))
+                    except (InvalidOperation, ValueError):
+                        pass
+
+                product = ExtractedProduct(
+                    sku=item.get("sku"),
+                    name=item.get("name"),
+                    description=item.get("description"),
+                    price_fob_usd=price_fob_usd,
+                    moq=item.get("moq"),
+                    dimensions=item.get("dimensions"),
+                    material=item.get("material"),
+                    confidence_score=confidence,
+                )
+                if product.name or product.sku:
+                    products.append(product)
+            return products
+
+        except Exception as e:
+            print(f"WARN [ExtractionService]: AI Excel extraction failed for sheet '{sheet_title}': {e}")
+            return []
+
     def process_excel(
         self, file_path: str
     ) -> Tuple[List[ExtractedProduct], List[str]]:
         """Process an Excel file and extract product data.
+
+        Uses multi-row header scanning (first 10 rows), substring matching
+        for column detection, unit-of-measure detection from price headers,
+        and AI fallback for unrecognized formats.
 
         Args:
             file_path: Path to the Excel file
@@ -359,22 +583,6 @@ Only return valid JSON, no additional text or explanation."""
         if file_size_mb > MAX_EXCEL_SIZE_MB:
             return [], [f"Excel exceeds {MAX_EXCEL_SIZE_MB}MB limit"]
 
-        # Column name mappings (lowercase variations)
-        sku_columns = ["sku", "reference", "code", "ref", "item code", "product code"]
-        name_columns = ["name", "product", "item", "product name", "item name", "title"]
-        price_columns = ["price", "fob", "fob price", "unit price", "cost", "price usd"]
-        moq_columns = ["moq", "minimum", "min qty", "min order", "minimum order"]
-        description_columns = ["description", "desc", "details", "product description"]
-        material_columns = ["material", "materials", "composition"]
-        dimensions_columns = ["dimensions", "size", "sizes", "dim"]
-
-        def find_column(headers: List[str], candidates: List[str]) -> Optional[int]:
-            """Find column index matching any candidate name."""
-            for idx, header in enumerate(headers):
-                if header and header.lower().strip() in candidates:
-                    return idx
-            return None
-
         try:
             workbook = load_workbook(file_path, read_only=True, data_only=True)
 
@@ -383,20 +591,42 @@ Only return valid JSON, no additional text or explanation."""
                 if not rows:
                     continue
 
-                # First row is headers
-                headers = [str(h) if h else "" for h in rows[0]]
+                # Find best header row by scanning first 10 rows
+                header_row_idx, col_mapping, score = self._find_best_header_row(rows)
 
-                # Find column indices
-                sku_idx = find_column(headers, sku_columns)
-                name_idx = find_column(headers, name_columns)
-                price_idx = find_column(headers, price_columns)
-                moq_idx = find_column(headers, moq_columns)
-                desc_idx = find_column(headers, description_columns)
-                material_idx = find_column(headers, material_columns)
-                dim_idx = find_column(headers, dimensions_columns)
+                # AI fallback when fewer than 2 column categories match
+                if score < 2:
+                    print(
+                        f"WARN [ExtractionService]: AI fallback used for sheet "
+                        f"'{sheet.title}' - no header matches found"
+                    )
+                    if not self._is_ai_available():
+                        print(
+                            f"WARN [ExtractionService]: AI unavailable, "
+                            f"skipping sheet '{sheet.title}'"
+                        )
+                        continue
+                    ai_products = self._extract_excel_with_ai(rows, sheet.title)
+                    products.extend(ai_products)
+                    continue
 
-                # Process data rows
-                for row_num, row in enumerate(rows[1:], start=2):
+                # Use the detected header row
+                headers = [str(h) if h else "" for h in rows[header_row_idx]]
+                sku_idx = col_mapping.get("sku")
+                name_idx = col_mapping.get("name")
+                price_idx = col_mapping.get("price")
+                moq_idx = col_mapping.get("moq")
+                desc_idx = col_mapping.get("description")
+                material_idx = col_mapping.get("material")
+                dim_idx = col_mapping.get("dimensions")
+
+                # Detect unit of measure from price column header
+                unit_of_measure = self._detect_unit_of_measure(headers, price_idx)
+
+                # Process data rows starting after header row
+                for row_num, row in enumerate(
+                    rows[header_row_idx + 1:], start=header_row_idx + 2
+                ):
                     try:
                         # Skip empty rows
                         if not any(row):
@@ -443,6 +673,7 @@ Only return valid JSON, no additional text or explanation."""
                             material=get_cell(material_idx),
                             dimensions=get_cell(dim_idx),
                             confidence_score=0.8,  # High confidence for structured data
+                            unit_of_measure=unit_of_measure,
                         )
                         products.append(product)
 

@@ -362,6 +362,148 @@ class TestConfirmImportEndpoint:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+class TestConfirmImportFieldMapping:
+    """Tests for confirm import field mapping (unit_of_measure, material, category_id)."""
+
+    @patch("app.services.product_service.product_service.bulk_create_products")
+    def test_confirm_maps_unit_of_measure(
+        self, mock_bulk_create, authenticated_client
+    ):
+        """Test unit_of_measure from ExtractedProduct flows to ProductCreateDTO."""
+        mock_response = MagicMock()
+        mock_response.success_count = 1
+        mock_response.failure_count = 0
+        mock_response.failed = []
+        mock_bulk_create.return_value = mock_response
+
+        job = _create_job(1)
+        products = [
+            ExtractedProduct(
+                sku="UOM-001",
+                name="UOM Product",
+                unit_of_measure="m2",
+            ),
+        ]
+        _complete_job(str(job.job_id), products, [])
+
+        supplier_id = uuid4()
+        response = authenticated_client.post(
+            f"/api/extract/{job.job_id}/confirm",
+            json={
+                "job_id": str(job.job_id),
+                "supplier_id": str(supplier_id),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        call_args = mock_bulk_create.call_args[0][0]
+        assert call_args[0].unit_of_measure == "m2"
+
+    @patch("app.services.product_service.product_service.bulk_create_products")
+    def test_confirm_appends_material_to_description(
+        self, mock_bulk_create, authenticated_client
+    ):
+        """Test material is appended as '\\nMaterial: {material}' in description."""
+        mock_response = MagicMock()
+        mock_response.success_count = 1
+        mock_response.failure_count = 0
+        mock_response.failed = []
+        mock_bulk_create.return_value = mock_response
+
+        job = _create_job(1)
+        products = [
+            ExtractedProduct(
+                sku="MAT-001",
+                name="Material Product",
+                description="A product",
+                material="Porcelain",
+            ),
+        ]
+        _complete_job(str(job.job_id), products, [])
+
+        supplier_id = uuid4()
+        response = authenticated_client.post(
+            f"/api/extract/{job.job_id}/confirm",
+            json={
+                "job_id": str(job.job_id),
+                "supplier_id": str(supplier_id),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        call_args = mock_bulk_create.call_args[0][0]
+        assert "A product" in call_args[0].description
+        assert "\nMaterial: Porcelain" in call_args[0].description
+
+    @patch("app.services.product_service.product_service.bulk_create_products")
+    def test_confirm_passes_category_id(
+        self, mock_bulk_create, authenticated_client
+    ):
+        """Test category_id from request is passed to all created products."""
+        mock_response = MagicMock()
+        mock_response.success_count = 1
+        mock_response.failure_count = 0
+        mock_response.failed = []
+        mock_bulk_create.return_value = mock_response
+
+        job = _create_job(1)
+        products = [
+            ExtractedProduct(sku="CAT-001", name="Category Product"),
+        ]
+        _complete_job(str(job.job_id), products, [])
+
+        supplier_id = uuid4()
+        category_id = uuid4()
+        response = authenticated_client.post(
+            f"/api/extract/{job.job_id}/confirm",
+            json={
+                "job_id": str(job.job_id),
+                "supplier_id": str(supplier_id),
+                "category_id": str(category_id),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        call_args = mock_bulk_create.call_args[0][0]
+        assert call_args[0].category_id == category_id
+
+    @patch("app.services.product_service.product_service.bulk_create_products")
+    def test_confirm_handles_none_material(
+        self, mock_bulk_create, authenticated_client
+    ):
+        """Test no material appendage when material is None."""
+        mock_response = MagicMock()
+        mock_response.success_count = 1
+        mock_response.failure_count = 0
+        mock_response.failed = []
+        mock_bulk_create.return_value = mock_response
+
+        job = _create_job(1)
+        products = [
+            ExtractedProduct(
+                sku="NOMAT-001",
+                name="No Material Product",
+                description="Just a description",
+                material=None,
+            ),
+        ]
+        _complete_job(str(job.job_id), products, [])
+
+        supplier_id = uuid4()
+        response = authenticated_client.post(
+            f"/api/extract/{job.job_id}/confirm",
+            json={
+                "job_id": str(job.job_id),
+                "supplier_id": str(supplier_id),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        call_args = mock_bulk_create.call_args[0][0]
+        assert call_args[0].description == "Just a description"
+        assert "Material:" not in call_args[0].description
+
+
 class TestImageProcessEndpoint:
     """Tests for the image process endpoint."""
 

@@ -535,6 +535,37 @@ class CategoryRepository:
         d["parent_name"] = row[8] if len(row) > 8 else None
         return d
 
+    def get_by_name_and_parent(
+        self, name: str, parent_id: Optional[UUID] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Get category by name and parent_id for idempotent seeding."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, description, parent_id, sort_order,
+                           is_active, created_at, updated_at
+                    FROM categories
+                    WHERE LOWER(name) = LOWER(%s)
+                      AND parent_id IS NOT DISTINCT FROM %s
+                    """,
+                    (name, str(parent_id) if parent_id else None),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [CategoryRepository]: Failed to get category by name: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
     def get_children(self, category_id: UUID) -> List[Dict[str, Any]]:
         """Get immediate children of a category."""
         conn = get_database_connection()
@@ -1598,6 +1629,36 @@ class SupplierRepository:
             "created_at": row[12],
             "updated_at": row[13],
         }
+
+    def get_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get supplier by name for deduplication."""
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           created_at, updated_at
+                    FROM suppliers
+                    WHERE LOWER(name) = LOWER(%s)
+                    LIMIT 1
+                    """,
+                    (name,),
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to get supplier by name: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
 
     def count_products_by_supplier(self, supplier_id: UUID) -> int:
         """Count products for a specific supplier.

@@ -48,6 +48,7 @@ class ConfirmImportRequestDTO(BaseModel):
         description="Indices of products to import. If None, import all.",
     )
     supplier_id: UUID = Field(description="Supplier ID to assign to imported products")
+    category_id: Optional[UUID] = None
 
 
 class ConfirmImportResponseDTO(BaseModel):
