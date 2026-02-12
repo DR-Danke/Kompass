@@ -354,6 +354,7 @@ Only return valid JSON, no additional text or explanation."""
     ]
     _description_columns = [
         "description", "desc", "details", "product description",
+        "caracteristics", "características", "caracteristicas",
     ]
     _material_columns = [
         "material", "materials", "composition",
@@ -619,6 +620,11 @@ Only return valid JSON, no additional text or explanation."""
                 desc_idx = col_mapping.get("description")
                 material_idx = col_mapping.get("material")
                 dim_idx = col_mapping.get("dimensions")
+
+                # Fallback: use description column as name when no name column found
+                if name_idx is None and desc_idx is not None:
+                    name_idx = desc_idx
+                    desc_idx = None
 
                 # Detect unit of measure from price column header
                 unit_of_measure = self._detect_unit_of_measure(headers, price_idx)

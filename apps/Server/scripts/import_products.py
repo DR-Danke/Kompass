@@ -315,8 +315,20 @@ def convert_to_product_dto(
     Returns:
         ProductCreateDTO or None if the product has no name.
     """
-    if not extracted.name or not extracted.name.strip():
-        return None
+    product_name = (extracted.name or "").strip()
+    if not product_name:
+        # Try building name from material (e.g. HONGYU Collection: "Statuario")
+        if extracted.material and extracted.material.strip():
+            product_name = extracted.material.strip()
+        # Try first line of description
+        elif extracted.description and extracted.description.strip():
+            first_line = extracted.description.strip().split("\n")[0][:200]
+            product_name = first_line
+        # Last resort: use SKU
+        elif extracted.sku and extracted.sku.strip():
+            product_name = extracted.sku.strip()
+        else:
+            return None
 
     # Build description with material appended
     description = extracted.description or ""
@@ -327,7 +339,7 @@ def convert_to_product_dto(
             description = f"Material: {extracted.material}"
 
     return ProductCreateDTO(
-        name=extracted.name.strip(),
+        name=product_name,
         sku=extracted.sku,
         description=description or None,
         supplier_id=UUID(supplier_id),
