@@ -25,15 +25,17 @@ import {
   ListItem,
   ListItemText,
   Snackbar,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import WarningIcon from '@mui/icons-material/Warning';
 import { useExtractionJob } from '@/hooks/useExtractionJob';
-import { supplierService, productService, extractionService } from '@/services/kompassService';
+import { supplierService, productService, extractionService, categoryService } from '@/services/kompassService';
 import { ExtractedProductTable } from '@/components/kompass/ExtractedProductTable';
-import type { ExtractedProduct, SupplierResponse, ProductResponse } from '@/types/kompass';
+import type { ExtractedProduct, SupplierResponse, ProductResponse, CategoryTreeNode } from '@/types/kompass';
 
 const STEPS = ['Upload Files', 'Processing', 'Review Products', 'Confirm Import'];
 
@@ -57,7 +59,26 @@ interface DraftData {
   extractedProducts: ExtractedProduct[];
   selectedIndices: number[];
   supplierId: string | null;
+  categoryId: string | null;
 }
+
+interface FlatCategory {
+  id: string;
+  label: string;
+}
+
+const flattenCategoryTree = (nodes: CategoryTreeNode[], parentPath = ''): FlatCategory[] => {
+  const result: FlatCategory[] = [];
+  for (const node of nodes) {
+    if (!node.is_active) continue;
+    const label = parentPath ? `${parentPath} > ${node.name}` : node.name;
+    result.push({ id: node.id, label });
+    if (node.children.length > 0) {
+      result.push(...flattenCategoryTree(node.children, label));
+    }
+  }
+  return result;
+};
 
 function validateFileType(file: File): boolean {
   const extension = '.' + file.name.split('.').pop()?.toLowerCase();
@@ -145,6 +166,12 @@ export default function ImportWizardPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
 
+  // Category state
+  const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+
+  const flatCategories = useMemo(() => flattenCategoryTree(categories), [categories]);
+
   // Check for draft on mount
   useEffect(() => {
     const draft = localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -153,7 +180,7 @@ export default function ImportWizardPage() {
     }
   }, []);
 
-  // Load suppliers when reaching confirm step
+  // Load suppliers and categories when reaching confirm step
   useEffect(() => {
     if (activeStep === 3) {
       supplierService.list(1, 100).then((res) => {
@@ -161,6 +188,9 @@ export default function ImportWizardPage() {
       });
       productService.list(1, 1000).then((res) => {
         setExistingProducts(res.items);
+      });
+      categoryService.getTree().then((tree) => {
+        setCategories(tree);
       });
     }
   }, [activeStep]);
@@ -313,6 +343,7 @@ export default function ImportWizardPage() {
         job_id: jobId,
         product_indices: productIndices,
         supplier_id: selectedSupplierId,
+        category_id: selectedCategoryId || undefined,
       });
 
       setImportResult({
@@ -329,7 +360,7 @@ export default function ImportWizardPage() {
     } finally {
       setIsImporting(false);
     }
-  }, [jobId, selectedSupplierId, selectedIndices]);
+  }, [jobId, selectedSupplierId, selectedCategoryId, selectedIndices]);
 
   const handleSaveDraft = useCallback(() => {
     const draft: DraftData = {
@@ -337,10 +368,11 @@ export default function ImportWizardPage() {
       extractedProducts: editedProducts,
       selectedIndices: Array.from(selectedIndices),
       supplierId: selectedSupplierId || null,
+      categoryId: selectedCategoryId || null,
     };
     localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     setSnackbarMessage('Draft saved successfully');
-  }, [selectedFiles, editedProducts, selectedIndices, selectedSupplierId]);
+  }, [selectedFiles, editedProducts, selectedIndices, selectedSupplierId, selectedCategoryId]);
 
   const handleLoadDraft = useCallback(() => {
     const draftStr = localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -350,6 +382,9 @@ export default function ImportWizardPage() {
       setSelectedIndices(new Set(draft.selectedIndices));
       if (draft.supplierId) {
         setSelectedSupplierId(draft.supplierId);
+      }
+      if (draft.categoryId) {
+        setSelectedCategoryId(draft.categoryId);
       }
       if (draft.extractedProducts.length > 0) {
         setActiveStep(2);
@@ -371,6 +406,7 @@ export default function ImportWizardPage() {
     setSelectedIndices(new Set());
     setActiveStep(0);
     setSelectedSupplierId('');
+    setSelectedCategoryId('');
   }, [resetJob]);
 
   const handleSuccessClose = useCallback(() => {
@@ -585,6 +621,22 @@ export default function ImportWizardPage() {
                 ))}
               </Select>
             </FormControl>
+
+            <Autocomplete
+              options={flatCategories}
+              getOptionLabel={(option) => option.label}
+              value={flatCategories.find((c) => c.id === selectedCategoryId) || null}
+              onChange={(_, newValue) => setSelectedCategoryId(newValue?.id || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  helperText="Optional — assign all products to this category"
+                />
+              )}
+              sx={{ mb: 2 }}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+            />
 
             {duplicateSkus.length > 0 && (
               <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
