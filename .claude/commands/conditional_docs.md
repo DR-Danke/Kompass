@@ -1733,3 +1733,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When troubleshooting bulk product import or duplicate SKU handling
     - When running import_products.py with --dry-run, --file, or --verbose flags
     - When working with import_results.json output
+
+- app_docs/feature-cf702df2-category-dropdown-import-wizard.md
+  - Conditions:
+    - When working with the Import Wizard category assignment during product import
+    - When modifying the confirm step (Step 3) of ImportWizardPage.tsx
+    - When working with category selection in the import flow
+    - When working with unit_of_measure display in ExtractedProductTable
+    - When troubleshooting category dropdown or category tree flattening issues

@@ -1007,6 +1007,7 @@ export interface ExtractedProduct {
   confidence_score: number;
   raw_text: string | null;
   source_page: number | null;
+  unit_of_measure: string | null;
 }
 
 export interface ExtractionJobDTO {
@@ -1029,6 +1030,7 @@ export interface ConfirmImportRequestDTO {
   job_id: string;
   product_indices: number[] | null;
   supplier_id: string;
+  category_id?: string;
 }
 
 export interface ConfirmImportResponseDTO {

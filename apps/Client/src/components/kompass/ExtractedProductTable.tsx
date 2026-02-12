@@ -13,6 +13,7 @@ import {
   Tooltip,
   Box,
   Avatar,
+  Typography,
 } from '@mui/material';
 import type { ExtractedProduct } from '@/types/kompass';
 
@@ -96,6 +97,7 @@ export const ExtractedProductTable: React.FC<ExtractedProductTableProps> = ({
             <TableCell sx={{ minWidth: 200 }}>Description</TableCell>
             <TableCell sx={{ minWidth: 100 }}>Price (USD)</TableCell>
             <TableCell sx={{ minWidth: 80 }}>MOQ</TableCell>
+            <TableCell sx={{ minWidth: 80 }}>Unit</TableCell>
             <TableCell sx={{ minWidth: 100 }}>Confidence</TableCell>
           </TableRow>
         </TableHead>
@@ -191,6 +193,11 @@ export const ExtractedProductTable: React.FC<ExtractedProductTableProps> = ({
                       inputProps={{ style: { fontSize: '0.875rem' }, min: 1 }}
                     />
                   </Tooltip>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                    {product.unit_of_measure || '\u2014'}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
