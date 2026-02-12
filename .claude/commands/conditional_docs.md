@@ -1702,3 +1702,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When handling API response null safety for products or categories
     - When debugging "Cannot read properties of undefined (reading 'map')" errors
     - When creating or modifying portfolio creation flow
+
+- app_docs/feature-aa50456e-repo-helpers-reference-data-seeding.md
+  - Conditions:
+    - When working with reference data seeding scripts under apps/Server/scripts/
+    - When implementing idempotent seed patterns using repository helpers
+    - When using CategoryRepository.get_by_name_and_parent() or SupplierRepository.get_by_name()
+    - When populating categories, suppliers, or HS codes for batch product imports
+    - When working with seed_mappings.json or the SCD pipeline
+    - When troubleshooting duplicate records during data seeding
+    - When adding new seeding scripts or extending the seed_all.py runner
