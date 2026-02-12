@@ -294,6 +294,19 @@ export const supplierService = {
     });
     return response.data;
   },
+
+  async getProducts(
+    supplierId: string,
+    page = 1,
+    limit = 20
+  ): Promise<ProductListResponse> {
+    console.log(`INFO [supplierService]: Fetching products for supplier ${supplierId}`);
+    const response = await apiClient.get<ProductListResponse>(
+      `/suppliers/${supplierId}/products`,
+      { params: { page, limit } }
+    );
+    return response.data;
+  },
 };
 
 // =============================================================================
