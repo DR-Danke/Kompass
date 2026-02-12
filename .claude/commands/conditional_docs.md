@@ -1741,3 +1741,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with category selection in the import flow
     - When working with unit_of_measure display in ExtractedProductTable
     - When troubleshooting category dropdown or category tree flattening issues
+
+- app_docs/feature-5310ed8a-hs-code-assignment-script.md
+  - Conditions:
+    - When working with HS code assignment to products
+    - When working with apps/Server/scripts/assign_hs_codes.py
+    - When working with category-to-HS-code mapping
+    - When running post-import data pipeline scripts
+    - When working with seed_mappings.json or the SCD pipeline
+    - When troubleshooting products missing HS codes for pricing engine
+    - When working with AI-based HS code suggestion via extraction_service
