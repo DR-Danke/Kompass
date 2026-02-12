@@ -7,7 +7,7 @@
     }
   },
   "recording": {
-    "dir": "./e2e_screenshots",
+    "dir": "/mnt/c/Users/user/danke_apps/Kompass/trees/91779846/e2e_screenshots",
     "enabled": true
   }
 }
