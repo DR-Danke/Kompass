@@ -40,17 +40,63 @@ CATEGORY_HS_MAP: dict[str, Optional[str]] = {
     "DOTACIÓN DE COCINA": "7323.93",
     "ESPEJOS": "7013.49",
     "ILUMINACIÓN": "9405.10",
+    "MOBILIARIO": "9403.60",  # Default: wooden furniture
     "MOBILIARIO/Camas": "9403.60",
     "MOBILIARIO/Mesas de Noche": "9403.60",
     "MOBILIARIO/Mobiliario Restaurante": "9403.20",
     "MOBILIARIO/Mobiliario a Medida": "9401.61",
-    "ONE STOP SHOP": None,  # Mixed category — needs manual or AI assignment
+    "ONE STOP SHOP": None,  # Mixed category — needs keyword or AI assignment
+    "PISOS - GUARDAESCOBAS": "6907.21",  # Default: ceramic tiles
     "PISOS - GUARDAESCOBAS/SPC Floor": "3921.90",
     "PISOS - GUARDAESCOBAS/Guardaescobas": "3917.40",
+    "REVESTIMIENTOS": "3921.90",  # Default: plastic panels
     "REVESTIMIENTOS/Panel Exterior": "6907.21",
     "REVESTIMIENTOS/Panel Interior": "6907.21",
     "TARIMAS & EVENTOS": "7610.90",
 }
+
+# Keyword -> HS code mapping for Phase 1.5 (keyword-based assignment).
+# Checked against lowercased product name + description.
+# Order matters: more specific keywords should come before broad ones.
+KEYWORD_HS_MAP: list[tuple[list[str], str]] = [
+    # Ceramic sanitaryware
+    (["toilet", "inodoro", "wc", "basin", "lavabo"], "6910.10"),
+    # Faucets, sanitary fittings, drains
+    (["faucet", "grifo", "tap", "mixer", "shower head", "drain", "valve",
+      "angle valve", "hosepipe", "tissue holder", "drainer"], "7324.90"),
+    # Ceramic tiles
+    (["tile", "porcelain", "ceramic", "mosaic", "sintered stone",
+      "baldosa"], "6907.21"),
+    # Mirrors, glassware
+    (["mirror", "espejo", "glass brick", "shower glass"], "7013.49"),
+    # Upholstered seating
+    (["sofa", "chair", "silla", "seat", "pebble sofa", "ottoman"], "9401.61"),
+    # Wooden furniture (broad)
+    (["table", "mesa", "cabinet", "closet", "desk", "bed", "cama",
+      "dresser", "nightstand", "drawer", "shelf", "bookcase",
+      "wardrobe", "vanity", "sideboard"], "9403.60"),
+    # Metal furniture
+    (["metal frame", "steel table", "metal chair"], "9403.20"),
+    # Plastic plates/sheets (SPC, PVC panels)
+    (["spc", "pvc wall", "pvc ceiling", "pvc panel", "pvc exterior",
+      "acoustic panel"], "3921.90"),
+    # MDF/fibreboard (WPC)
+    (["wpc", "wood plastic", "deck tile"], "4411.14"),
+    # Aluminum structures
+    (["aluminum", "aluminium", "truss", "metal panel",
+      "outdoor metal"], "7610.90"),
+    # Kitchenware
+    (["kitchen", "cocina", "rack", "dish rack"], "7323.93"),
+    # Lighting
+    (["light", "lamp", "led", "chandelier", "luminaria", "downlight",
+      "track light", "panel light"], "9405.10"),
+    # Baseboards
+    (["baseboard", "guardaescoba", "skirting"], "3917.40"),
+    # Dispensers
+    (["dispenser", "dispensador"], "8481.80"),
+    # Concrete/stone boards (treated as ceramic tiles)
+    (["concrete board", "stone board", "ripple board"], "6907.21"),
+]
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 RESULTS_FILE = os.path.join(OUTPUT_DIR, "hs_assignment_results.json")
@@ -207,6 +253,81 @@ def assign_by_category(
     return assigned, unmatched
 
 
+def assign_by_keyword(
+    products: list[dict[str, Any]],
+    hs_code_map: dict[str, str],
+    args: argparse.Namespace,
+) -> tuple[int, list[dict[str, Any]]]:
+    """Assign HS codes to products using keyword matching on name + description.
+
+    Iterates KEYWORD_HS_MAP in order; first keyword match wins.
+
+    Args:
+        products: Unmatched products from category phase.
+        hs_code_map: {hs_code_string: hs_code_uuid} for resolving codes.
+        args: CLI arguments (dry_run, verbose).
+
+    Returns:
+        Tuple of (assigned_count, still_unmatched_products).
+    """
+    assigned = 0
+    unmatched: list[dict[str, Any]] = []
+
+    for product in products:
+        # Build searchable text from name + description
+        text_parts = []
+        if product.get("name"):
+            text_parts.append(product["name"])
+        if product.get("description"):
+            text_parts.append(product["description"])
+        text = " ".join(text_parts).lower()
+
+        matched_code: Optional[str] = None
+        matched_keyword: Optional[str] = None
+
+        for keywords, hs_code_str in KEYWORD_HS_MAP:
+            for kw in keywords:
+                if kw in text:
+                    matched_code = hs_code_str
+                    matched_keyword = kw
+                    break
+            if matched_code:
+                break
+
+        if not matched_code:
+            unmatched.append(product)
+            if args.verbose:
+                print(f"  NO KEYWORD: {product['name'][:60]}")
+            continue
+
+        hs_code_uuid = hs_code_map.get(matched_code)
+        if not hs_code_uuid:
+            if args.verbose:
+                print(
+                    f"  WARN: Keyword '{matched_keyword}' matched HS code '{matched_code}' "
+                    f"but code not in seeded data — skipping {product['name'][:40]}"
+                )
+            unmatched.append(product)
+            continue
+
+        if args.verbose:
+            print(f"  KEYWORD: {product['name'][:50]} -> '{matched_keyword}' -> {matched_code}")
+
+        if not args.dry_run:
+            result = product_repository.update(
+                product_id=UUID(str(product["id"])),
+                hs_code_id=UUID(hs_code_uuid),
+            )
+            if not result:
+                print(f"  ERROR [AssignHSCodes]: Failed to update product {product['id']}")
+                unmatched.append(product)
+                continue
+
+        assigned += 1
+
+    return assigned, unmatched
+
+
 def assign_by_ai(
     products: list[dict[str, Any]],
     hs_code_map: dict[str, str],
@@ -295,6 +416,7 @@ def print_summary(
     uncategorized_count: int,
     mapped_count: int,
     unmatched_count: int,
+    keyword_assigned_count: int,
     ai_assigned_count: int,
     still_without_count: int,
     dry_run: bool,
@@ -309,7 +431,7 @@ def print_summary(
     print(f"  {'Without category:':<40} {uncategorized_count:>6}")
     print(f"{'─' * 55}")
     print(f"  {'Assigned via category map:':<40} {mapped_count:>6}")
-    print(f"  {'Unmatched (unmapped category):':<40} {unmatched_count:>6}")
+    print(f"  {'Assigned via keyword match:':<40} {keyword_assigned_count:>6}")
     if ai_assigned_count > 0:
         print(f"  {'Assigned via AI suggestion:':<40} {ai_assigned_count:>6}")
     print(f"{'─' * 55}")
@@ -390,16 +512,29 @@ def main() -> None:
     mapped_count, unmatched = assign_by_category(categorized, reverse_map, args)
     print(f"  Assigned: {mapped_count}, Unmatched: {len(unmatched)}")
 
+    # Phase 1.5: Keyword-based assignment on remaining unmatched
+    keyword_assigned_count = 0
+    keyword_candidates = unmatched + uncategorized
+    if keyword_candidates:
+        print(f"\n--- Phase 1.5: Keyword-based assignment ({len(keyword_candidates)} products) ---")
+        keyword_assigned_count, keyword_unmatched = assign_by_keyword(
+            keyword_candidates, hs_code_map, args
+        )
+        print(f"  Assigned: {keyword_assigned_count}, Unmatched: {len(keyword_unmatched)}")
+    else:
+        keyword_unmatched = []
+
     # Phase 2: AI-based assignment (optional)
     ai_assigned_count = 0
     ai_still_unmatched: list[dict[str, Any]] = []
-    if args.use_ai and (unmatched or uncategorized):
-        ai_candidates = unmatched + uncategorized
-        print(f"\n--- Phase 2: AI-based assignment ({len(ai_candidates)} products) ---")
-        ai_assigned_count, ai_still_unmatched = assign_by_ai(ai_candidates, hs_code_map, args)
+    if args.use_ai and keyword_unmatched:
+        print(f"\n--- Phase 2: AI-based assignment ({len(keyword_unmatched)} products) ---")
+        ai_assigned_count, ai_still_unmatched = assign_by_ai(
+            keyword_unmatched, hs_code_map, args
+        )
         print(f"  AI assigned: {ai_assigned_count}, Still unmatched: {len(ai_still_unmatched)}")
     else:
-        ai_still_unmatched = unmatched + uncategorized
+        ai_still_unmatched = keyword_unmatched
 
     still_without_count = len(ai_still_unmatched)
 
@@ -410,6 +545,7 @@ def main() -> None:
         uncategorized_count=len(uncategorized),
         mapped_count=mapped_count,
         unmatched_count=len(unmatched),
+        keyword_assigned_count=keyword_assigned_count,
         ai_assigned_count=ai_assigned_count,
         still_without_count=still_without_count,
         dry_run=args.dry_run,
@@ -422,7 +558,8 @@ def main() -> None:
             "with_category": len(categorized),
             "without_category": len(uncategorized),
             "assigned_by_category_map": mapped_count,
-            "unmatched_category": len(unmatched),
+            "unmatched_after_category": len(unmatched),
+            "assigned_by_keyword": keyword_assigned_count,
             "assigned_by_ai": ai_assigned_count,
             "still_without_hs_code": still_without_count,
             "dry_run": args.dry_run,
