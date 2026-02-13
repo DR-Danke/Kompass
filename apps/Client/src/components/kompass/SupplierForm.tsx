@@ -18,6 +18,7 @@ import {
 import type { SupplierCreate, SupplierUpdate, SupplierResponse, SupplierStatus } from '@/types/kompass';
 import { supplierService } from '@/services/kompassService';
 import SupplierCertificationTab from './SupplierCertificationTab';
+import SupplierProductsTab from './SupplierProductsTab';
 
 interface SupplierFormProps {
   open: boolean;
@@ -177,7 +178,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
   };
 
   const dialogTitle = isEditMode
-    ? `Edit Supplier${activeTab === 1 ? ' - Certification' : ''}`
+    ? `Edit Supplier${activeTab === 1 ? ' - Certification' : activeTab === 2 ? ' - Products' : ''}`
     : 'Add Supplier';
 
   return (
@@ -190,6 +191,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="supplier dialog tabs">
             <Tab label="General" id="supplier-tab-0" aria-controls="supplier-tabpanel-0" />
             <Tab label="Certification" id="supplier-tab-1" aria-controls="supplier-tabpanel-1" />
+            <Tab label="Products" id="supplier-tab-2" aria-controls="supplier-tabpanel-2" />
           </Tabs>
         </Box>
       )}
@@ -332,6 +334,16 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
           {isEditMode && supplier && (
             <TabPanel value={activeTab} index={1}>
               <SupplierCertificationTab
+                supplierId={supplier.id}
+                supplierName={supplier.name}
+              />
+            </TabPanel>
+          )}
+
+          {/* Products Tab - only visible in edit mode */}
+          {isEditMode && supplier && (
+            <TabPanel value={activeTab} index={2}>
+              <SupplierProductsTab
                 supplierId={supplier.id}
                 supplierName={supplier.name}
               />
