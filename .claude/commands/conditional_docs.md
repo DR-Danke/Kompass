@@ -1741,3 +1741,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with category selection in the import flow
     - When working with unit_of_measure display in ExtractedProductTable
     - When troubleshooting category dropdown or category tree flattening issues
+
+- app_docs/feature-e0495fa5-supplier-products-tab.md
+  - Conditions:
+    - When working with the supplier products tab in the supplier edit dialog
+    - When modifying apps/Client/src/components/kompass/SupplierProductsTab.tsx
+    - When adding or modifying tabs in SupplierForm.tsx
+    - When working with the GET /api/suppliers/{id}/products endpoint on the frontend
+    - When troubleshooting supplier-product association display
