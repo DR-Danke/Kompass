@@ -34,6 +34,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import WarningIcon from '@mui/icons-material/Warning';
+import FactoryIcon from '@mui/icons-material/Factory';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,6 +57,7 @@ function TabPanel(props: TabPanelProps) {
 const quickReferenceData = {
   createActions: [
     { action: 'Supplier', path: 'Suppliers > + Add Supplier' },
+    { action: 'Upload Audit', path: 'Suppliers > [Supplier] > Certification Tab > Upload' },
     { action: 'Product', path: 'Biblia General > + Add Product' },
     { action: 'Category', path: 'Categories > + Add Category' },
     { action: 'Tag', path: 'Categories > Tags > + Add Tag' },
@@ -67,6 +71,8 @@ const quickReferenceData = {
     quotation: ['Draft', 'Sent', 'Viewed', 'Negotiating', 'Accepted/Rejected/Expired'],
     client: ['Lead', 'Qualified', 'Quoting', 'Negotiating', 'Won/Lost'],
     product: ['Draft', 'Active', 'Inactive', 'Discontinued'],
+    supplierPipeline: ['Contacted', 'Potential', 'Quoted', 'Certified', 'Active', 'Inactive'],
+    supplierCertification: ['Uncertified', 'Pending Review', 'Type A', 'Type B', 'Type C'],
   },
   shortcuts: [
     { keys: 'Ctrl/Cmd + K', action: 'Quick search' },
@@ -78,6 +84,31 @@ const quickReferenceData = {
 
 // FAQ Data
 const faqData = [
+  {
+    category: 'Supplier Certification',
+    questions: [
+      {
+        q: 'What file formats can I upload for audits?',
+        a: 'PDF files up to 25MB. Factory audits are typically 70+ pages. The AI will extract key data points automatically.',
+      },
+      {
+        q: 'What does Type A/B/C classification mean?',
+        a: 'Type A: Verified manufacturer with certifications. Type B: Manufacturer or verified trader with some certifications. Type C: Trader or limited documentation. You can override the AI classification.',
+      },
+      {
+        q: 'Can I override the AI classification?',
+        a: 'Yes, click "Override" on the classification badge. You must provide notes explaining your reason for the override.',
+      },
+      {
+        q: 'What data is extracted from audits?',
+        a: 'Supplier type (manufacturer/trader), employee count, factory area, production lines, certifications, markets served, positive/negative points, and products verified.',
+      },
+      {
+        q: 'What do the supplier pipeline statuses mean?',
+        a: 'Contacted: Initial contact. Potential: Catalog received. Quoted: Products evaluated. Certified: Audit approved. Active: Has orders. Only Certified/Active suppliers can receive orders.',
+      },
+    ],
+  },
   {
     category: 'Products',
     questions: [
@@ -142,6 +173,20 @@ const faqData = [
 
 // Workflow guides
 const workflowGuides = [
+  {
+    title: 'Certify a Supplier',
+    icon: <VerifiedIcon />,
+    time: '10 min',
+    steps: [
+      'Go to Suppliers page',
+      'Click supplier to edit',
+      'Open Certification tab',
+      'Upload factory audit PDF (max 25MB)',
+      'Wait for AI extraction',
+      'Review A/B/C classification',
+      'Override if needed with notes',
+    ],
+  },
   {
     title: 'Create a Quotation',
     icon: <MenuBookIcon />,
@@ -319,7 +364,7 @@ const DocumentationPage: React.FC = () => {
                   <Typography variant="h6">Ruben (CEO)</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  Focus: Dashboard, Pipeline Overview
+                  Focus: Dashboard, Supplier Certification
                 </Typography>
                 <List dense>
                   <ListItem>
@@ -328,11 +373,11 @@ const DocumentationPage: React.FC = () => {
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-                    <ListItemText primary="Pipeline Review" />
+                    <ListItemText primary="Supplier Pipeline" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-                    <ListItemText primary="Quotation Trends" />
+                    <ListItemText primary="Certification Review" />
                   </ListItem>
                 </List>
               </CardContent>
@@ -436,6 +481,42 @@ const DocumentationPage: React.FC = () => {
                 Status Flows
               </Typography>
               <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary" gutterBottom>
+                    Supplier Pipeline
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                    {quickReferenceData.statusFlow.supplierPipeline.map((status, idx) => (
+                      <React.Fragment key={status}>
+                        <Chip
+                          label={status}
+                          size="small"
+                          variant="outlined"
+                          color={status === 'Certified' || status === 'Active' ? 'success' : 'default'}
+                        />
+                        {idx < quickReferenceData.statusFlow.supplierPipeline.length - 1 && (
+                          <ArrowForwardIcon fontSize="small" sx={{ alignSelf: 'center' }} />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary" gutterBottom>
+                    Supplier Certification
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                    {quickReferenceData.statusFlow.supplierCertification.map((status) => (
+                      <Chip
+                        key={status}
+                        label={status}
+                        size="small"
+                        variant="outlined"
+                        color={status === 'Type A' ? 'success' : status === 'Type B' ? 'warning' : status === 'Type C' ? 'error' : 'default'}
+                      />
+                    ))}
+                  </Box>
+                </Grid>
                 <Grid item xs={12} md={4}>
                   <Typography variant="subtitle2" color="primary" gutterBottom>
                     Quotation Status
@@ -491,6 +572,12 @@ const DocumentationPage: React.FC = () => {
                   </Typography>
                   <List dense>
                     <ListItem>
+                      <ListItemText primary="Certify suppliers before adding their products to quotations" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText primary="Use Kanban view to track supplier pipeline progress" />
+                    </ListItem>
+                    <ListItem>
                       <ListItemText primary="Keep the exchange rate updated weekly" />
                     </ListItem>
                     <ListItem>
@@ -498,9 +585,6 @@ const DocumentationPage: React.FC = () => {
                     </ListItem>
                     <ListItem>
                       <ListItemText primary="Clone quotations instead of editing old ones" />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText primary="Use portfolios to speed up quotation creation" />
                     </ListItem>
                   </List>
                 </Box>
@@ -547,11 +631,12 @@ const DocumentationPage: React.FC = () => {
               </Typography>
               <List dense>
                 {[
+                  'Certify suppliers before placing orders',
+                  'Upload factory audits for all key suppliers',
+                  'Review AI classification before accepting',
                   'Keep exchange rate updated weekly',
                   'Assign HS codes to products',
-                  'Add images to products',
-                  'Use descriptive portfolio names',
-                  'Add notes when moving pipeline cards',
+                  'Add notes when overriding classifications',
                 ].map((item) => (
                   <ListItem key={item}>
                     <ListItemIcon>
@@ -571,9 +656,10 @@ const DocumentationPage: React.FC = () => {
               </Typography>
               <List dense>
                 {[
+                  'Order from uncertified suppliers',
                   "Create duplicate suppliers (search first)",
-                  'Leave products in Draft forever',
-                  'Ignore pricing panel warnings',
+                  'Blindly accept AI classifications',
+                  'Ignore negative points in audits',
                   'Share unpublished portfolios',
                   'Delete sent quotations',
                 ].map((item) => (
@@ -642,11 +728,13 @@ const DocumentationPage: React.FC = () => {
       {/* Diagrams */}
       <TabPanel value={tabValue} index={4}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          {/* Workflow Diagrams */}
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Visual Workflow Diagrams
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <AccountTreeIcon color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6">Kompass Workflow Diagrams</Typography>
+              </Box>
               <Typography variant="body2" color="text.secondary" paragraph>
                 Interactive flowcharts showing system architecture, quotation workflows, pipeline stages, and more.
               </Typography>
@@ -660,19 +748,50 @@ const DocumentationPage: React.FC = () => {
             </Paper>
           </Grid>
 
+          {/* Supplier Certification Diagrams */}
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3, bgcolor: '#e8f5e9' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <VerifiedIcon sx={{ mr: 1, color: 'success.main' }} />
+                <Typography variant="h6">Supplier Certification Flowcharts</Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                Supplier pipeline workflow, audit document processing, AI extraction, A/B/C classification decision tree.
+              </Typography>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<FactoryIcon />}
+                onClick={() => window.open('/docs/supplier-certification-flowcharts.html', '_blank')}
+              >
+                Open Certification Diagrams
+              </Button>
+            </Paper>
+          </Grid>
+
           {/* Diagram Previews */}
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+              Quick Reference
+            </Typography>
+          </Grid>
           {[
-            { title: 'Quotation Status Flow', desc: 'Draft → Sent → Viewed → Negotiating → Accepted/Rejected' },
-            { title: 'Client Pipeline', desc: 'Lead → Qualified → Quoting → Negotiating → Won/Lost' },
-            { title: 'Import Workflow', desc: 'Upload → Extract → Review → Confirm → Finalize' },
-            { title: 'Pricing Calculation', desc: 'FOB + Tariff + Freight + Costs × Rate + Margin' },
+            { title: 'Supplier Pipeline', desc: 'Contacted → Potential → Quoted → Certified → Active', icon: <FactoryIcon fontSize="small" /> },
+            { title: 'Audit Processing', desc: 'Upload → Extract → Classify → Override → Certify', icon: <UploadFileIcon fontSize="small" /> },
+            { title: 'Classification Tiers', desc: 'Type A (Green) / Type B (Orange) / Type C (Red)', icon: <VerifiedIcon fontSize="small" /> },
+            { title: 'Quotation Status', desc: 'Draft → Sent → Viewed → Negotiating → Accepted', icon: <MenuBookIcon fontSize="small" /> },
+            { title: 'Client Pipeline', desc: 'Lead → Qualified → Quoting → Negotiating → Won', icon: <PersonIcon fontSize="small" /> },
+            { title: 'Import Workflow', desc: 'Upload → Extract → Review → Confirm → Finalize', icon: <RocketLaunchIcon fontSize="small" /> },
           ].map((diagram) => (
-            <Grid item xs={12} sm={6} md={3} key={diagram.title}>
+            <Grid item xs={12} sm={6} md={4} key={diagram.title}>
               <Card variant="outlined">
                 <CardActionArea sx={{ p: 2 }}>
-                  <Typography variant="subtitle1" fontWeight="medium">
-                    {diagram.title}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    {diagram.icon}
+                    <Typography variant="subtitle1" fontWeight="medium" sx={{ ml: 1 }}>
+                      {diagram.title}
+                    </Typography>
+                  </Box>
                   <Typography variant="body2" color="text.secondary">
                     {diagram.desc}
                   </Typography>
