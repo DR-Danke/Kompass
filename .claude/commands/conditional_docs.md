@@ -1749,3 +1749,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding or modifying tabs in SupplierForm.tsx
     - When working with the GET /api/suppliers/{id}/products endpoint on the frontend
     - When troubleshooting supplier-product association display
+
+- app_docs/feature-b15648cb-business-card-photo-ingestion.md
+  - Conditions:
+    - When working with business card capture or photo ingestion
+    - When modifying apps/Client/src/pages/kompass/CardCapturePage.tsx
+    - When modifying apps/Server/app/api/extraction_routes.py business card endpoints
+    - When working with apps/Server/app/services/business_card_service.py or apps/Server/app/repository/business_card_repository.py
+    - When working with the business_card_captures database table
+    - When adding trade fair metadata to suppliers (source, fair_name, capture_date, outreach_status, wechat_id)
+    - When implementing AI extraction for business cards (TF-002 and beyond)
+    - When working with the /card-capture route or Captura Tarjetas sidebar item
+    - When troubleshooting image upload or Supabase Storage integration for business cards
