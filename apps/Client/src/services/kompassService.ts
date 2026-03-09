@@ -1231,4 +1231,12 @@ export const businessCardService = {
     );
     return response.data;
   },
+
+  async triggerExtraction(captureId: string): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Triggering extraction for ${captureId}`);
+    const response = await apiClient.post<BusinessCardCapture>(
+      `/extract/business-cards/${captureId}/extract`
+    );
+    return response.data;
+  },
 };

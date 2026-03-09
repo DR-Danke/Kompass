@@ -1761,3 +1761,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When implementing AI extraction for business cards (TF-002 and beyond)
     - When working with the /card-capture route or Captura Tarjetas sidebar item
     - When troubleshooting image upload or Supabase Storage integration for business cards
+
+- app_docs/feature-418c50b0-business-card-ai-extraction.md
+  - Conditions:
+    - When working with business card AI extraction or confidence scores
+    - When modifying the extraction prompt for business cards in ExtractionService
+    - When working with extract_business_card_data() or _build_business_card_prompt()
+    - When modifying BusinessCardService.extract_card() orchestration
+    - When working with the POST /api/extract/business-cards/{id}/extract endpoint
+    - When modifying auto-extract behavior on business card upload
+    - When working with ConfidenceBadge or ExtractedField components on CardCapturePage
+    - When troubleshooting business card extraction status transitions or confidence scoring

@@ -401,6 +401,67 @@ async def get_business_card(
     )
 
 
+@router.post(
+    "/business-cards/{capture_id}/extract",
+    response_model=BusinessCardCaptureResponseDTO,
+)
+async def extract_business_card(
+    capture_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> BusinessCardCaptureResponseDTO:
+    """Trigger AI extraction on a business card capture.
+
+    Args:
+        capture_id: UUID of the capture to extract
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureResponseDTO with extracted data
+
+    Raises:
+        HTTPException 404: If capture not found
+        HTTPException 400: If capture status is invalid for extraction
+        HTTPException 500: If extraction fails
+    """
+    print(
+        f"INFO [ExtractionRoutes]: Extraction request for {capture_id} "
+        f"from user {current_user.get('email')}"
+    )
+
+    try:
+        capture = business_card_service.extract_card(capture_id)
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg:
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+    except Exception as e:
+        print(f"ERROR [ExtractionRoutes]: Extraction failed: {e}")
+        raise HTTPException(status_code=500, detail="Extraction failed")
+
+    return BusinessCardCaptureResponseDTO(
+        id=capture["id"],
+        image_url=capture["image_url"],
+        status=BusinessCardCaptureStatus(capture["status"]),
+        company_name=capture.get("company_name"),
+        contact_name=capture.get("contact_name"),
+        contact_email=capture.get("contact_email"),
+        contact_phone=capture.get("contact_phone"),
+        contact_wechat=capture.get("contact_wechat"),
+        website=capture.get("website"),
+        address=capture.get("address"),
+        supplier_id=capture.get("supplier_id"),
+        fair_name=capture.get("fair_name"),
+        notes=capture.get("notes"),
+        captured_by=capture.get("captured_by"),
+        extraction_raw_response=capture.get("extraction_raw_response"),
+        created_at=capture["created_at"],
+        updated_at=capture["updated_at"],
+    )
+
+
 @router.get("/{job_id}", response_model=ExtractionJobDTO)
 async def get_job_status(
     job_id: UUID,
@@ -624,6 +685,7 @@ async def upload_business_card(
     file: UploadFile,
     fair_name: Optional[str] = Form(default=None),
     notes: Optional[str] = Form(default=None),
+    auto_extract: bool = Form(default=True),
     current_user: Dict[str, Any] = Depends(
         require_roles(["admin", "manager", "user"])
     ),
@@ -701,6 +763,22 @@ async def upload_business_card(
             notes=notes,
             captured_by=current_user.get("id"),
         )
+
+        # Auto-extract if requested (failure should not fail the upload)
+        if auto_extract:
+            try:
+                capture = business_card_service.extract_card(capture["id"])
+                print(f"INFO [ExtractionRoutes]: Auto-extraction completed for {capture['id']}")
+            except Exception as extract_err:
+                print(
+                    f"WARN [ExtractionRoutes]: Auto-extraction failed for "
+                    f"{capture['id']}: {extract_err}"
+                )
+                # Re-fetch capture to get updated status (failed)
+                try:
+                    capture = business_card_service.get_capture(capture["id"])
+                except Exception:
+                    pass  # Keep original capture if re-fetch fails
 
         return BusinessCardCaptureResponseDTO(
             id=capture["id"],
