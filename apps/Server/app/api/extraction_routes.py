@@ -1,12 +1,13 @@
 """API routes for AI-powered data extraction."""
 
+import base64
 import os
 import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Query, UploadFile
 
 from app.api.rbac_dependencies import require_roles
 from app.models.extraction_dto import (
@@ -23,9 +24,17 @@ from app.models.extraction_job_dto import (
     ImageProcessRequestDTO,
     UploadResponseDTO,
 )
-from app.models.kompass_dto import ProductCreateDTO, ProductStatus
+from app.models.kompass_dto import (
+    BusinessCardCaptureListResponseDTO,
+    BusinessCardCaptureResponseDTO,
+    BusinessCardCaptureStatus,
+    ProductCreateDTO,
+    ProductStatus,
+)
+from app.services.business_card_service import business_card_service
 from app.services.extraction_service import extraction_service
 from app.services.product_service import product_service
+from app.services.storage_service import storage_service
 
 
 router = APIRouter(tags=["Extraction"])
@@ -33,6 +42,15 @@ router = APIRouter(tags=["Extraction"])
 # Allowed file extensions and max file size
 ALLOWED_EXTENSIONS = {".pdf", ".xlsx", ".xls", ".docx", ".png", ".jpg", ".jpeg"}
 MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024  # 20MB
+
+# Business card upload constraints
+BUSINESS_CARD_ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
+BUSINESS_CARD_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
+BUSINESS_CARD_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+}
 
 # In-memory job store
 _job_store: Dict[str, ExtractionJobDTO] = {}
@@ -281,6 +299,108 @@ async def upload_files(
     return UploadResponseDTO(job_id=job.job_id)
 
 
+# =============================================================================
+# BUSINESS CARD CAPTURE GET ENDPOINTS (must precede /{job_id} catch-all)
+# =============================================================================
+
+
+@router.get("/business-cards", response_model=BusinessCardCaptureListResponseDTO)
+async def list_business_cards(
+    status: Optional[str] = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+) -> BusinessCardCaptureListResponseDTO:
+    """List business card captures with optional status filter.
+
+    Args:
+        status: Optional status filter
+        limit: Number of items to return
+        offset: Number of items to skip
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureListResponseDTO with captures and total count
+    """
+    captures, total = business_card_service.list_captures(
+        status_filter=status,
+        limit=limit,
+        offset=offset,
+    )
+
+    items = [
+        BusinessCardCaptureResponseDTO(
+            id=c["id"],
+            image_url=c["image_url"],
+            status=BusinessCardCaptureStatus(c["status"]),
+            company_name=c.get("company_name"),
+            contact_name=c.get("contact_name"),
+            contact_email=c.get("contact_email"),
+            contact_phone=c.get("contact_phone"),
+            contact_wechat=c.get("contact_wechat"),
+            website=c.get("website"),
+            address=c.get("address"),
+            supplier_id=c.get("supplier_id"),
+            fair_name=c.get("fair_name"),
+            notes=c.get("notes"),
+            captured_by=c.get("captured_by"),
+            extraction_raw_response=c.get("extraction_raw_response"),
+            created_at=c["created_at"],
+            updated_at=c["updated_at"],
+        )
+        for c in captures
+    ]
+
+    return BusinessCardCaptureListResponseDTO(captures=items, total=total)
+
+
+@router.get("/business-cards/{capture_id}", response_model=BusinessCardCaptureResponseDTO)
+async def get_business_card(
+    capture_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+) -> BusinessCardCaptureResponseDTO:
+    """Get a single business card capture by ID.
+
+    Args:
+        capture_id: UUID of the capture
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureResponseDTO
+
+    Raises:
+        HTTPException 404: If capture not found
+    """
+    try:
+        capture = business_card_service.get_capture(capture_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Business card capture not found")
+
+    return BusinessCardCaptureResponseDTO(
+        id=capture["id"],
+        image_url=capture["image_url"],
+        status=BusinessCardCaptureStatus(capture["status"]),
+        company_name=capture.get("company_name"),
+        contact_name=capture.get("contact_name"),
+        contact_email=capture.get("contact_email"),
+        contact_phone=capture.get("contact_phone"),
+        contact_wechat=capture.get("contact_wechat"),
+        website=capture.get("website"),
+        address=capture.get("address"),
+        supplier_id=capture.get("supplier_id"),
+        fair_name=capture.get("fair_name"),
+        notes=capture.get("notes"),
+        captured_by=capture.get("captured_by"),
+        extraction_raw_response=capture.get("extraction_raw_response"),
+        created_at=capture["created_at"],
+        updated_at=capture["updated_at"],
+    )
+
+
 @router.get("/{job_id}", response_model=ExtractionJobDTO)
 async def get_job_status(
     job_id: UUID,
@@ -497,3 +617,113 @@ async def suggest_hs_code(
 
     result = extraction_service.suggest_hs_code(request.description)
     return result
+
+
+@router.post("/business-card", response_model=BusinessCardCaptureResponseDTO, status_code=201)
+async def upload_business_card(
+    file: UploadFile,
+    fair_name: Optional[str] = Form(default=None),
+    notes: Optional[str] = Form(default=None),
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> BusinessCardCaptureResponseDTO:
+    """Upload a business card image for later AI extraction.
+
+    Args:
+        file: Image file (.png, .jpg, .jpeg, max 10MB)
+        fair_name: Optional trade fair name
+        notes: Optional notes
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureResponseDTO with created capture record
+
+    Raises:
+        HTTPException 400: If file validation fails
+        HTTPException 500: If upload or record creation fails
+    """
+    print(
+        f"INFO [ExtractionRoutes]: Business card upload from user {current_user.get('email')}"
+    )
+
+    # Validate filename
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="File must have a filename")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in BUSINESS_CARD_ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{ext}' not allowed. Allowed types: .png, .jpg, .jpeg",
+        )
+
+    # Read and validate size
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="File is empty")
+
+    if len(content) > BUSINESS_CARD_MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="File exceeds maximum size of 10MB",
+        )
+
+    # Upload to Supabase Storage or fallback to base64
+    if storage_service.is_configured():
+        try:
+            content_type = BUSINESS_CARD_CONTENT_TYPES.get(ext, "image/jpeg")
+            image_url = storage_service.upload_file(
+                file_content=content,
+                file_name=file.filename,
+                content_type=content_type,
+                folder="business-cards",
+            )
+            print(f"INFO [ExtractionRoutes]: Business card uploaded to storage: {image_url}")
+        except Exception as e:
+            print(f"ERROR [ExtractionRoutes]: Storage upload failed: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to upload file to storage",
+            )
+    else:
+        # Fallback to base64 data URL for development
+        print("WARN [ExtractionRoutes]: Storage not configured, using base64 data URL")
+        content_type = BUSINESS_CARD_CONTENT_TYPES.get(ext, "image/jpeg")
+        b64_data = base64.b64encode(content).decode("utf-8")
+        image_url = f"data:{content_type};base64,{b64_data}"
+
+    # Create capture record
+    try:
+        capture = business_card_service.create_capture(
+            image_url=image_url,
+            fair_name=fair_name,
+            notes=notes,
+            captured_by=current_user.get("id"),
+        )
+
+        return BusinessCardCaptureResponseDTO(
+            id=capture["id"],
+            image_url=capture["image_url"],
+            status=BusinessCardCaptureStatus(capture["status"]),
+            company_name=capture.get("company_name"),
+            contact_name=capture.get("contact_name"),
+            contact_email=capture.get("contact_email"),
+            contact_phone=capture.get("contact_phone"),
+            contact_wechat=capture.get("contact_wechat"),
+            website=capture.get("website"),
+            address=capture.get("address"),
+            supplier_id=capture.get("supplier_id"),
+            fair_name=capture.get("fair_name"),
+            notes=capture.get("notes"),
+            captured_by=capture.get("captured_by"),
+            extraction_raw_response=capture.get("extraction_raw_response"),
+            created_at=capture["created_at"],
+            updated_at=capture["updated_at"],
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"ERROR [ExtractionRoutes]: Failed to create capture: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create capture record")

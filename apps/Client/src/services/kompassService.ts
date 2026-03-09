@@ -111,6 +111,8 @@ import type {
   SupplierAuditResponse,
   SupplierAuditListResponse,
   ClassificationOverride,
+  // Business card capture types
+  BusinessCardCapture,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -1143,5 +1145,90 @@ export const auditService = {
   async delete(supplierId: string, auditId: string): Promise<void> {
     console.log(`INFO [auditService]: Deleting audit ${auditId} for supplier ${supplierId}`);
     await apiClient.delete(`/suppliers/${supplierId}/audits/${auditId}`);
+  },
+};
+
+// =============================================================================
+// BUSINESS CARD CAPTURE SERVICE
+// =============================================================================
+
+export const businessCardService = {
+  async uploadCard(
+    file: File,
+    fairName?: string,
+    notes?: string,
+    onProgress?: (percent: number) => void
+  ): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Uploading business card`);
+    const formData = new FormData();
+    formData.append('file', file);
+    if (fairName) {
+      formData.append('fair_name', fairName);
+    }
+    if (notes) {
+      formData.append('notes', notes);
+    }
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${apiClient.defaults.baseURL}/extract/business-card`);
+
+      const token = localStorage.getItem('token');
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress(percent);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch {
+            reject(new Error('Failed to parse response'));
+          }
+        } else {
+          try {
+            const error = JSON.parse(xhr.responseText);
+            reject(new Error(error.detail || 'Upload failed'));
+          } catch {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('Network error during upload'));
+      };
+
+      xhr.send(formData);
+    });
+  },
+
+  async listCaptures(
+    status?: string,
+    limit?: number,
+    offset?: number
+  ): Promise<{ captures: BusinessCardCapture[]; total: number }> {
+    console.log(`INFO [businessCardService]: Listing captures`);
+    const response = await apiClient.get<{ captures: BusinessCardCapture[]; total: number }>(
+      '/extract/business-cards',
+      { params: { status, limit, offset } }
+    );
+    return response.data;
+  },
+
+  async getCapture(id: string): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Fetching capture ${id}`);
+    const response = await apiClient.get<BusinessCardCapture>(
+      `/extract/business-cards/${id}`
+    );
+    return response.data;
   },
 };
