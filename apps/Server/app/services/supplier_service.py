@@ -18,6 +18,7 @@ from app.models.kompass_dto import (
     PaginationDTO,
     SupplierCertificationSummaryDTO,
     SupplierCreateDTO,
+    SupplierFromCardResultDTO,
     SupplierListResponseDTO,
     SupplierPipelineResponseDTO,
     SupplierPipelineStatus,
@@ -28,6 +29,7 @@ from app.models.kompass_dto import (
     SupplierWithProductCountDTO,
 )
 from app.repository.kompass_repository import supplier_repository
+from app.services.business_card_service import business_card_service
 
 
 class SupplierService:
@@ -159,6 +161,7 @@ class SupplierService:
         has_products: Optional[bool] = None,
         certification_status: Optional[str] = None,
         pipeline_status: Optional[str] = None,
+        source: Optional[str] = None,
         search: Optional[str] = None,
         sort_by: str = "name",
         sort_order: str = "asc",
@@ -191,6 +194,7 @@ class SupplierService:
             has_products=has_products,
             certification_status=certification_status,
             pipeline_status=pipeline_status,
+            source=source,
             search=search,
             sort_by=sort_by,
             sort_order=sort_order,
@@ -518,6 +522,107 @@ class SupplierService:
         )
         print(f"INFO [SupplierService]: Retrieved pipeline with {total_count} total suppliers")
         return pipeline_response
+
+    def create_supplier_from_card(self, capture_id: UUID) -> SupplierFromCardResultDTO:
+        """Create a supplier from an extracted business card capture.
+
+        Args:
+            capture_id: UUID of the business card capture
+
+        Returns:
+            SupplierFromCardResultDTO with creation result
+
+        Raises:
+            ValueError: If capture not found, invalid status, or missing data
+        """
+        # 1. Retrieve capture
+        capture = business_card_service.get_capture(capture_id)
+
+        # 2. Validate status
+        if capture["status"] != "extracted":
+            raise ValueError(
+                f"Cannot create supplier from capture with status '{capture['status']}'. "
+                "Only 'extracted' captures can be used."
+            )
+
+        # 3. Check if already linked to a supplier
+        if capture.get("supplier_id"):
+            raise ValueError("This capture is already linked to a supplier")
+
+        # 4. Extract fields
+        company_name = capture.get("company_name")
+        contact_name = capture.get("contact_name")
+        contact_email = capture.get("contact_email")
+        contact_phone = capture.get("contact_phone")
+        contact_wechat = capture.get("contact_wechat")
+        address = capture.get("address")
+        website = capture.get("website")
+        fair_name = capture.get("fair_name")
+
+        # 5. Determine supplier name
+        supplier_name = company_name or contact_name
+        if not supplier_name:
+            raise ValueError("No company or contact name extracted from business card")
+
+        # 6. Duplicate detection
+        dup = supplier_repository.find_duplicate_supplier(
+            email=contact_email, phone=contact_phone
+        )
+
+        if dup:
+            print(
+                f"INFO [SupplierService]: Duplicate supplier detected for capture {capture_id}: "
+                f"existing supplier {dup['id']}"
+            )
+            # Update capture status to rejected (duplicate)
+            business_card_service.update_capture(capture_id, {"status": "rejected"})
+            return SupplierFromCardResultDTO(
+                success=False,
+                is_duplicate=True,
+                duplicate_supplier_id=dup["id"],
+                duplicate_supplier_name=dup["name"],
+                message="Proveedor duplicado detectado",
+            )
+
+        # 7. Validate email if present
+        if contact_email and not self._validate_email(contact_email):
+            contact_email = None  # Skip invalid email rather than failing
+
+        # 8. Create supplier with trade fair metadata
+        result = supplier_repository.create_with_trade_fair_metadata(
+            name=supplier_name,
+            contact_name=contact_name,
+            contact_email=contact_email,
+            contact_phone=contact_phone,
+            address=address,
+            country="China",
+            website=website,
+            pipeline_status="contacted",
+            source="trade_fair",
+            fair_name=fair_name,
+            capture_date=capture.get("created_at"),
+            wechat_id=contact_wechat,
+        )
+
+        if not result:
+            raise ValueError("Failed to create supplier from business card")
+
+        # 9. Link capture to supplier and update status
+        business_card_service.update_capture(
+            capture_id,
+            {"supplier_id": str(result["id"]), "status": "confirmed"},
+        )
+
+        print(
+            f"INFO [SupplierService]: Created supplier {result['id']} from capture {capture_id}"
+        )
+
+        return SupplierFromCardResultDTO(
+            success=True,
+            supplier_id=result["id"],
+            supplier_name=result["name"],
+            message="Proveedor creado exitosamente",
+        )
 
     def _format_markets_served(self, markets: Any) -> str:
         """Format markets_served JSONB dict to readable string.

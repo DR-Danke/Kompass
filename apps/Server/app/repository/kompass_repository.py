@@ -1,6 +1,7 @@
 """Kompass Portfolio & Quotation System repositories for data access."""
 
 import math
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
@@ -1323,6 +1324,86 @@ class SupplierRepository:
         finally:
             close_database_connection(conn)
 
+    def create_with_trade_fair_metadata(
+        self,
+        name: str,
+        code: Optional[str] = None,
+        status: str = "active",
+        contact_name: Optional[str] = None,
+        contact_email: Optional[str] = None,
+        contact_phone: Optional[str] = None,
+        address: Optional[str] = None,
+        city: Optional[str] = None,
+        country: str = "China",
+        website: Optional[str] = None,
+        notes: Optional[str] = None,
+        pipeline_status: str = "contacted",
+        source: Optional[str] = None,
+        fair_name: Optional[str] = None,
+        capture_date: Optional[datetime] = None,
+        wechat_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Create a new supplier with trade fair metadata.
+
+        Args:
+            name: Supplier name
+            code: Supplier code
+            status: Supplier status
+            contact_name: Contact person name
+            contact_email: Contact email
+            contact_phone: Contact phone
+            address: Address
+            city: City
+            country: Country
+            website: Website URL
+            notes: Notes
+            pipeline_status: Pipeline status
+            source: Source (e.g., trade_fair)
+            fair_name: Trade fair name
+            capture_date: Date of capture
+            wechat_id: WeChat ID
+
+        Returns:
+            Created supplier dict with extended fields, or None on failure
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO suppliers (
+                        name, code, status, contact_name, contact_email, contact_phone,
+                        address, city, country, website, notes, pipeline_status,
+                        source, fair_name, capture_date, wechat_id
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id, name, code, status, contact_name, contact_email,
+                              contact_phone, address, city, country, website, notes,
+                              certification_status, pipeline_status, latest_audit_id,
+                              certified_at, created_at, updated_at
+                    """,
+                    (
+                        name, code, status, contact_name, contact_email, contact_phone,
+                        address, city, country, website, notes, pipeline_status,
+                        source, fair_name, capture_date, wechat_id,
+                    ),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_extended(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to create supplier with trade fair metadata: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
     def get_by_id(self, supplier_id: UUID) -> Optional[Dict[str, Any]]:
         """Get supplier by UUID."""
         conn = get_database_connection()
@@ -1630,6 +1711,62 @@ class SupplierRepository:
             "updated_at": row[13],
         }
 
+    def find_duplicate_supplier(
+        self, email: Optional[str] = None, phone: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Find a potential duplicate supplier by email or phone.
+
+        Args:
+            email: Contact email to check (case-insensitive)
+            phone: Contact phone to check
+
+        Returns:
+            Supplier dict if duplicate found, None otherwise
+        """
+        if not email and not phone:
+            return None
+
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                conditions = []
+                params: List[Any] = []
+
+                if email:
+                    conditions.append("LOWER(contact_email) = LOWER(%s)")
+                    params.append(email)
+                if phone:
+                    conditions.append("contact_phone = %s")
+                    params.append(phone)
+
+                where_clause = " OR ".join(conditions)
+
+                cur.execute(
+                    f"""
+                    SELECT id, name, code, status, contact_name, contact_email,
+                           contact_phone, address, city, country, website, notes,
+                           certification_status, pipeline_status, latest_audit_id,
+                           certified_at, created_at, updated_at
+                    FROM suppliers
+                    WHERE {where_clause}
+                    LIMIT 1
+                    """,
+                    params,
+                )
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_extended(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to find duplicate supplier: {e}")
+            return None
+        finally:
+            close_database_connection(conn)
+
     def get_by_name(self, name: str) -> Optional[Dict[str, Any]]:
         """Get supplier by name for deduplication."""
         conn = get_database_connection()
@@ -1695,6 +1832,7 @@ class SupplierRepository:
         has_products: Optional[bool] = None,
         certification_status: Optional[str] = None,
         pipeline_status: Optional[str] = None,
+        source: Optional[str] = None,
         search: Optional[str] = None,
         sort_by: str = "name",
         sort_order: str = "asc",
@@ -1709,6 +1847,7 @@ class SupplierRepository:
             has_products: Filter by whether supplier has products
             certification_status: Filter by certification status (certified, certified_a, certified_b, certified_c, uncertified)
             pipeline_status: Filter by pipeline status
+            source: Filter by source (e.g., trade_fair)
             search: Search query for name, email, phone, code
             sort_by: Field to sort by (name, certification_status, pipeline_status, certified_at)
             sort_order: Sort direction (asc, desc)
@@ -1761,6 +1900,11 @@ class SupplierRepository:
                 if pipeline_status:
                     conditions.append("s.pipeline_status = %s")
                     params.append(pipeline_status)
+
+                # Handle source filter
+                if source:
+                    conditions.append("s.source = %s")
+                    params.append(source)
 
                 # Handle search filter
                 if search:

@@ -447,6 +447,18 @@ class SupplierPipelineStatusUpdateDTO(BaseModel):
     pipeline_status: SupplierPipelineStatus
 
 
+class SupplierFromCardResultDTO(BaseModel):
+    """Result of creating a supplier from a business card capture."""
+
+    success: bool
+    supplier_id: Optional[UUID] = None
+    supplier_name: Optional[str] = None
+    is_duplicate: bool = False
+    duplicate_supplier_id: Optional[UUID] = None
+    duplicate_supplier_name: Optional[str] = None
+    message: str
+
+
 class SupplierCertificationSummaryDTO(BaseModel):
     """Response model for supplier certification summary with audit info."""
 

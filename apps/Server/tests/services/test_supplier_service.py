@@ -422,3 +422,193 @@ class TestSearchSuppliers:
         supplier_service.search_suppliers("  test  ")
 
         mock_repo.search.assert_called_once_with(query="test", limit=50)
+
+
+class TestCreateSupplierFromCard:
+    """Tests for create_supplier_from_card method."""
+
+    @pytest.fixture
+    def extracted_capture(self):
+        """Sample extracted business card capture."""
+        return {
+            "id": uuid4(),
+            "image_url": "https://example.com/card.jpg",
+            "status": "extracted",
+            "company_name": "Test Corp",
+            "contact_name": "Zhang Wei",
+            "contact_email": "zhang@testcorp.cn",
+            "contact_phone": "+86-13800138000",
+            "contact_wechat": "zhangwei_wechat",
+            "website": "https://testcorp.cn",
+            "address": "123 Factory Road, Guangzhou",
+            "supplier_id": None,
+            "fair_name": "Canton Fair 2026",
+            "notes": None,
+            "captured_by": str(uuid4()),
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+        }
+
+    @pytest.fixture
+    def created_supplier_data(self):
+        """Sample created supplier data returned by repository."""
+        return {
+            "id": uuid4(),
+            "name": "Test Corp",
+            "code": None,
+            "status": "active",
+            "contact_name": "Zhang Wei",
+            "contact_email": "zhang@testcorp.cn",
+            "contact_phone": "+86-13800138000",
+            "address": "123 Factory Road, Guangzhou",
+            "city": None,
+            "country": "China",
+            "website": "https://testcorp.cn",
+            "notes": None,
+            "certification_status": "uncertified",
+            "pipeline_status": "contacted",
+            "latest_audit_id": None,
+            "certified_at": None,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+        }
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_create_supplier_from_card_success(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
+    ):
+        """Test successful supplier creation from extracted card."""
+        mock_bcs.get_capture.return_value = extracted_capture
+        mock_repo.find_duplicate_supplier.return_value = None
+        mock_repo.create_with_trade_fair_metadata.return_value = created_supplier_data
+
+        capture_id = extracted_capture["id"]
+        result = supplier_service.create_supplier_from_card(capture_id)
+
+        assert result.success is True
+        assert result.supplier_id == created_supplier_data["id"]
+        assert result.supplier_name == "Test Corp"
+        assert result.is_duplicate is False
+        mock_repo.create_with_trade_fair_metadata.assert_called_once()
+        # Verify capture was linked
+        mock_bcs.update_capture.assert_called_once_with(
+            capture_id,
+            {"supplier_id": str(created_supplier_data["id"]), "status": "confirmed"},
+        )
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_duplicate_detection_by_email(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture
+    ):
+        """Test duplicate detection when email matches existing supplier."""
+        mock_bcs.get_capture.return_value = extracted_capture
+        existing_supplier = {
+            "id": uuid4(),
+            "name": "Existing Corp",
+        }
+        mock_repo.find_duplicate_supplier.return_value = existing_supplier
+
+        result = supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+        assert result.success is False
+        assert result.is_duplicate is True
+        assert result.duplicate_supplier_id == existing_supplier["id"]
+        assert result.duplicate_supplier_name == "Existing Corp"
+        mock_repo.create_with_trade_fair_metadata.assert_not_called()
+        # Capture should be marked as rejected
+        mock_bcs.update_capture.assert_called_once_with(
+            extracted_capture["id"], {"status": "rejected"}
+        )
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_reject_non_extracted_status(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture
+    ):
+        """Test rejection when capture status is not 'extracted'."""
+        extracted_capture["status"] = "pending"
+        mock_bcs.get_capture.return_value = extracted_capture
+
+        with pytest.raises(ValueError, match="Only 'extracted' captures"):
+            supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_reject_already_linked_capture(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture
+    ):
+        """Test rejection when capture already has a linked supplier."""
+        extracted_capture["supplier_id"] = str(uuid4())
+        mock_bcs.get_capture.return_value = extracted_capture
+
+        with pytest.raises(ValueError, match="already linked"):
+            supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_reject_no_name(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture
+    ):
+        """Test rejection when no company or contact name extracted."""
+        extracted_capture["company_name"] = None
+        extracted_capture["contact_name"] = None
+        mock_bcs.get_capture.return_value = extracted_capture
+
+        with pytest.raises(ValueError, match="No company or contact name"):
+            supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_fallback_to_contact_name(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
+    ):
+        """Test that contact_name is used when company_name is missing."""
+        extracted_capture["company_name"] = None
+        created_supplier_data["name"] = "Zhang Wei"
+        mock_bcs.get_capture.return_value = extracted_capture
+        mock_repo.find_duplicate_supplier.return_value = None
+        mock_repo.create_with_trade_fair_metadata.return_value = created_supplier_data
+
+        result = supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+        assert result.success is True
+        call_kwargs = mock_repo.create_with_trade_fair_metadata.call_args.kwargs
+        assert call_kwargs["name"] == "Zhang Wei"
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_skip_duplicate_check_no_email_no_phone(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
+    ):
+        """Test that duplicate check is skipped when no email and no phone."""
+        extracted_capture["contact_email"] = None
+        extracted_capture["contact_phone"] = None
+        mock_bcs.get_capture.return_value = extracted_capture
+        mock_repo.find_duplicate_supplier.return_value = None
+        mock_repo.create_with_trade_fair_metadata.return_value = created_supplier_data
+
+        result = supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+        assert result.success is True
+        mock_repo.find_duplicate_supplier.assert_called_once_with(email=None, phone=None)
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_trade_fair_metadata_passed(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
+    ):
+        """Test that trade fair metadata is correctly passed to repository."""
+        mock_bcs.get_capture.return_value = extracted_capture
+        mock_repo.find_duplicate_supplier.return_value = None
+        mock_repo.create_with_trade_fair_metadata.return_value = created_supplier_data
+
+        supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+        call_kwargs = mock_repo.create_with_trade_fair_metadata.call_args.kwargs
+        assert call_kwargs["source"] == "trade_fair"
+        assert call_kwargs["fair_name"] == "Canton Fair 2026"
+        assert call_kwargs["pipeline_status"] == "contacted"
+        assert call_kwargs["country"] == "China"
+        assert call_kwargs["wechat_id"] == "zhangwei_wechat"

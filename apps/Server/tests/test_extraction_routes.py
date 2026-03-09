@@ -648,6 +648,108 @@ class TestRBAC:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+class TestCreateSupplierFromCardEndpoint:
+    """Tests for the create supplier from card endpoint."""
+
+    @patch("app.api.extraction_routes.supplier_service")
+    def test_create_supplier_success(self, mock_supplier_svc, authenticated_client):
+        """Test successful supplier creation from card."""
+        from app.models.kompass_dto import SupplierFromCardResultDTO
+
+        capture_id = uuid4()
+        supplier_id = uuid4()
+        mock_supplier_svc.create_supplier_from_card.return_value = SupplierFromCardResultDTO(
+            success=True,
+            supplier_id=supplier_id,
+            supplier_name="Test Corp",
+            message="Proveedor creado exitosamente",
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/create-supplier"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["supplier_name"] == "Test Corp"
+        assert data["is_duplicate"] is False
+
+    @patch("app.api.extraction_routes.supplier_service")
+    def test_create_supplier_duplicate(self, mock_supplier_svc, authenticated_client):
+        """Test duplicate detection returns result with is_duplicate=True."""
+        from app.models.kompass_dto import SupplierFromCardResultDTO
+
+        capture_id = uuid4()
+        dup_id = uuid4()
+        mock_supplier_svc.create_supplier_from_card.return_value = SupplierFromCardResultDTO(
+            success=False,
+            is_duplicate=True,
+            duplicate_supplier_id=dup_id,
+            duplicate_supplier_name="Existing Corp",
+            message="Proveedor duplicado detectado",
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/create-supplier"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is False
+        assert data["is_duplicate"] is True
+        assert data["duplicate_supplier_name"] == "Existing Corp"
+
+    @patch("app.api.extraction_routes.supplier_service")
+    def test_create_supplier_not_found(self, mock_supplier_svc, authenticated_client):
+        """Test 404 when capture not found."""
+        capture_id = uuid4()
+        mock_supplier_svc.create_supplier_from_card.side_effect = ValueError(
+            f"Business card capture {capture_id} not found"
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/create-supplier"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @patch("app.api.extraction_routes.supplier_service")
+    def test_create_supplier_validation_error(self, mock_supplier_svc, authenticated_client):
+        """Test 400 when validation fails."""
+        capture_id = uuid4()
+        mock_supplier_svc.create_supplier_from_card.side_effect = ValueError(
+            "Only 'extracted' captures can be used."
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/create-supplier"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_supplier_requires_auth(self, unauthenticated_client):
+        """Test that create supplier endpoint requires authentication."""
+        capture_id = uuid4()
+        response = unauthenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/create-supplier"
+        )
+
+        assert response.status_code in [
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        ]
+
+    def test_create_supplier_denied_for_viewer(self, viewer_client):
+        """Test that viewer role is denied access."""
+        capture_id = uuid4()
+        response = viewer_client.post(
+            f"/api/extract/business-cards/{capture_id}/create-supplier"
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 class TestExtractionJobDTO:
     """Tests for extraction job DTOs."""
 

@@ -30,11 +30,13 @@ from app.models.kompass_dto import (
     BusinessCardCaptureStatus,
     ProductCreateDTO,
     ProductStatus,
+    SupplierFromCardResultDTO,
 )
 from app.services.business_card_service import business_card_service
 from app.services.extraction_service import extraction_service
 from app.services.product_service import product_service
 from app.services.storage_service import storage_service
+from app.services.supplier_service import supplier_service
 
 
 router = APIRouter(tags=["Extraction"])
@@ -460,6 +462,50 @@ async def extract_business_card(
         created_at=capture["created_at"],
         updated_at=capture["updated_at"],
     )
+
+
+@router.post(
+    "/business-cards/{capture_id}/create-supplier",
+    response_model=SupplierFromCardResultDTO,
+)
+async def create_supplier_from_card(
+    capture_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> SupplierFromCardResultDTO:
+    """Create a supplier from an extracted business card capture.
+
+    Args:
+        capture_id: UUID of the business card capture
+        current_user: Authenticated user
+
+    Returns:
+        SupplierFromCardResultDTO with creation result
+
+    Raises:
+        HTTPException 400: If validation fails
+        HTTPException 404: If capture not found
+        HTTPException 500: If creation fails unexpectedly
+    """
+    print(
+        f"INFO [ExtractionRoutes]: Create supplier from card {capture_id} "
+        f"by user {current_user.get('email')}"
+    )
+
+    try:
+        result = supplier_service.create_supplier_from_card(capture_id)
+        return result
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg:
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+    except Exception as e:
+        print(f"ERROR [ExtractionRoutes]: Failed to create supplier from card: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to create supplier from business card"
+        )
 
 
 @router.get("/{job_id}", response_model=ExtractionJobDTO)

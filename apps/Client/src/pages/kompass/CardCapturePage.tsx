@@ -22,8 +22,11 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import BusinessIcon from '@mui/icons-material/Business';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
 import { businessCardService } from '@/services/kompassService';
-import type { BusinessCardCapture, BusinessCardCaptureStatus } from '@/types/kompass';
+import type { BusinessCardCapture, BusinessCardCaptureStatus, SupplierFromCardResult } from '@/types/kompass';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_EXTENSIONS = '.png,.jpg,.jpeg';
@@ -107,6 +110,8 @@ const CardCapturePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [extractingIds, setExtractingIds] = useState<Set<string>>(new Set());
+  const [creatingSupplierIds, setCreatingSupplierIds] = useState<Set<string>>(new Set());
+  const [supplierResults, setSupplierResults] = useState<Record<string, SupplierFromCardResult>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadCaptures = useCallback(async () => {
@@ -191,6 +196,45 @@ const CardCapturePage: React.FC = () => {
       console.error('ERROR [CardCapturePage]: Extraction failed', err);
     } finally {
       setExtractingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(captureId);
+        return next;
+      });
+    }
+  };
+
+  const handleCreateSupplier = async (captureId: string) => {
+    setCreatingSupplierIds((prev) => new Set(prev).add(captureId));
+    try {
+      console.log('INFO [CardCapturePage]: Creating supplier from card', captureId);
+      const result = await businessCardService.createSupplierFromCard(captureId);
+      setSupplierResults((prev) => ({ ...prev, [captureId]: result }));
+
+      if (result.success) {
+        setCaptures((prev) =>
+          prev.map((c) =>
+            c.id === captureId
+              ? { ...c, status: 'confirmed' as BusinessCardCaptureStatus, supplier_id: result.supplier_id ?? null }
+              : c
+          )
+        );
+        setSuccess(`Proveedor creado: ${result.supplier_name}`);
+      } else if (result.is_duplicate) {
+        setCaptures((prev) =>
+          prev.map((c) =>
+            c.id === captureId
+              ? { ...c, status: 'rejected' as BusinessCardCaptureStatus }
+              : c
+          )
+        );
+        setError(`Proveedor duplicado: ${result.duplicate_supplier_name}`);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear proveedor';
+      setError(message);
+      console.error('ERROR [CardCapturePage]: Create supplier failed', err);
+    } finally {
+      setCreatingSupplierIds((prev) => {
         const next = new Set(prev);
         next.delete(captureId);
         return next;
@@ -369,7 +413,7 @@ const CardCapturePage: React.FC = () => {
                   )}
 
                   {/* Action buttons */}
-                  <Box sx={{ mt: 0.5, display: 'flex', gap: 1 }}>
+                  <Box sx={{ mt: 0.5, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                     {showExtractButton && (
                       <Button
                         size="small"
@@ -391,7 +435,40 @@ const CardCapturePage: React.FC = () => {
                         Reintentar
                       </Button>
                     )}
+                    {capture.status === 'extracted' && !capture.supplier_id && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        startIcon={creatingSupplierIds.has(capture.id) ? <CircularProgress size={16} /> : <PersonAddIcon />}
+                        disabled={creatingSupplierIds.has(capture.id)}
+                        onClick={() => handleCreateSupplier(capture.id)}
+                      >
+                        {creatingSupplierIds.has(capture.id) ? 'Creando...' : 'Crear Proveedor'}
+                      </Button>
+                    )}
+                    {capture.status === 'confirmed' && capture.supplier_id && (
+                      <Chip
+                        icon={<CheckCircleIcon />}
+                        label="Proveedor vinculado"
+                        color="primary"
+                        size="small"
+                        variant="outlined"
+                      />
+                    )}
                   </Box>
+
+                  {/* Supplier creation result messages */}
+                  {supplierResults[capture.id]?.is_duplicate && (
+                    <Alert severity="warning" icon={<WarningIcon />} sx={{ mt: 0.5, py: 0, fontSize: '0.75rem' }}>
+                      Duplicado: {supplierResults[capture.id].duplicate_supplier_name}
+                    </Alert>
+                  )}
+                  {supplierResults[capture.id]?.success && (
+                    <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mt: 0.5, py: 0, fontSize: '0.75rem' }}>
+                      Proveedor creado: {supplierResults[capture.id].supplier_name}
+                    </Alert>
+                  )}
                 </Box>
               </Box>
             </Card>

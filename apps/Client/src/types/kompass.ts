@@ -1065,6 +1065,16 @@ export interface BusinessCardCapture {
   updated_at: string;
 }
 
+export interface SupplierFromCardResult {
+  success: boolean;
+  supplier_id?: string;
+  supplier_name?: string;
+  is_duplicate: boolean;
+  duplicate_supplier_id?: string;
+  duplicate_supplier_name?: string;
+  message: string;
+}
+
 // =============================================================================
 // DASHBOARD DTOs
 // =============================================================================
