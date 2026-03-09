@@ -655,6 +655,21 @@ class BusinessCardCaptureListResponseDTO(BaseModel):
     total: int
 
 
+class BusinessCardExtractionResultDTO(BaseModel):
+    """Result of AI extraction from a business card image."""
+
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    company_name: Optional[str] = None
+    address: Optional[str] = None
+    province: Optional[str] = None
+    website: Optional[str] = None
+    contact_wechat: Optional[str] = None
+    qr_code_detected: bool = False
+    confidence_scores: dict = {}
+
+
 # =============================================================================
 # PRODUCT IMAGE DTOs
 # =============================================================================

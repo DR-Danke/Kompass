@@ -1,9 +1,14 @@
 """Service for business card capture operations."""
 
+import base64
+
+import httpx
+
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 from app.repository.business_card_repository import business_card_repository
+from app.services.extraction_service import extraction_service
 
 
 class BusinessCardService:
@@ -114,6 +119,96 @@ class BusinessCardService:
         if not result:
             raise ValueError(f"Failed to update business card capture {capture_id}")
         return result
+
+    def extract_card(self, capture_id: UUID) -> Dict[str, Any]:
+        """Run AI extraction on a business card capture.
+
+        Args:
+            capture_id: UUID of the capture to extract
+
+        Returns:
+            Updated capture dictionary with extracted fields
+
+        Raises:
+            ValueError: If capture not found or status invalid
+        """
+        capture = self.get_capture(capture_id)
+        status = capture["status"]
+
+        if status not in ("pending", "failed"):
+            raise ValueError(
+                f"Cannot extract card with status '{status}'. "
+                "Only 'pending' or 'failed' captures can be extracted."
+            )
+
+        # Set status to processing
+        print(f"INFO [BusinessCardService]: Starting extraction for {capture_id}")
+        business_card_repository.update(capture_id, {"status": "processing"})
+
+        try:
+            # Retrieve image data
+            image_data = self._get_image_data(capture["image_url"])
+
+            # Call AI extraction
+            result = extraction_service.extract_business_card_data(image_data)
+
+            # Build update dict from extraction result
+            updates: Dict[str, Any] = {
+                "status": "extracted",
+                "company_name": result.get("company_name"),
+                "contact_name": result.get("contact_name"),
+                "contact_email": result.get("contact_email"),
+                "contact_phone": result.get("contact_phone"),
+                "contact_wechat": result.get("contact_wechat"),
+                "website": result.get("website"),
+                "address": result.get("address"),
+                "extraction_raw_response": self._to_json(result),
+            }
+
+            updated = business_card_repository.update(capture_id, updates)
+            if not updated:
+                raise ValueError(f"Failed to update capture {capture_id} after extraction")
+
+            print(f"INFO [BusinessCardService]: Extraction completed for {capture_id}")
+            return updated
+
+        except Exception as e:
+            print(f"ERROR [BusinessCardService]: Extraction failed for {capture_id}: {e}")
+            error_response = {"error": str(e)}
+            business_card_repository.update(
+                capture_id,
+                {
+                    "status": "failed",
+                    "extraction_raw_response": self._to_json(error_response),
+                },
+            )
+            raise
+
+    def _get_image_data(self, image_url: str) -> bytes:
+        """Retrieve image bytes from a URL or base64 data URI.
+
+        Args:
+            image_url: Either a base64 data URI or an HTTP URL
+
+        Returns:
+            Raw image bytes
+        """
+        if image_url.startswith("data:"):
+            # base64 data URI — extract the base64 portion after the comma
+            _, encoded = image_url.split(",", 1)
+            return base64.b64decode(encoded)
+
+        # HTTP(S) URL — download
+        with httpx.Client(timeout=30) as client:
+            response = client.get(image_url)
+            response.raise_for_status()
+            return response.content
+
+    @staticmethod
+    def _to_json(data: dict) -> str:
+        """Serialize dict to JSON string for JSONB storage."""
+        import json
+        return json.dumps(data, ensure_ascii=False, default=str)
 
 
 # Singleton instance

@@ -237,6 +237,160 @@ Only return valid JSON, no additional text or explanation."""
 
         return response.choices[0].message.content
 
+    def _build_business_card_prompt(self) -> str:
+        """Build the prompt for business card data extraction."""
+        return """Extract contact information from this business card image.
+The card may be bilingual (Chinese/English). Prefer English values when both languages are present; fall back to Chinese if English is not available.
+
+Return a JSON object with these fields (use null for missing/unreadable fields):
+{
+    "contact_name": "person's full name",
+    "contact_phone": "phone number with international prefix (e.g. +86 13800138000)",
+    "contact_email": "email address",
+    "company_name": "company or factory name",
+    "address": "full street/city address",
+    "province": "province or state",
+    "website": "website URL",
+    "contact_wechat": "WeChat ID if present",
+    "qr_code_detected": true/false whether a QR code is visible on the card,
+    "confidence_scores": {
+        "contact_name": 0.0 to 1.0,
+        "contact_phone": 0.0 to 1.0,
+        "contact_email": 0.0 to 1.0,
+        "company_name": 0.0 to 1.0,
+        "address": 0.0 to 1.0,
+        "province": 0.0 to 1.0,
+        "website": 0.0 to 1.0,
+        "contact_wechat": 0.0 to 1.0
+    }
+}
+
+Rules:
+- Only include confidence scores for fields that are not null
+- Set confidence to 0.0 for fields you cannot find
+- For phone numbers, always include the country code prefix
+- Only return valid JSON, no additional text or explanation."""
+
+    def extract_business_card_data(self, image_data: bytes) -> dict:
+        """Extract contact data from a business card image using AI vision.
+
+        Args:
+            image_data: Raw image bytes
+
+        Returns:
+            Dict with extracted fields and confidence_scores
+        """
+        if not self._is_ai_available():
+            print("INFO [ExtractionService]: AI unavailable for business card extraction")
+            return {"confidence_scores": {}}
+
+        provider = self._get_preferred_ai_provider()
+        prompt = self._build_business_card_prompt()
+
+        try:
+            if provider == "anthropic":
+                response_text = self._extract_business_card_with_anthropic(
+                    image_data, prompt
+                )
+            elif provider == "openai":
+                response_text = self._extract_business_card_with_openai(
+                    image_data, prompt
+                )
+            else:
+                print("WARN [ExtractionService]: No AI provider for business card extraction")
+                return {"confidence_scores": {}}
+
+            return self._parse_business_card_response(response_text)
+
+        except Exception as e:
+            print(f"WARN [ExtractionService]: Business card extraction failed: {e}")
+            return {"confidence_scores": {}}
+
+    def _extract_business_card_with_anthropic(
+        self, image_data: bytes, prompt: str
+    ) -> str:
+        """Extract business card data using Anthropic Claude vision."""
+        client = self._get_anthropic_client()
+        if not client:
+            raise RuntimeError("Anthropic client not available")
+
+        base64_image = base64.b64encode(image_data).decode("utf-8")
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": base64_image,
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
+        )
+        return message.content[0].text
+
+    def _extract_business_card_with_openai(
+        self, image_data: bytes, prompt: str
+    ) -> str:
+        """Extract business card data using OpenAI GPT-4o vision."""
+        client = self._get_openai_client()
+        if not client:
+            raise RuntimeError("OpenAI client not available")
+
+        base64_image = base64.b64encode(image_data).decode("utf-8")
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            },
+                        },
+                    ],
+                }
+            ],
+        )
+        return response.choices[0].message.content
+
+    def _parse_business_card_response(self, response_text: str) -> dict:
+        """Parse AI response for business card extraction into a dict."""
+        try:
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}") + 1
+            if json_start >= 0 and json_end > json_start:
+                data = json.loads(response_text[json_start:json_end])
+            else:
+                data = {}
+        except json.JSONDecodeError:
+            print(
+                f"WARN [ExtractionService]: Failed to parse business card JSON: "
+                f"{response_text[:200]}"
+            )
+            data = {}
+
+        # Ensure confidence_scores exists
+        if "confidence_scores" not in data:
+            data["confidence_scores"] = {}
+
+        # Ensure qr_code_detected is boolean
+        data["qr_code_detected"] = bool(data.get("qr_code_detected", False))
+
+        return data
+
     def extract_product_data(
         self,
         content: str,

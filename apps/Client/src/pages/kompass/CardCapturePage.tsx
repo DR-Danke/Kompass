@@ -10,8 +10,18 @@ import {
   Snackbar,
   Alert,
   Paper,
+  Button,
+  CircularProgress,
+  Tooltip,
 } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import ReplayIcon from '@mui/icons-material/Replay';
+import PersonIcon from '@mui/icons-material/Person';
+import PhoneIcon from '@mui/icons-material/Phone';
+import EmailIcon from '@mui/icons-material/Email';
+import BusinessIcon from '@mui/icons-material/Business';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { businessCardService } from '@/services/kompassService';
 import type { BusinessCardCapture, BusinessCardCaptureStatus } from '@/types/kompass';
 
@@ -49,6 +59,46 @@ function formatTimestamp(isoString: string): string {
   return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function getConfidenceColor(score: number): 'success' | 'warning' | 'error' {
+  if (score >= 0.8) return 'success';
+  if (score >= 0.5) return 'warning';
+  return 'error';
+}
+
+function ConfidenceBadge({ score }: { score: number }) {
+  const pct = Math.round(score * 100);
+  return (
+    <Tooltip title={`Confianza: ${pct}%`}>
+      <Chip
+        label={`${pct}%`}
+        color={getConfidenceColor(score)}
+        size="small"
+        variant="outlined"
+        sx={{ height: 18, fontSize: '0.65rem', ml: 0.5 }}
+      />
+    </Tooltip>
+  );
+}
+
+interface ExtractedFieldProps {
+  icon: React.ReactNode;
+  value: string | null | undefined;
+  confidence?: number;
+}
+
+function ExtractedField({ icon, value, confidence }: ExtractedFieldProps) {
+  if (!value) return null;
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
+      {icon}
+      <Typography variant="caption" noWrap sx={{ flex: 1 }}>
+        {value}
+      </Typography>
+      {confidence !== undefined && confidence > 0 && <ConfidenceBadge score={confidence} />}
+    </Box>
+  );
+}
+
 const CardCapturePage: React.FC = () => {
   const [captures, setCaptures] = useState<BusinessCardCapture[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -56,6 +106,7 @@ const CardCapturePage: React.FC = () => {
   const [fairName, setFairName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [extractingIds, setExtractingIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadCaptures = useCallback(async () => {
@@ -110,7 +161,10 @@ const CardCapturePage: React.FC = () => {
       );
 
       setCaptures((prev) => [capture, ...prev]);
-      setSuccess('Tarjeta capturada exitosamente');
+      const statusMsg = capture.status === 'extracted'
+        ? 'Tarjeta capturada y datos extraídos'
+        : 'Tarjeta capturada exitosamente';
+      setSuccess(statusMsg);
       console.log('INFO [CardCapturePage]: Upload complete', capture.id);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al subir la imagen';
@@ -121,6 +175,38 @@ const CardCapturePage: React.FC = () => {
       setUploadProgress(0);
     }
   };
+
+  const handleExtract = async (captureId: string) => {
+    setExtractingIds((prev) => new Set(prev).add(captureId));
+    try {
+      console.log('INFO [CardCapturePage]: Triggering extraction for', captureId);
+      const updated = await businessCardService.triggerExtraction(captureId);
+      setCaptures((prev) =>
+        prev.map((c) => (c.id === captureId ? updated : c))
+      );
+      setSuccess('Datos extraídos exitosamente');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al extraer datos';
+      setError(message);
+      console.error('ERROR [CardCapturePage]: Extraction failed', err);
+    } finally {
+      setExtractingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(captureId);
+        return next;
+      });
+    }
+  };
+
+  const getConfidenceScores = (capture: BusinessCardCapture): Record<string, number> => {
+    const raw = capture.extraction_raw_response;
+    if (!raw || typeof raw !== 'object') return {};
+    const scores = (raw as Record<string, unknown>).confidence_scores;
+    if (!scores || typeof scores !== 'object') return {};
+    return scores as Record<string, number>;
+  };
+
+  const isExtracting = (captureId: string) => extractingIds.has(captureId);
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 800, mx: 'auto' }}>
@@ -195,43 +281,122 @@ const CardCapturePage: React.FC = () => {
       )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {captures.map((capture) => (
-          <Card key={capture.id} sx={{ display: 'flex', overflow: 'hidden' }}>
-            <CardMedia
-              component="img"
-              sx={{ width: 100, height: 100, objectFit: 'cover', flexShrink: 0 }}
-              image={capture.image_url}
-              alt="Tarjeta de presentación"
-            />
-            <Box sx={{ p: 1.5, flex: 1, minWidth: 0 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <Chip
-                  label={STATUS_LABELS[capture.status]}
-                  color={STATUS_COLORS[capture.status]}
-                  size="small"
+        {captures.map((capture) => {
+          const scores = getConfidenceScores(capture);
+          const extracting = isExtracting(capture.id);
+          const showSpinner = capture.status === 'processing' || extracting;
+          const showExtracted = capture.status === 'extracted';
+          const showExtractButton = capture.status === 'pending' && !extracting;
+          const showRetryButton = capture.status === 'failed' && !extracting;
+
+          return (
+            <Card key={capture.id} sx={{ overflow: 'hidden' }}>
+              <Box sx={{ display: 'flex' }}>
+                <CardMedia
+                  component="img"
+                  sx={{ width: 100, height: 100, objectFit: 'cover', flexShrink: 0 }}
+                  image={capture.image_url}
+                  alt="Tarjeta de presentación"
                 />
-                <Typography variant="caption" color="text.secondary">
-                  {formatTimestamp(capture.created_at)}
-                </Typography>
+                <Box sx={{ p: 1.5, flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Chip
+                      label={STATUS_LABELS[capture.status]}
+                      color={STATUS_COLORS[capture.status]}
+                      size="small"
+                    />
+                    {showSpinner && <CircularProgress size={16} />}
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                      {formatTimestamp(capture.created_at)}
+                    </Typography>
+                  </Box>
+
+                  {/* Extracted fields with confidence */}
+                  {showExtracted && (
+                    <Box sx={{ mt: 0.5 }}>
+                      <ExtractedField
+                        icon={<BusinessIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
+                        value={capture.company_name}
+                        confidence={scores.company_name}
+                      />
+                      <ExtractedField
+                        icon={<PersonIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
+                        value={capture.contact_name}
+                        confidence={scores.contact_name}
+                      />
+                      <ExtractedField
+                        icon={<PhoneIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
+                        value={capture.contact_phone}
+                        confidence={scores.contact_phone}
+                      />
+                      <ExtractedField
+                        icon={<EmailIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
+                        value={capture.contact_email}
+                        confidence={scores.contact_email}
+                      />
+                      <ExtractedField
+                        icon={<LocationOnIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
+                        value={capture.address}
+                        confidence={scores.address}
+                      />
+                    </Box>
+                  )}
+
+                  {/* Pending state — no extracted data yet */}
+                  {!showExtracted && !showSpinner && capture.fair_name && (
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {capture.fair_name}
+                    </Typography>
+                  )}
+                  {!showExtracted && !showSpinner && !capture.fair_name && capture.status === 'pending' && (
+                    <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                      Pendiente de extracción
+                    </Typography>
+                  )}
+
+                  {/* Processing spinner text */}
+                  {showSpinner && (
+                    <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                      Extrayendo datos con IA...
+                    </Typography>
+                  )}
+
+                  {/* Failed state — show error */}
+                  {capture.status === 'failed' && !extracting && (
+                    <Typography variant="caption" color="error">
+                      Error en la extracción
+                    </Typography>
+                  )}
+
+                  {/* Action buttons */}
+                  <Box sx={{ mt: 0.5, display: 'flex', gap: 1 }}>
+                    {showExtractButton && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<SmartToyIcon />}
+                        onClick={() => handleExtract(capture.id)}
+                      >
+                        Extraer
+                      </Button>
+                    )}
+                    {showRetryButton && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="warning"
+                        startIcon={<ReplayIcon />}
+                        onClick={() => handleExtract(capture.id)}
+                      >
+                        Reintentar
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
               </Box>
-              {capture.company_name && (
-                <Typography variant="body2" fontWeight="medium" noWrap>
-                  {capture.company_name}
-                </Typography>
-              )}
-              {capture.fair_name && (
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {capture.fair_name}
-                </Typography>
-              )}
-              {!capture.company_name && !capture.fair_name && (
-                <Typography variant="caption" color="text.secondary" fontStyle="italic">
-                  Pendiente de extracción
-                </Typography>
-              )}
-            </Box>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </Box>
 
       {/* Snackbars */}
