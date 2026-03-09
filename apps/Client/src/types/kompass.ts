@@ -1040,6 +1040,32 @@ export interface ConfirmImportResponseDTO {
 }
 
 // =============================================================================
+// BUSINESS CARD CAPTURE DTOs
+// =============================================================================
+
+export type BusinessCardCaptureStatus = 'pending' | 'processing' | 'extracted' | 'confirmed' | 'rejected' | 'failed';
+
+export interface BusinessCardCapture {
+  id: string;
+  image_url: string;
+  status: BusinessCardCaptureStatus;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  contact_wechat: string | null;
+  website: string | null;
+  address: string | null;
+  supplier_id: string | null;
+  fair_name: string | null;
+  notes: string | null;
+  captured_by: string | null;
+  extraction_raw_response: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// =============================================================================
 // DASHBOARD DTOs
 // =============================================================================
 

@@ -128,6 +128,13 @@ CREATE TABLE IF NOT EXISTS suppliers (
         CHECK (pipeline_status IS NULL OR pipeline_status IN ('contacted', 'potential', 'quoted', 'certified', 'active', 'inactive')),
     latest_audit_id UUID,  -- FK added after supplier_audits table creation
     certified_at TIMESTAMP WITH TIME ZONE,
+    -- Trade fair metadata
+    source VARCHAR(50),
+    fair_name VARCHAR(255),
+    capture_date TIMESTAMP WITH TIME ZONE,
+    outreach_status VARCHAR(20) DEFAULT 'none'
+        CHECK (outreach_status IS NULL OR outreach_status IN ('none', 'pending', 'contacted', 'responded', 'meeting_scheduled', 'completed')),
+    wechat_id VARCHAR(100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -198,6 +205,40 @@ ALTER TABLE suppliers
     FOREIGN KEY (latest_audit_id) REFERENCES supplier_audits(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_suppliers_latest_audit_id ON suppliers(latest_audit_id);
+
+-- Business Card Captures: Trade fair business card photo uploads for AI extraction
+CREATE TABLE IF NOT EXISTS business_card_captures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    image_url VARCHAR(2000) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' NOT NULL
+        CHECK (status IN ('pending', 'processing', 'extracted', 'confirmed', 'rejected', 'failed')),
+
+    -- Extracted contact fields (populated by AI in TF-002)
+    company_name VARCHAR(255),
+    contact_name VARCHAR(200),
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(100),
+    contact_wechat VARCHAR(100),
+    website VARCHAR(500),
+    address TEXT,
+
+    -- Linked supplier (populated after supplier creation in TF-003)
+    supplier_id UUID REFERENCES suppliers(id) ON DELETE SET NULL,
+
+    -- Capture metadata
+    fair_name VARCHAR(255),
+    notes TEXT,
+    captured_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    extraction_raw_response JSONB,
+
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_business_card_captures_status ON business_card_captures(status);
+CREATE INDEX IF NOT EXISTS idx_business_card_captures_supplier_id ON business_card_captures(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_business_card_captures_created_at ON business_card_captures(created_at);
 
 -- Products: Master product database (Biblia General)
 CREATE TABLE IF NOT EXISTS products (
@@ -464,6 +505,11 @@ CREATE OR REPLACE TRIGGER update_suppliers_updated_at
 
 CREATE OR REPLACE TRIGGER update_supplier_audits_updated_at
     BEFORE UPDATE ON supplier_audits
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER update_business_card_captures_updated_at
+    BEFORE UPDATE ON business_card_captures
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 

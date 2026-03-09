@@ -97,6 +97,17 @@ class ExtractionStatus(str, Enum):
     FAILED = "failed"
 
 
+class BusinessCardCaptureStatus(str, Enum):
+    """Status of business card capture processing."""
+
+    PENDING = "pending"
+    PROCESSING = "processing"
+    EXTRACTED = "extracted"
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
+    FAILED = "failed"
+
+
 class CertificationStatus(str, Enum):
     """Certification level for suppliers."""
 
@@ -591,6 +602,57 @@ class SupplierAuditListResponseDTO(BaseModel):
 
     items: List[SupplierAuditResponseDTO]
     pagination: PaginationDTO
+
+
+# =============================================================================
+# BUSINESS CARD CAPTURE DTOs
+# =============================================================================
+
+
+class BusinessCardCaptureCreateDTO(BaseModel):
+    """Request model for creating a business card capture."""
+
+    fair_name: Optional[str] = Field(default=None, max_length=255)
+    notes: Optional[str] = None
+
+
+class BusinessCardCaptureResponseDTO(BaseModel):
+    """Response model for business card capture data."""
+
+    id: UUID
+    image_url: str
+    status: BusinessCardCaptureStatus
+
+    # Extracted contact fields
+    company_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_wechat: Optional[str] = None
+    website: Optional[str] = None
+    address: Optional[str] = None
+
+    # Links
+    supplier_id: Optional[UUID] = None
+
+    # Metadata
+    fair_name: Optional[str] = None
+    notes: Optional[str] = None
+    captured_by: Optional[UUID] = None
+    extraction_raw_response: Optional[dict] = None
+
+    # Timestamps
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class BusinessCardCaptureListResponseDTO(BaseModel):
+    """Paginated list response for business card captures."""
+
+    captures: List[BusinessCardCaptureResponseDTO]
+    total: int
 
 
 # =============================================================================
