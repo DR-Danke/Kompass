@@ -19,7 +19,7 @@ class RetryCode(str, Enum):
 
 # Supported slash commands for issue classification
 # These should align with your custom slash commands in .claude/commands that you want to run
-IssueClassSlashCommand = Literal["/chore", "/bug", "/feature"]
+IssueClassSlashCommand = Literal["/chore", "/bug", "/feature", "/patch"]
 
 # Model set types for ADW workflows
 ModelSet = Literal["base", "heavy"]
@@ -40,6 +40,8 @@ ADWWorkflow = Literal[
     "adw_plan_build_document_iso",  # Plan + Build + Document
     "adw_plan_build_review_iso",  # Plan + Build + Review
     "adw_sdlc_iso",  # Complete SDLC: Plan + Build + Test + Review + Document
+    "adw_requirements_pipeline_iso",  # Requirements pipeline: Transcript → PRD → Prompts → Issues
+    "adw_continuous_improvement_iso",  # Continuous Improvement Scanner
 ]
 
 # All slash commands used in the ADW system
@@ -64,16 +66,14 @@ SlashCommand = Literal[
     "/patch",
     "/document",
     "/track_agentic_kpis",
-    # Test phase commands
-    "/smoke_test",
-    "/test_api",
-    "/test_static",
-    # Application lifecycle commands
-    "/start",
-    "/prepare_app",
-    "/health_check",
     # Installation/setup commands
     "/install_worktree",
+    # Requirements pipeline commands
+    "/transcript_to_prd",
+    "/prd_to_prompts",
+    "/prompts_to_issues",
+    # Continuous improvement commands
+    "/scan_continuous_improvement",
 ]
 
 
@@ -234,10 +234,11 @@ class ADWStateData(BaseModel):
     issue_number: Optional[str] = None
     branch_name: Optional[str] = None
     plan_file: Optional[str] = None
+    prompts_file: Optional[str] = None
     issue_class: Optional[IssueClassSlashCommand] = None
     worktree_path: Optional[str] = None
-    server_port: Optional[int] = None
-    client_port: Optional[int] = None
+    backend_port: Optional[int] = None
+    frontend_port: Optional[int] = None
     model_set: Optional[ModelSet] = "base"  # Default to "base" model set
     all_adws: List[str] = Field(default_factory=list)
 
@@ -291,3 +292,46 @@ class ADWExtractionResult(BaseModel):
     def has_workflow(self) -> bool:
         """Check if a workflow command was extracted."""
         return self.workflow_command is not None
+
+
+# --- Continuous Improvement Scanner types ---
+
+ScanCategory = Literal["technical", "ux-business"]
+
+class ScanZone(BaseModel):
+    """Definition of a codebase zone to scan."""
+    zone_id: str
+    description: str
+    category: ScanCategory
+    glob_patterns: List[str]
+
+class ScanFinding(BaseModel):
+    """A single improvement finding from the scanner."""
+    title: str
+    description: str
+    category: ScanCategory
+    severity: Literal["low", "medium", "high"]
+    affected_files: List[str]
+    recommendation: str
+
+class ScanResult(BaseModel):
+    """Result from scanning a single zone."""
+    zone_id: str
+    findings: List[ScanFinding] = []
+    scan_timestamp: str
+    adw_id: str
+    raw_output: Optional[str] = None
+
+class CoverageEntry(BaseModel):
+    """Tracks when a zone was last scanned."""
+    zone_id: str
+    last_scanned: Optional[str] = None
+    scan_count: int = 0
+    last_adw_id: Optional[str] = None
+    files_at_scan: int = 0
+
+class CoverageState(BaseModel):
+    """Persistent state for coverage rotation and deduplication."""
+    zones: dict[str, CoverageEntry] = Field(default_factory=dict)
+    created_finding_hashes: List[str] = Field(default_factory=list)
+    last_full_rotation: Optional[str] = None

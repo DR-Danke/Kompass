@@ -11,7 +11,7 @@ Usage:
 
 Workflow:
 1. Create/validate isolated worktree
-2. Allocate dedicated ports (9100-9114 server, 9200-9214 client)
+2. Allocate dedicated ports (9100-9114 backend, 9200-9214 frontend)
 3. Fetch GitHub issue details
 4. Check for 'adw_patch' keyword in comments or issue body
 5. Create patch plan based on content containing 'adw_patch'
@@ -253,8 +253,8 @@ def main():
     worktree_path = state.get("worktree_path")
     if worktree_path and os.path.exists(worktree_path):
         logger.info(f"Using existing worktree: {worktree_path}")
-        server_port = state.get("server_port", 9100)
-        client_port = state.get("client_port", 9200)
+        backend_port = state.get("backend_port", 9100)
+        frontend_port = state.get("frontend_port", 9200)
     else:
         # Create isolated worktree
         logger.info("Creating isolated worktree")
@@ -271,27 +271,27 @@ def main():
             sys.exit(1)
 
         # Get deterministic ports for this ADW ID
-        server_port, client_port = get_ports_for_adw(adw_id)
+        backend_port, frontend_port = get_ports_for_adw(adw_id)
 
         # Check if ports are available, find alternatives if not
-        if not is_port_available(server_port) or not is_port_available(client_port):
+        if not is_port_available(backend_port) or not is_port_available(frontend_port):
             logger.warning(
-                f"Preferred ports {server_port}/{client_port} not available, finding alternatives"
+                f"Preferred ports {backend_port}/{frontend_port} not available, finding alternatives"
             )
-            server_port, client_port = find_next_available_ports(adw_id)
+            backend_port, frontend_port = find_next_available_ports(adw_id)
 
         logger.info(
-            f"Allocated ports - Server: {server_port}, Client: {client_port}"
+            f"Allocated ports - Backend: {backend_port}, Frontend: {frontend_port}"
         )
 
         # Set up worktree environment (copy files, create .ports.env)
-        setup_worktree_environment(worktree_path, server_port, client_port, logger)
+        setup_worktree_environment(worktree_path, backend_port, frontend_port, logger)
 
         # Update state with worktree info
         state.update(
             worktree_path=worktree_path,
-            server_port=server_port,
-            client_port=client_port,
+            backend_port=backend_port,
+            frontend_port=frontend_port,
         )
         state.save("adw_patch_iso")
 
@@ -302,7 +302,7 @@ def main():
             "ops",
             f"✅ Using isolated worktree\n"
             f"🏠 Path: {worktree_path}\n"
-            f"🔌 Ports - Server: {server_port}, Client: {client_port}",
+            f"🔌 Ports - Backend: {backend_port}, Frontend: {frontend_port}",
         ),
     )
 

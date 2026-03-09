@@ -289,26 +289,133 @@ def fetch_issue_comments(repo_path: str, issue_number: int) -> List[Dict]:
 
 def find_keyword_from_comment(keyword: str, issue: GitHubIssue) -> Optional[GitHubComment]:
     """Find the latest comment containing a specific keyword.
-
+    
     Args:
         keyword: The keyword to search for in comments
         issue: The GitHub issue containing comments
-
+        
     Returns:
         The latest GitHubComment containing the keyword, or None if not found
     """
     # Sort comments by created_at date (newest first)
     sorted_comments = sorted(issue.comments, key=lambda c: c.created_at, reverse=True)
-
+    
     # Search through sorted comments (newest first)
     for comment in sorted_comments:
         # Skip ADW bot comments to prevent loops
         if ADW_BOT_IDENTIFIER in comment.body:
             continue
-
+            
         if keyword in comment.body:
             return comment
 
+    return None
+
+
+def check_gh_authenticated() -> bool:
+    """Check if GitHub CLI is authenticated."""
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "status"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return result.returncode == 0
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def ensure_labels_exist(labels: List[str], repo_path: Optional[str] = None) -> None:
+    """Ensure GitHub labels exist in the repository.
+
+    Creates labels if they don't exist (--force makes it a no-op for existing labels).
+    Failures are logged but non-fatal — gh issue create can auto-create labels.
+    """
+    if repo_path is None:
+        github_repo_url = get_repo_url()
+        repo_path = extract_repo_path(github_repo_url)
+
+    env = get_github_env()
+
+    for label in labels:
+        try:
+            cmd = [
+                "gh", "label", "create", label,
+                "--force",
+                "--repo", repo_path,
+            ]
+            subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=15)
+        except Exception:
+            pass
+
+
+def create_issue(
+    title: str,
+    body: str,
+    labels: List[str],
+    repo_path: Optional[str] = None,
+    max_retries: int = 3,
+) -> Optional[str]:
+    """Create a GitHub issue using gh CLI.
+
+    Args:
+        title: Issue title
+        body: Issue body (markdown)
+        labels: List of labels to apply
+        repo_path: Owner/repo path (derived from git remote if not provided)
+        max_retries: Maximum retry attempts for network failures
+
+    Returns:
+        Issue number string on success, None on failure.
+    """
+    if repo_path is None:
+        try:
+            github_repo_url = get_repo_url()
+            repo_path = extract_repo_path(github_repo_url)
+        except ValueError as e:
+            print(f"ERROR: Cannot determine repository: {e}", file=sys.stderr)
+            return None
+
+    cmd = [
+        "gh", "issue", "create",
+        "--title", title,
+        "--body", body,
+        "--repo", repo_path,
+    ]
+    for label in labels:
+        cmd.extend(["--label", label])
+
+    env = get_github_env()
+
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, env=env, timeout=30
+            )
+
+            if result.returncode == 0:
+                issue_url = result.stdout.strip()
+                if "/issues/" in issue_url:
+                    issue_number = issue_url.split("/issues/")[-1].strip()
+                    return issue_number
+                return issue_url
+            else:
+                last_error = result.stderr.strip()
+                if attempt < max_retries:
+                    import time
+                    time.sleep(2 * attempt)
+        except subprocess.TimeoutExpired:
+            last_error = "Command timed out"
+            if attempt < max_retries:
+                import time
+                time.sleep(2 * attempt)
+        except Exception as e:
+            last_error = str(e)
+            break
+
+    print(f"ERROR: Failed to create issue after {max_retries} attempts: {last_error}", file=sys.stderr)
     return None
 
 

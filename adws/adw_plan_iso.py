@@ -49,7 +49,7 @@ from adw_modules.workflow_ops import (
     ensure_adw_id,
     AGENT_PLANNER,
 )
-from adw_modules.utils import setup_logger, check_env_vars
+from adw_modules.utils import setup_logger, check_env_vars, clean_agent_output
 from adw_modules.data_types import GitHubIssue, IssueClassSlashCommand, AgentTemplateRequest
 from adw_modules.agent import execute_template
 from adw_modules.worktree_ops import (
@@ -111,19 +111,19 @@ def main():
     if valid:
         logger.info(f"Using existing worktree for {adw_id}")
         worktree_path = state.get("worktree_path")
-        server_port = state.get("server_port")
-        client_port = state.get("client_port")
+        backend_port = state.get("backend_port")
+        frontend_port = state.get("frontend_port")
     else:
         # Allocate ports for this instance
-        server_port, client_port = get_ports_for_adw(adw_id)
-
+        backend_port, frontend_port = get_ports_for_adw(adw_id)
+        
         # Check port availability
-        if not (is_port_available(server_port) and is_port_available(client_port)):
-            logger.warning(f"Deterministic ports {server_port}/{client_port} are in use, finding alternatives")
-            server_port, client_port = find_next_available_ports(adw_id)
-
-        logger.info(f"Allocated ports - Server: {server_port}, Client: {client_port}")
-        state.update(server_port=server_port, client_port=client_port)
+        if not (is_port_available(backend_port) and is_port_available(frontend_port)):
+            logger.warning(f"Deterministic ports {backend_port}/{frontend_port} are in use, finding alternatives")
+            backend_port, frontend_port = find_next_available_ports(adw_id)
+        
+        logger.info(f"Allocated ports - Backend: {backend_port}, Frontend: {frontend_port}")
+        state.update(backend_port=backend_port, frontend_port=frontend_port)
         state.save("adw_plan_iso")
 
     # Fetch issue details
@@ -195,14 +195,14 @@ def main():
         logger.info(f"Created worktree at {worktree_path}")
         
         # Setup worktree environment (create .ports.env)
-        setup_worktree_environment(worktree_path, server_port, client_port, logger)
-
+        setup_worktree_environment(worktree_path, backend_port, frontend_port, logger)
+        
         # Run install_worktree command to set up the isolated environment
         logger.info("Setting up isolated environment with custom ports")
         install_request = AgentTemplateRequest(
             agent_name="ops",
             slash_command="/install_worktree",
-            args=[worktree_path, str(server_port), str(client_port)],
+            args=[worktree_path, str(backend_port), str(frontend_port)],
             adw_id=adw_id,
             working_dir=worktree_path,  # Execute in worktree
         )
@@ -221,7 +221,7 @@ def main():
     make_issue_comment(
         issue_number,
         format_issue_message(adw_id, "ops", f"✅ Working in isolated worktree: {worktree_path}\n"
-                           f"🔌 Ports - Server: {server_port}, Client: {client_port}"),
+                           f"🔌 Ports - Backend: {backend_port}, Frontend: {frontend_port}"),
     )
 
     # Build the implementation plan (now executing in worktree)
@@ -251,7 +251,7 @@ def main():
 
     # Get the plan file path directly from response
     logger.info("Getting plan file path")
-    plan_file_path = plan_response.output.strip().strip('`')
+    plan_file_path = clean_agent_output(plan_response.output)
     
     # Validate the path exists (within worktree)
     if not plan_file_path:

@@ -44,7 +44,7 @@ from adw_modules.github import (
     make_issue_comment,
     get_repo_url,
 )
-from adw_modules.utils import make_adw_id, setup_logger, parse_json
+from adw_modules.utils import make_adw_id, setup_logger, parse_json, clean_agent_output
 from adw_modules.state import ADWState
 from adw_modules.git_ops import commit_changes, finalize_git_operations
 from adw_modules.workflow_ops import format_issue_message, create_commit, ensure_adw_id, classify_issue
@@ -190,7 +190,7 @@ def git_branch(
     if not response.success:
         return None, response.output
 
-    branch_name = response.output.strip()
+    branch_name = clean_agent_output(response.output)
     logger.info(f"Created branch: {branch_name}")
     return branch_name, None
 
@@ -592,7 +592,7 @@ def check_route_files_changed(logger: logging.Logger) -> List[str]:
         changed_files = result.stdout.strip().split("\n")
         route_files = [
             f for f in changed_files
-            if f.startswith("apps/Server/src/adapter/rest/") and f.endswith("_routes.py")
+            if f.startswith("backend/src/adapter/rest/") and f.endswith("_routes.py")
         ]
         return route_files
     except Exception as e:
@@ -601,15 +601,15 @@ def check_route_files_changed(logger: logging.Logger) -> List[str]:
 
 
 def start_test_server(logger: logging.Logger) -> Optional[subprocess.Popen]:
-    """Start the server for API testing."""
+    """Start the backend server for API testing."""
     try:
         env = os.environ.copy()
         env["TESTING"] = "true"
 
-        # Start uvicorn in background using the venv
+        # Start uvicorn in background
         proc = subprocess.Popen(
-            [".venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
-            cwd="apps/Server",
+            ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"],
+            cwd="backend",
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -684,8 +684,8 @@ def run_api_integration_tests(
 
     logger.info(f"Found {len(changed_routes)} changed route files: {changed_routes}")
 
-    # Start the server
-    logger.info("Starting server for API integration tests...")
+    # Start the backend server
+    logger.info("Starting backend server for API integration tests...")
     server_proc = start_test_server(logger)
 
     if server_proc is None:
@@ -693,8 +693,8 @@ def run_api_integration_tests(
             test_name="server_startup",
             passed=False,
             execution_command="uv run uvicorn main:app --host 0.0.0.0 --port 8000",
-            test_purpose="Start server for API testing",
-            error="Failed to start server",
+            test_purpose="Start backend server for API testing",
+            error="Failed to start backend server",
         )], 0, 1
 
     try:

@@ -44,7 +44,7 @@ from adw_modules.workflow_ops import (
     format_issue_message,
     find_spec_file,
 )
-from adw_modules.utils import setup_logger, check_env_vars
+from adw_modules.utils import setup_logger, check_env_vars, clean_agent_output
 from adw_modules.data_types import (
     GitHubIssue,
     GitHubUser,
@@ -147,7 +147,7 @@ def generate_documentation(
         return None
 
     # Parse the agent response - it should return the path to the documentation file created
-    doc_file_path = response.output.strip().strip('`')
+    doc_file_path = clean_agent_output(response.output)
 
     # Check if the agent actually created documentation
     if doc_file_path and doc_file_path != "No documentation needed":
@@ -356,8 +356,8 @@ def main():
     logger.info(f"Using worktree at: {worktree_path}")
 
     # Get port information for display
-    server_port = state.get("server_port", "9100")
-    client_port = state.get("client_port", "9200")
+    backend_port = state.get("backend_port", "9100")
+    frontend_port = state.get("frontend_port", "9200")
 
     make_issue_comment(
         issue_number,
@@ -366,7 +366,7 @@ def main():
             "ops",
             f"✅ Starting isolated documentation phase\n"
             f"🏠 Worktree: {worktree_path}\n"
-            f"🔌 Ports - Server: {server_port}, Client: {client_port}",
+            f"🔌 Ports - Backend: {backend_port}, Frontend: {frontend_port}",
         ),
     )
 

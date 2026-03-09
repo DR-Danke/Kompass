@@ -148,39 +148,39 @@ def remove_worktree(adw_id: str, logger: logging.Logger) -> Tuple[bool, Optional
     return True, None
 
 
-def setup_worktree_environment(worktree_path: str, server_port: int, client_port: int, logger: logging.Logger) -> None:
+def setup_worktree_environment(worktree_path: str, backend_port: int, frontend_port: int, logger: logging.Logger) -> None:
     """Set up worktree environment by creating .ports.env file.
-
+    
     The actual environment setup (copying .env files, installing dependencies) is handled
     by the install_worktree.md command which runs inside the worktree.
-
+    
     Args:
         worktree_path: Path to the worktree
-        server_port: Server port number
-        client_port: Client port number
+        backend_port: Backend port number
+        frontend_port: Frontend port number
         logger: Logger instance
     """
     # Create .ports.env file with port configuration
     ports_env_path = os.path.join(worktree_path, ".ports.env")
-
+    
     with open(ports_env_path, "w") as f:
-        f.write(f"SERVER_PORT={server_port}\n")
-        f.write(f"CLIENT_PORT={client_port}\n")
-        f.write(f"VITE_SERVER_URL=http://localhost:{server_port}\n")
-
-    logger.info(f"Created .ports.env with Server: {server_port}, Client: {client_port}")
+        f.write(f"BACKEND_PORT={backend_port}\n")
+        f.write(f"FRONTEND_PORT={frontend_port}\n")
+        f.write(f"VITE_BACKEND_URL=http://localhost:{backend_port}\n")
+    
+    logger.info(f"Created .ports.env with Backend: {backend_port}, Frontend: {frontend_port}")
 
 
 # Port management functions
 
 def get_ports_for_adw(adw_id: str) -> Tuple[int, int]:
     """Deterministically assign ports based on ADW ID.
-
+    
     Args:
         adw_id: The ADW ID
-
+        
     Returns:
-        Tuple of (server_port, client_port)
+        Tuple of (backend_port, frontend_port)
     """
     # Convert first 8 chars of ADW ID to index (0-14)
     # Using base 36 conversion and modulo to get consistent mapping
@@ -191,11 +191,11 @@ def get_ports_for_adw(adw_id: str) -> Tuple[int, int]:
     except ValueError:
         # Fallback to simple hash if conversion fails
         index = hash(adw_id) % 15
-
-    server_port = 9100 + index
-    client_port = 9200 + index
-
-    return server_port, client_port
+    
+    backend_port = 9100 + index
+    frontend_port = 9200 + index
+    
+    return backend_port, frontend_port
 
 
 def is_port_available(port: int) -> bool:
@@ -218,26 +218,26 @@ def is_port_available(port: int) -> bool:
 
 def find_next_available_ports(adw_id: str, max_attempts: int = 15) -> Tuple[int, int]:
     """Find available ports starting from deterministic assignment.
-
+    
     Args:
         adw_id: The ADW ID
         max_attempts: Maximum number of attempts (default 15)
-
+        
     Returns:
-        Tuple of (server_port, client_port)
-
+        Tuple of (backend_port, frontend_port)
+        
     Raises:
         RuntimeError: If no available ports found
     """
-    base_server, base_client = get_ports_for_adw(adw_id)
-    base_index = base_server - 9100
-
+    base_backend, base_frontend = get_ports_for_adw(adw_id)
+    base_index = base_backend - 9100
+    
     for offset in range(max_attempts):
         index = (base_index + offset) % 15
-        server_port = 9100 + index
-        client_port = 9200 + index
-
-        if is_port_available(server_port) and is_port_available(client_port):
-            return server_port, client_port
-
+        backend_port = 9100 + index
+        frontend_port = 9200 + index
+        
+        if is_port_available(backend_port) and is_port_available(frontend_port):
+            return backend_port, frontend_port
+    
     raise RuntimeError("No available ports in the allocated range")

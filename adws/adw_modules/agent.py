@@ -25,6 +25,10 @@ load_dotenv()
 # Get Claude Code CLI path from environment
 CLAUDE_PATH = os.getenv("CLAUDE_CODE_PATH", "claude")
 
+# Timeout for Claude Code subprocess execution (45 minutes)
+# Must be generous enough for long operations like /review with Playwright screenshots
+SUBPROCESS_TIMEOUT_SECONDS: Final[int] = 45 * 60
+
 # Model selection mapping for slash commands
 # Maps each command to its model configuration for base and heavy model sets
 # Updated to use Opus 4.5 for all commands to maximize quality
@@ -47,6 +51,7 @@ SLASH_COMMAND_MODEL_MAP: Final[Dict[SlashCommand, Dict[ModelSet, str]]] = {
     "/patch": {"base": "opus", "heavy": "opus"},
     "/install_worktree": {"base": "opus", "heavy": "opus"},
     "/track_agentic_kpis": {"base": "opus", "heavy": "opus"},
+    "/scan_continuous_improvement": {"base": "opus", "heavy": "opus"},
 }
 
 
@@ -158,6 +163,56 @@ def check_claude_installed() -> Optional[str]:
     except FileNotFoundError:
         return f"Error: Claude Code CLI is not installed. Expected at: {CLAUDE_PATH}"
     return None
+
+
+def _text_contains_json(text: str) -> bool:
+    """Check if text contains JSON-like content (object or array)."""
+    stripped = text.strip()
+    # Direct JSON
+    if stripped.startswith('{') or stripped.startswith('['):
+        return True
+    # Backtick-wrapped JSON
+    if '```json' in stripped or '```\n{' in stripped or '```\n[' in stripped:
+        return True
+    return False
+
+
+def _extract_best_result_text(
+    messages: List[Dict[str, Any]], result_message: Dict[str, Any]
+) -> str:
+    """Extract the best result text from JSONL messages.
+
+    First tries the result field from the result message.
+    If that appears to be conversational text (no JSON content),
+    searches backward through assistant messages for the most recent
+    text content containing a JSON block.
+
+    This fixes a common issue where the Claude agent outputs JSON in one
+    message and then follows up with conversational commentary in the final
+    message, causing the result field to contain commentary instead of JSON.
+    """
+    result_text = result_message.get("result", "")
+
+    # If result_text already contains JSON, use it directly
+    if _text_contains_json(result_text):
+        return result_text
+
+    # Result text is conversational - search assistant messages for JSON
+    for message in reversed(messages):
+        if message.get("type") != "assistant":
+            continue
+        content = message.get("message", {}).get("content", [])
+        if not isinstance(content, list):
+            continue
+        for block in content:
+            if block.get("type") != "text":
+                continue
+            text = block.get("text", "")
+            if _text_contains_json(text):
+                return text
+
+    # Nothing better found, return original
+    return result_text
 
 
 def parse_jsonl_output(
@@ -353,6 +408,7 @@ def prompt_claude_code(request: AgentPromptRequest) -> AgentPromptResponse:
                 text=True,
                 env=env,
                 cwd=request.working_dir,  # Use working_dir if provided
+                timeout=SUBPROCESS_TIMEOUT_SECONDS,
             )
 
         if result.returncode == 0:
@@ -381,7 +437,9 @@ def prompt_claude_code(request: AgentPromptRequest) -> AgentPromptResponse:
                         retry_code=RetryCode.ERROR_DURING_EXECUTION,
                     )
 
-                result_text = result_message.get("result", "")
+                # Extract result text, falling back to assistant messages
+                # if the result field contains conversational text instead of JSON
+                result_text = _extract_best_result_text(messages, result_message)
 
                 # For error cases, truncate the output to prevent JSONL blobs
                 if is_error and len(result_text) > 1000:
@@ -492,7 +550,7 @@ def prompt_claude_code(request: AgentPromptRequest) -> AgentPromptResponse:
             )
 
     except subprocess.TimeoutExpired:
-        error_msg = "Error: Claude Code command timed out after 5 minutes"
+        error_msg = f"Error: Claude Code command timed out after {SUBPROCESS_TIMEOUT_SECONDS // 60} minutes"
         return AgentPromptResponse(
             output=error_msg,
             success=False,

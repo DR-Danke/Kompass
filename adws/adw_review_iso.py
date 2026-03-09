@@ -46,7 +46,7 @@ from adw_modules.workflow_ops import (
     implement_plan,
     find_spec_file,
 )
-from adw_modules.utils import setup_logger, parse_json, check_env_vars
+from adw_modules.utils import setup_logger, parse_json, check_env_vars, clean_agent_output
 from adw_modules.data_types import (
     AgentTemplateRequest,
     ReviewResult,
@@ -237,7 +237,7 @@ def resolve_blocker_issues(
             continue
         
         # Extract plan file path
-        plan_file = plan_response.output.strip().strip('`')
+        plan_file = clean_agent_output(plan_response.output)
         
         # Implement the patch
         logger.info(f"Implementing patch from plan: {plan_file}")
@@ -379,14 +379,14 @@ def main():
     logger.info(f"Using worktree at: {worktree_path}")
     
     # Get port information for display
-    server_port = state.get("server_port", "9100")
-    client_port = state.get("client_port", "9200")
-
+    backend_port = state.get("backend_port", "9100")
+    frontend_port = state.get("frontend_port", "9200")
+    
     make_issue_comment(
-        issue_number,
+        issue_number, 
         format_issue_message(adw_id, "ops", f"✅ Starting isolated review phase\n"
                            f"🏠 Worktree: {worktree_path}\n"
-                           f"🔌 Ports - Server: {server_port}, Client: {client_port}\n"
+                           f"🔌 Ports - Backend: {backend_port}, Frontend: {frontend_port}\n"
                            f"🔧 Issue Resolution: {'Disabled' if skip_resolution else 'Enabled'}")
     )
     

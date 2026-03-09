@@ -17,7 +17,7 @@ from adw_modules.data_types import (
 from adw_modules.agent import execute_template
 from adw_modules.github import get_repo_url, extract_repo_path, ADW_BOT_IDENTIFIER
 from adw_modules.state import ADWState
-from adw_modules.utils import parse_json
+from adw_modules.utils import parse_json, clean_agent_output
 
 
 # Agent name constants
@@ -26,6 +26,7 @@ AGENT_IMPLEMENTOR = "sdlc_implementor"
 AGENT_CLASSIFIER = "issue_classifier"
 AGENT_BRANCH_GENERATOR = "branch_generator"
 AGENT_PR_CREATOR = "pr_creator"
+AGENT_PROMPTS_GENERATOR = "prompts_generator"
 
 # Available ADW workflows for runtime validation
 AVAILABLE_ADW_WORKFLOWS = [
@@ -44,6 +45,8 @@ AVAILABLE_ADW_WORKFLOWS = [
     "adw_plan_build_document_iso",
     "adw_plan_build_review_iso",
     "adw_sdlc_iso",
+    "adw_requirements_pipeline_iso",
+    "adw_continuous_improvement_iso",  # Continuous Improvement Scanner
 ]
 
 
@@ -104,6 +107,43 @@ def extract_adw_info(text: str, temp_adw_id: str) -> ADWExtractionResult:
         return ADWExtractionResult()  # Empty result
 
 
+def _fallback_classify_issue(issue: GitHubIssue, logger: logging.Logger) -> str:
+    """Fallback keyword-based classification when the agent returns an invalid response.
+    Returns a valid slash command string."""
+    text = f"{issue.title} {issue.body or ''}".lower()
+
+    bug_keywords = [
+        "bug", "fix", "error", "broken", "crash", "fail", "blank",
+        "missing", "not working", "doesn't work", "does not work",
+        "incorrect", "wrong", "issue",
+    ]
+    chore_keywords = [
+        "chore", "refactor", "extract", "migrate", "cleanup", "clean up",
+        "update dep", "rename", "reorganize", "move",
+    ]
+    feature_keywords = [
+        "feature", "add", "implement", "new", "create", "support", "enable",
+    ]
+
+    for kw in bug_keywords:
+        if kw in text:
+            logger.warning(f"Fallback classification: matched bug keyword '{kw}'")
+            return "/bug"
+
+    for kw in feature_keywords:
+        if kw in text:
+            logger.warning(f"Fallback classification: matched feature keyword '{kw}'")
+            return "/feature"
+
+    for kw in chore_keywords:
+        if kw in text:
+            logger.warning(f"Fallback classification: matched chore keyword '{kw}'")
+            return "/chore"
+
+    logger.warning("Fallback classification: no keyword match, defaulting to /chore")
+    return "/chore"
+
+
 def classify_issue(
     issue: GitHubIssue, adw_id: str, logger: logging.Logger
 ) -> Tuple[Optional[IssueClassSlashCommand], Optional[str]]:
@@ -135,11 +175,11 @@ def classify_issue(
         return None, response.output
 
     # Extract the classification from the response
-    output = response.output.strip()
+    output = clean_agent_output(response.output)
 
     # Look for the classification pattern in the output
     # Claude might add explanation, so we need to extract just the command
-    classification_match = re.search(r"(/chore|/bug|/feature|0)", output)
+    classification_match = re.search(r"(/chore|/bug|/feature|/patch|0)", output)
 
     if classification_match:
         issue_command = classification_match.group(1)
@@ -149,8 +189,12 @@ def classify_issue(
     if issue_command == "0":
         return None, f"No command selected: {response.output}"
 
-    if issue_command not in ["/chore", "/bug", "/feature"]:
-        return None, f"Invalid command selected: {response.output}"
+    if issue_command not in ["/chore", "/bug", "/feature", "/patch"]:
+        # Agent returned an invalid response (e.g., "The plan already exists").
+        # Use keyword-based fallback instead of failing.
+        logger.warning(f"Agent returned invalid classification: {output}")
+        issue_command = _fallback_classify_issue(issue, logger)
+        logger.info(f"Using fallback classification: {issue_command}")
 
     return issue_command, None  # type: ignore
 
@@ -249,7 +293,7 @@ def generate_branch_name(
     if not response.success:
         return None, response.output
 
-    branch_name = response.output.strip()
+    branch_name = clean_agent_output(response.output)
     logger.info(f"Generated branch name: {branch_name}")
     return branch_name, None
 
@@ -288,7 +332,7 @@ def create_commit(
     if not response.success:
         return None, response.output
 
-    commit_message = response.output.strip()
+    commit_message = clean_agent_output(response.output)
     logger.info(f"Created commit message: {commit_message}")
     return commit_message, None
 
@@ -343,7 +387,7 @@ def create_pull_request(
     if not response.success:
         return None, response.output
 
-    pr_url = response.output.strip()
+    pr_url = clean_agent_output(response.output)
     logger.info(f"Created pull request: {pr_url}")
     return pr_url, None
 
@@ -695,7 +739,7 @@ def create_and_implement_patch(
         )
 
     # Extract the patch plan file path from the response
-    patch_file_path = response.output.strip().strip('`')
+    patch_file_path = clean_agent_output(response.output)
 
     # Validate that it looks like a file path
     if "specs/patch/" not in patch_file_path or not patch_file_path.endswith(".md"):

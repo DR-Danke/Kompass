@@ -713,17 +713,17 @@ def main():
     logger.info(f"Using worktree at: {worktree_path}")
     
     # Get port information for display
-    server_port = state.get("server_port", "9100")
-    client_port = state.get("client_port", "9200")
-
+    backend_port = state.get("backend_port", "9100")
+    frontend_port = state.get("frontend_port", "9200")
+    
     make_issue_comment(
-        issue_number,
+        issue_number, 
         format_issue_message(adw_id, "ops", f"✅ Starting isolated testing phase\n"
                            f"🏠 Worktree: {worktree_path}\n"
-                           f"🔌 Ports - Server: {server_port}, Client: {client_port}\n"
+                           f"🔌 Ports - Backend: {backend_port}, Frontend: {frontend_port}\n"
                            f"🧪 E2E Tests: {'Skipped' if skip_e2e else 'Enabled'}")
     )
-
+    
     # Run smoke test first (non-blocking)
     logger.info("Running smoke test to validate frontend-backend connectivity...")
     smoke_test_request = AgentTemplateRequest(

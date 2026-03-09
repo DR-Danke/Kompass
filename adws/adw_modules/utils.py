@@ -12,6 +12,16 @@ from typing import Any, TypeVar, Type, Union, Dict, Optional
 T = TypeVar('T')
 
 
+def clean_agent_output(output: str) -> str:
+    """Clean agent output by stripping whitespace and markdown backticks.
+
+    Claude Code agents often wrap file paths and values in markdown backticks
+    (e.g., `specs/plan.md`). This strips those so the raw value can be used
+    for file system operations.
+    """
+    return output.strip().strip("`")
+
+
 def make_adw_id() -> str:
     """Generate a short 8-character UUID for ADW tracking."""
     return str(uuid.uuid4())[:8]
