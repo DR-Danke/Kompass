@@ -299,6 +299,108 @@ async def upload_files(
     return UploadResponseDTO(job_id=job.job_id)
 
 
+# =============================================================================
+# BUSINESS CARD CAPTURE GET ENDPOINTS (must precede /{job_id} catch-all)
+# =============================================================================
+
+
+@router.get("/business-cards", response_model=BusinessCardCaptureListResponseDTO)
+async def list_business_cards(
+    status: Optional[str] = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+) -> BusinessCardCaptureListResponseDTO:
+    """List business card captures with optional status filter.
+
+    Args:
+        status: Optional status filter
+        limit: Number of items to return
+        offset: Number of items to skip
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureListResponseDTO with captures and total count
+    """
+    captures, total = business_card_service.list_captures(
+        status_filter=status,
+        limit=limit,
+        offset=offset,
+    )
+
+    items = [
+        BusinessCardCaptureResponseDTO(
+            id=c["id"],
+            image_url=c["image_url"],
+            status=BusinessCardCaptureStatus(c["status"]),
+            company_name=c.get("company_name"),
+            contact_name=c.get("contact_name"),
+            contact_email=c.get("contact_email"),
+            contact_phone=c.get("contact_phone"),
+            contact_wechat=c.get("contact_wechat"),
+            website=c.get("website"),
+            address=c.get("address"),
+            supplier_id=c.get("supplier_id"),
+            fair_name=c.get("fair_name"),
+            notes=c.get("notes"),
+            captured_by=c.get("captured_by"),
+            extraction_raw_response=c.get("extraction_raw_response"),
+            created_at=c["created_at"],
+            updated_at=c["updated_at"],
+        )
+        for c in captures
+    ]
+
+    return BusinessCardCaptureListResponseDTO(captures=items, total=total)
+
+
+@router.get("/business-cards/{capture_id}", response_model=BusinessCardCaptureResponseDTO)
+async def get_business_card(
+    capture_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user", "viewer"])
+    ),
+) -> BusinessCardCaptureResponseDTO:
+    """Get a single business card capture by ID.
+
+    Args:
+        capture_id: UUID of the capture
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureResponseDTO
+
+    Raises:
+        HTTPException 404: If capture not found
+    """
+    try:
+        capture = business_card_service.get_capture(capture_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Business card capture not found")
+
+    return BusinessCardCaptureResponseDTO(
+        id=capture["id"],
+        image_url=capture["image_url"],
+        status=BusinessCardCaptureStatus(capture["status"]),
+        company_name=capture.get("company_name"),
+        contact_name=capture.get("contact_name"),
+        contact_email=capture.get("contact_email"),
+        contact_phone=capture.get("contact_phone"),
+        contact_wechat=capture.get("contact_wechat"),
+        website=capture.get("website"),
+        address=capture.get("address"),
+        supplier_id=capture.get("supplier_id"),
+        fair_name=capture.get("fair_name"),
+        notes=capture.get("notes"),
+        captured_by=capture.get("captured_by"),
+        extraction_raw_response=capture.get("extraction_raw_response"),
+        created_at=capture["created_at"],
+        updated_at=capture["updated_at"],
+    )
+
+
 @router.get("/{job_id}", response_model=ExtractionJobDTO)
 async def get_job_status(
     job_id: UUID,
@@ -517,11 +619,6 @@ async def suggest_hs_code(
     return result
 
 
-# =============================================================================
-# BUSINESS CARD CAPTURE ENDPOINTS
-# =============================================================================
-
-
 @router.post("/business-card", response_model=BusinessCardCaptureResponseDTO, status_code=201)
 async def upload_business_card(
     file: UploadFile,
@@ -630,100 +727,3 @@ async def upload_business_card(
     except Exception as e:
         print(f"ERROR [ExtractionRoutes]: Failed to create capture: {e}")
         raise HTTPException(status_code=500, detail="Failed to create capture record")
-
-
-@router.get("/business-cards", response_model=BusinessCardCaptureListResponseDTO)
-async def list_business_cards(
-    status: Optional[str] = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=200),
-    offset: int = Query(default=0, ge=0),
-    current_user: Dict[str, Any] = Depends(
-        require_roles(["admin", "manager", "user", "viewer"])
-    ),
-) -> BusinessCardCaptureListResponseDTO:
-    """List business card captures with optional status filter.
-
-    Args:
-        status: Optional status filter
-        limit: Number of items to return
-        offset: Number of items to skip
-        current_user: Authenticated user
-
-    Returns:
-        BusinessCardCaptureListResponseDTO with captures and total count
-    """
-    captures, total = business_card_service.list_captures(
-        status_filter=status,
-        limit=limit,
-        offset=offset,
-    )
-
-    items = [
-        BusinessCardCaptureResponseDTO(
-            id=c["id"],
-            image_url=c["image_url"],
-            status=BusinessCardCaptureStatus(c["status"]),
-            company_name=c.get("company_name"),
-            contact_name=c.get("contact_name"),
-            contact_email=c.get("contact_email"),
-            contact_phone=c.get("contact_phone"),
-            contact_wechat=c.get("contact_wechat"),
-            website=c.get("website"),
-            address=c.get("address"),
-            supplier_id=c.get("supplier_id"),
-            fair_name=c.get("fair_name"),
-            notes=c.get("notes"),
-            captured_by=c.get("captured_by"),
-            extraction_raw_response=c.get("extraction_raw_response"),
-            created_at=c["created_at"],
-            updated_at=c["updated_at"],
-        )
-        for c in captures
-    ]
-
-    return BusinessCardCaptureListResponseDTO(captures=items, total=total)
-
-
-@router.get("/business-cards/{capture_id}", response_model=BusinessCardCaptureResponseDTO)
-async def get_business_card(
-    capture_id: UUID,
-    current_user: Dict[str, Any] = Depends(
-        require_roles(["admin", "manager", "user", "viewer"])
-    ),
-) -> BusinessCardCaptureResponseDTO:
-    """Get a single business card capture by ID.
-
-    Args:
-        capture_id: UUID of the capture
-        current_user: Authenticated user
-
-    Returns:
-        BusinessCardCaptureResponseDTO
-
-    Raises:
-        HTTPException 404: If capture not found
-    """
-    try:
-        capture = business_card_service.get_capture(capture_id)
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Business card capture not found")
-
-    return BusinessCardCaptureResponseDTO(
-        id=capture["id"],
-        image_url=capture["image_url"],
-        status=BusinessCardCaptureStatus(capture["status"]),
-        company_name=capture.get("company_name"),
-        contact_name=capture.get("contact_name"),
-        contact_email=capture.get("contact_email"),
-        contact_phone=capture.get("contact_phone"),
-        contact_wechat=capture.get("contact_wechat"),
-        website=capture.get("website"),
-        address=capture.get("address"),
-        supplier_id=capture.get("supplier_id"),
-        fair_name=capture.get("fair_name"),
-        notes=capture.get("notes"),
-        captured_by=capture.get("captured_by"),
-        extraction_raw_response=capture.get("extraction_raw_response"),
-        created_at=capture["created_at"],
-        updated_at=capture["updated_at"],
-    )

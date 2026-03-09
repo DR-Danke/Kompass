@@ -6,6 +6,8 @@
 -- BUSINESS CARD CAPTURES TABLE
 -- =============================================================================
 
+DROP TABLE IF EXISTS business_card_captures CASCADE;
+
 CREATE TABLE IF NOT EXISTS business_card_captures (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     image_url VARCHAR(2000) NOT NULL,
