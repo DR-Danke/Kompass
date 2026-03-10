@@ -458,6 +458,9 @@ class SupplierFromCardResultDTO(BaseModel):
     duplicate_supplier_id: Optional[UUID] = None
     duplicate_supplier_name: Optional[str] = None
     message: str
+    email_sent: bool = False
+    email_error: Optional[str] = None
+    no_email_address: bool = False
 
 
 class SupplierOutreachRequestDTO(BaseModel):

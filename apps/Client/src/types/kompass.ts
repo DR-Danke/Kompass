@@ -1076,6 +1076,9 @@ export interface SupplierFromCardResult {
   duplicate_supplier_id?: string;
   duplicate_supplier_name?: string;
   message: string;
+  email_sent: boolean;
+  email_error?: string;
+  no_email_address: boolean;
 }
 
 // =============================================================================

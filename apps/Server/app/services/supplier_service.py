@@ -617,29 +617,45 @@ class SupplierService:
             f"INFO [SupplierService]: Created supplier {result['id']} from capture {capture_id}"
         )
 
-        # Send introduction email if supplier has an email address
-        if contact_email:
-            try:
-                from app.services.email_service import email_service
+        # Send introduction email if setting enabled and supplier has an email
+        from app.config.settings import get_settings
 
-                email_result = email_service.send_supplier_introduction(
-                    supplier_name=supplier_name,
-                    supplier_email=contact_email,
-                    fair_name=fair_name or "the trade fair",
-                )
-                print(
-                    f"INFO [SupplierService]: Introduction email sent to {contact_email}: "
-                    f"success={email_result.success}, mock={email_result.mock_mode}"
-                )
-            except Exception as e:
-                # Email failure should not block supplier creation
-                print(f"WARN [SupplierService]: Failed to send introduction email: {e}")
+        settings = get_settings()
+        email_sent = False
+        email_error = None
+        no_email_address = not bool(contact_email)
+
+        if settings.AUTO_SEND_CARD_EMAIL:
+            if contact_email:
+                try:
+                    from app.services.email_service import email_service
+
+                    email_result = email_service.send_supplier_introduction(
+                        supplier_name=supplier_name,
+                        supplier_email=contact_email,
+                        fair_name=fair_name or "the trade fair",
+                    )
+                    email_sent = email_result.success
+                    print(
+                        f"INFO [SupplierService]: Introduction email sent to {contact_email}: "
+                        f"success={email_result.success}, mock={email_result.mock_mode}"
+                    )
+                except Exception as e:
+                    email_error = str(e)
+                    print(f"WARN [SupplierService]: Failed to send introduction email: {e}")
+            else:
+                print(f"INFO [SupplierService]: No email address for supplier {result['id']}, skipping auto-email")
+        else:
+            print(f"INFO [SupplierService]: AUTO_SEND_CARD_EMAIL disabled, skipping auto-email for {result['id']}")
 
         return SupplierFromCardResultDTO(
             success=True,
             supplier_id=result["id"],
             supplier_name=result["name"],
             message="Proveedor creado exitosamente",
+            email_sent=email_sent,
+            email_error=email_error,
+            no_email_address=no_email_address,
         )
 
     def get_outreach_templates(self) -> list:
