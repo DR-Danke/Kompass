@@ -1570,6 +1570,44 @@ class EmailSendResultDTO(BaseModel):
 
 
 # =============================================================================
+# WECHAT DTOs
+# =============================================================================
+
+
+class WeChatMessageDTO(BaseModel):
+    """Request DTO for sending a WeChat message to a supplier."""
+
+    supplier_id: UUID
+    message_type: str = Field(
+        default="introduction",
+        description="Type: introduction, follow_up, or custom",
+    )
+    custom_content: Optional[str] = Field(default=None, max_length=2000)
+
+
+class WeChatStatusDTO(BaseModel):
+    """Response DTO for WeChat configuration status."""
+
+    enabled: bool
+    configured: bool
+    app_id_set: bool
+    webhook_url: str
+    mock_mode: bool = Field(default=True)
+
+
+class WeChatSendResultDTO(BaseModel):
+    """Result DTO for WeChat message send operations."""
+
+    success: bool
+    message: str
+    sent_at: Optional[datetime] = None
+    recipient_wechat_id: str = ""
+    mock_mode: bool = Field(
+        default=False, description="Whether message was sent in mock mode"
+    )
+
+
+# =============================================================================
 # BULK OPERATION DTOs
 # =============================================================================
 
