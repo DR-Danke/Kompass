@@ -4,12 +4,13 @@ This service provides business logic for retrieving dashboard data including
 KPIs, charts data, and recent activity feeds.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Dict, List
 
 from app.config.database import close_database_connection, get_database_connection
 from app.models.kompass_dto import (
+    BusinessCardCaptureStatus,
     ClientStatus,
     DashboardKPIsDTO,
     DashboardStatsDTO,
@@ -20,7 +21,10 @@ from app.models.kompass_dto import (
     RecentProductDTO,
     RecentQuotationDTO,
     TopQuotedProductDTO,
+    TradeFairActivityDTO,
+    TradeFairCaptureDTO,
 )
+from app.repository.kompass_repository import trade_fair_repository
 
 
 class DashboardService:
@@ -348,6 +352,91 @@ class DashboardService:
             return []
         finally:
             close_database_connection(conn)
+
+    def get_trade_fair_activity(self, hours: int = 48) -> TradeFairActivityDTO:
+        """Get trade fair activity summary for the dashboard.
+
+        Args:
+            hours: Number of hours to look back for capture data.
+
+        Returns:
+            TradeFairActivityDTO with aggregated capture statistics.
+        """
+        print(f"INFO [DashboardService]: Fetching trade fair activity (last {hours}h)")
+
+        since = datetime.now(timezone.utc) - timedelta(hours=hours)
+        today_start = datetime.now(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+        try:
+            # Get capture stats by status
+            by_status = trade_fair_repository.get_capture_stats(since)
+
+            # Get outreach stats
+            outreach_raw = trade_fair_repository.get_supplier_outreach_stats(since)
+
+            # Aggregate outreach into email_sent and responded
+            contacted_statuses = {"contacted", "responded", "meeting_scheduled", "completed"}
+            responded_statuses = {"responded", "meeting_scheduled", "completed"}
+            email_sent = sum(
+                count for status, count in outreach_raw.items()
+                if status in contacted_statuses
+            )
+            responded = sum(
+                count for status, count in outreach_raw.items()
+                if status in responded_statuses
+            )
+            outreach_status = {
+                **outreach_raw,
+                "email_sent": email_sent,
+                "responded": responded,
+            }
+
+            # Get recent captures
+            recent_raw = trade_fair_repository.get_recent_captures(20, since)
+            recent_captures = [
+                TradeFairCaptureDTO(
+                    id=c["id"],
+                    company_name=c["company_name"],
+                    contact_name=c["contact_name"],
+                    status=BusinessCardCaptureStatus(c["status"]),
+                    supplier_id=c["supplier_id"],
+                    outreach_status=c["outreach_status"],
+                    created_at=c["created_at"],
+                )
+                for c in recent_raw
+            ]
+
+            # Count suppliers created (captures with non-null supplier_id)
+            total_suppliers_created = sum(
+                1 for c in recent_raw if c["supplier_id"] is not None
+            )
+            # Also count from all captures in the period, not just top 20
+            if len(recent_raw) >= 20:
+                # Re-query to get accurate count across all captures
+                all_captures = trade_fair_repository.get_recent_captures(10000, since)
+                total_suppliers_created = sum(
+                    1 for c in all_captures if c["supplier_id"] is not None
+                )
+
+            # Get count metrics
+            total_captures = sum(by_status.values())
+            captures_today = trade_fair_repository.get_captures_count(today_start)
+            captures_last_48h = trade_fair_repository.get_captures_count(since)
+
+            return TradeFairActivityDTO(
+                total_captures=total_captures,
+                by_status=by_status,
+                total_suppliers_created=total_suppliers_created,
+                outreach_status=outreach_status,
+                recent_captures=recent_captures,
+                captures_today=captures_today,
+                captures_last_48h=captures_last_48h,
+            )
+        except Exception as e:
+            print(f"ERROR [DashboardService]: Failed to get trade fair activity: {e}")
+            return TradeFairActivityDTO()
 
 
 # Singleton instance

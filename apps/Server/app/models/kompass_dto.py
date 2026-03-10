@@ -1658,3 +1658,32 @@ class DashboardStatsDTO(BaseModel):
     recent_products: List[RecentProductDTO] = []
     recent_quotations: List[RecentQuotationDTO] = []
     recent_clients: List[RecentClientDTO] = []
+
+
+# =============================================================================
+# TRADE FAIR ACTIVITY DTOs
+# =============================================================================
+
+
+class TradeFairCaptureDTO(BaseModel):
+    """A single trade fair capture for the activity feed."""
+
+    id: UUID
+    company_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    status: BusinessCardCaptureStatus
+    supplier_id: Optional[UUID] = None
+    outreach_status: Optional[str] = None
+    created_at: datetime
+
+
+class TradeFairActivityDTO(BaseModel):
+    """Trade fair activity summary for the dashboard."""
+
+    total_captures: int = 0
+    by_status: dict = {}
+    total_suppliers_created: int = 0
+    outreach_status: dict = {}
+    recent_captures: List[TradeFairCaptureDTO] = []
+    captures_today: int = 0
+    captures_last_48h: int = 0

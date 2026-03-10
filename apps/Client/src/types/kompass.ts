@@ -1220,3 +1220,27 @@ export interface ClassificationOverride {
   classification: ClassificationGrade;
   notes: string;
 }
+
+// =============================================================================
+// TRADE FAIR ACTIVITY DTOs
+// =============================================================================
+
+export interface TradeFairCapture {
+  id: string;
+  company_name: string | null;
+  contact_name: string | null;
+  status: BusinessCardCaptureStatus;
+  supplier_id: string | null;
+  outreach_status: string | null;
+  created_at: string;
+}
+
+export interface TradeFairActivity {
+  total_captures: number;
+  by_status: Record<string, number>;
+  total_suppliers_created: number;
+  outreach_status: Record<string, number>;
+  recent_captures: TradeFairCapture[];
+  captures_today: number;
+  captures_last_48h: number;
+}
