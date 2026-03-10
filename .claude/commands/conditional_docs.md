@@ -1857,3 +1857,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When updating supplier DTOs or repository SQL queries
     - When working with supplier row index mappings in _row_to_dict or _row_to_dict_extended
     - When troubleshooting supplier data layer column alignment issues
+
+- app_docs/feature-89205537-auto-send-card-followup-email.md
+  - Conditions:
+    - When working with auto-send email on business card supplier creation
+    - When modifying CardCapturePage or CardReviewPage email notifications
+    - When working with the AUTO_SEND_CARD_EMAIL setting
+    - When modifying SupplierFromCardResultDTO email status fields
+    - When troubleshooting email sending after business card capture
+    - When working with supplier_service.create_supplier_from_card() email logic

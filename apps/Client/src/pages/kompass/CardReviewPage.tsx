@@ -176,7 +176,7 @@ export default function CardReviewPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null);
+  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' | 'warning' } | null>(null);
 
   const handleFilterChange = (_: React.MouseEvent<HTMLElement>, value: string | null) => {
     if (value === null) return;
@@ -188,6 +188,12 @@ export default function CardReviewPage() {
       const result = await approveCard(captureId);
       if (result.is_duplicate) {
         setSnackbar({ message: `Duplicado detectado: ${result.duplicate_supplier_name || 'proveedor existente'}`, severity: 'error' });
+      } else if (result.email_sent) {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado. Correo de seguimiento enviado`, severity: 'success' });
+      } else if (result.email_error) {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado. Error al enviar correo de seguimiento`, severity: 'warning' });
+      } else if (result.no_email_address) {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado. No se encontró correo electrónico — seguimiento manual requerido`, severity: 'warning' });
       } else {
         setSnackbar({ message: `Proveedor "${result.supplier_name}" creado exitosamente`, severity: 'success' });
       }

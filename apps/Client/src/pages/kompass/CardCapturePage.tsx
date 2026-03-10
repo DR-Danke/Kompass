@@ -109,6 +109,7 @@ const CardCapturePage: React.FC = () => {
   const [fairName, setFairName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [extractingIds, setExtractingIds] = useState<Set<string>>(new Set());
   const [creatingSupplierIds, setCreatingSupplierIds] = useState<Set<string>>(new Set());
   const [supplierResults, setSupplierResults] = useState<Record<string, SupplierFromCardResult>>({});
@@ -218,7 +219,18 @@ const CardCapturePage: React.FC = () => {
               : c
           )
         );
-        setSuccess(`Proveedor creado: ${result.supplier_name}`);
+        if (result.email_sent) {
+          const email = captures.find((c) => c.id === captureId)?.contact_email;
+          setSuccess(`Proveedor creado. Correo de seguimiento enviado a ${email || 'proveedor'}`);
+        } else if (result.email_error) {
+          setSuccess(`Proveedor creado: ${result.supplier_name}`);
+          setWarning('Error al enviar correo de seguimiento');
+        } else if (result.no_email_address) {
+          setSuccess(`Proveedor creado: ${result.supplier_name}`);
+          setWarning('No se encontró correo electrónico — seguimiento manual requerido');
+        } else {
+          setSuccess(`Proveedor creado: ${result.supplier_name}`);
+        }
       } else if (result.is_duplicate) {
         setCaptures((prev) =>
           prev.map((c) =>
@@ -497,6 +509,17 @@ const CardCapturePage: React.FC = () => {
       >
         <Alert onClose={() => setSuccess(null)} severity="success" variant="filled">
           {success}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!warning}
+        autoHideDuration={6000}
+        onClose={() => setWarning(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setWarning(null)} severity="warning" variant="filled">
+          {warning}
         </Alert>
       </Snackbar>
     </Box>
