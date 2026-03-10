@@ -1248,4 +1248,30 @@ export const businessCardService = {
     );
     return response.data;
   },
+
+  async updateCapture(captureId: string, updates: Partial<BusinessCardCapture>): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Updating capture ${captureId}`);
+    const response = await apiClient.put<BusinessCardCapture>(
+      `/extract/business-cards/${captureId}`,
+      updates
+    );
+    return response.data;
+  },
+
+  async approveCard(captureId: string): Promise<SupplierFromCardResult> {
+    console.log(`INFO [businessCardService]: Approving card ${captureId}`);
+    const response = await apiClient.post<SupplierFromCardResult>(
+      `/extract/business-cards/${captureId}/approve`
+    );
+    return response.data;
+  },
+
+  async rejectCard(captureId: string, reason?: string): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Rejecting card ${captureId}`);
+    const response = await apiClient.post<BusinessCardCapture>(
+      `/extract/business-cards/${captureId}/reject`,
+      { reason }
+    );
+    return response.data;
+  },
 };
