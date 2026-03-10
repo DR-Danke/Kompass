@@ -257,6 +257,8 @@ export interface SupplierUpdate {
   notes?: string | null;
 }
 
+export type OutreachStatus = 'none' | 'pending' | 'contacted' | 'responded' | 'meeting_scheduled' | 'completed';
+
 export interface SupplierResponse {
   id: string;
   name: string;
@@ -274,6 +276,7 @@ export interface SupplierResponse {
   pipeline_status: SupplierPipelineStatus;
   latest_audit_id: string | null;
   certified_at: string | null;
+  outreach_status: OutreachStatus | null;
   created_at: string;
   updated_at: string;
 }
@@ -1243,4 +1246,28 @@ export interface TradeFairActivity {
   recent_captures: TradeFairCapture[];
   captures_today: number;
   captures_last_48h: number;
+}
+
+// =============================================================================
+// SUPPLIER OUTREACH DTOs
+// =============================================================================
+
+export interface SupplierOutreachRequest {
+  template: string;
+  channels: ('email' | 'wechat')[];
+  custom_message?: string;
+}
+
+export interface SupplierOutreachResult {
+  email_sent: boolean;
+  wechat_sent: boolean;
+  message: string;
+  outreach_status: string;
+}
+
+export interface OutreachTemplate {
+  key: string;
+  name: string;
+  subject: string;
+  body_preview: string;
 }

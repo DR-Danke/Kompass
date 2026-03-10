@@ -14,6 +14,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import SendIcon from '@mui/icons-material/Send';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import type { SupplierResponse, SupplierPipelineStatus } from '@/types/kompass';
 
 interface SupplierQuickActionsMenuProps {
@@ -22,7 +24,9 @@ interface SupplierQuickActionsMenuProps {
   onDelete: (supplier: SupplierResponse) => void;
   onUploadAudit: (supplier: SupplierResponse) => void;
   onViewCertification: (supplier: SupplierResponse) => void;
+  onImportProducts: (supplier: SupplierResponse) => void;
   onChangePipelineStatus: (supplier: SupplierResponse, status: SupplierPipelineStatus) => void;
+  onSendOutreach: (supplier: SupplierResponse) => void;
   isUpdating?: boolean;
 }
 
@@ -41,7 +45,9 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
   onDelete,
   onUploadAudit,
   onViewCertification,
+  onImportProducts,
   onChangePipelineStatus,
+  onSendOutreach,
   isUpdating = false,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -89,12 +95,23 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
     onViewCertification(supplier);
   };
 
+  const handleSendOutreach = () => {
+    handleClose();
+    onSendOutreach(supplier);
+  };
+
+  const handleImportProducts = () => {
+    handleClose();
+    onImportProducts(supplier);
+  };
+
   const handlePipelineStatusChange = (status: SupplierPipelineStatus) => {
     handleClose();
     onChangePipelineStatus(supplier, status);
   };
 
   const hasAudits = !!supplier.latest_audit_id;
+  const hasContactInfo = !!(supplier.contact_email || supplier.contact_phone);
 
   return (
     <>
@@ -139,11 +156,25 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
           <ListItemText>View Certification Summary</ListItemText>
         </MenuItem>
 
+        <MenuItem onClick={handleImportProducts}>
+          <ListItemIcon>
+            <Inventory2Icon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Importar Productos</ListItemText>
+        </MenuItem>
+
         <MenuItem onClick={handleStatusMenuOpen}>
           <ListItemIcon>
             <ArrowRightIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Change Pipeline Status</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleSendOutreach} disabled={!hasContactInfo}>
+          <ListItemIcon>
+            <SendIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Enviar Seguimiento</ListItemText>
         </MenuItem>
 
         <Divider />

@@ -428,6 +428,7 @@ class SupplierResponseDTO(BaseModel):
     pipeline_status: SupplierPipelineStatus = SupplierPipelineStatus.CONTACTED
     latest_audit_id: Optional[UUID] = None
     certified_at: Optional[datetime] = None
+    outreach_status: Optional[str] = "none"
     created_at: datetime
     updated_at: datetime
 
@@ -457,6 +458,32 @@ class SupplierFromCardResultDTO(BaseModel):
     duplicate_supplier_id: Optional[UUID] = None
     duplicate_supplier_name: Optional[str] = None
     message: str
+
+
+class SupplierOutreachRequestDTO(BaseModel):
+    """Request model for sending outreach messages to a supplier."""
+
+    template: str = "follow_up_catalog"
+    channels: List[str] = ["email"]
+    custom_message: Optional[str] = None
+
+
+class SupplierOutreachResultDTO(BaseModel):
+    """Result of sending outreach messages to a supplier."""
+
+    email_sent: bool = False
+    wechat_sent: bool = False
+    message: str
+    outreach_status: str
+
+
+class OutreachTemplateDTO(BaseModel):
+    """Metadata for an outreach message template."""
+
+    key: str
+    name: str
+    subject: str
+    body_preview: str
 
 
 class SupplierCertificationSummaryDTO(BaseModel):
@@ -508,6 +535,7 @@ class SupplierWithProductCountDTO(BaseModel):
     pipeline_status: SupplierPipelineStatus = SupplierPipelineStatus.CONTACTED
     latest_audit_id: Optional[UUID] = None
     certified_at: Optional[datetime] = None
+    outreach_status: Optional[str] = "none"
     product_count: int = 0
     created_at: datetime
     updated_at: datetime

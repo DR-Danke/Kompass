@@ -1383,7 +1383,7 @@ class SupplierRepository:
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
                               certification_status, pipeline_status, latest_audit_id,
-                              certified_at, created_at, updated_at
+                              certified_at, outreach_status, created_at, updated_at
                     """,
                     (
                         name, code, status, contact_name, contact_email, contact_phone,
@@ -1749,7 +1749,7 @@ class SupplierRepository:
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
                            certification_status, pipeline_status, latest_audit_id,
-                           certified_at, created_at, updated_at
+                           certified_at, outreach_status, created_at, updated_at
                     FROM suppliers
                     WHERE {where_clause}
                     LIMIT 1
@@ -1946,7 +1946,7 @@ class SupplierRepository:
                     SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
                            s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
                            s.certification_status, s.pipeline_status, s.latest_audit_id,
-                           s.certified_at, s.created_at, s.updated_at
+                           s.certified_at, s.outreach_status, s.created_at, s.updated_at
                     FROM suppliers s
                     {where_clause}
                     {order_clause}
@@ -2190,7 +2190,7 @@ class SupplierRepository:
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
                               certification_status, pipeline_status, latest_audit_id, certified_at,
-                              created_at, updated_at
+                              outreach_status, created_at, updated_at
                     """,
                     (certification_status, str(audit_id), str(supplier_id)),
                 )
@@ -2233,8 +2233,9 @@ class SupplierRepository:
             "pipeline_status": row[13],
             "latest_audit_id": row[14],
             "certified_at": row[15],
-            "created_at": row[16],
-            "updated_at": row[17],
+            "outreach_status": row[16],
+            "created_at": row[17],
+            "updated_at": row[18],
         }
 
     def get_by_certification_status(
@@ -2299,7 +2300,7 @@ class SupplierRepository:
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
                            certification_status, pipeline_status, latest_audit_id, certified_at,
-                           created_at, updated_at
+                           outreach_status, created_at, updated_at
                     FROM suppliers
                     {where_clause}
                     ORDER BY name
@@ -2354,7 +2355,7 @@ class SupplierRepository:
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
                            certification_status, pipeline_status, latest_audit_id, certified_at,
-                           created_at, updated_at
+                           outreach_status, created_at, updated_at
                     FROM suppliers
                     WHERE pipeline_status = %s
                     ORDER BY name
@@ -2401,7 +2402,7 @@ class SupplierRepository:
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
                               certification_status, pipeline_status, latest_audit_id, certified_at,
-                              created_at, updated_at
+                              outreach_status, created_at, updated_at
                     """,
                     (pipeline_status, str(supplier_id)),
                 )
@@ -2413,6 +2414,52 @@ class SupplierRepository:
                 return None
         except Exception as e:
             print(f"ERROR [SupplierRepository]: Failed to update pipeline status: {e}")
+            conn.rollback()
+            return None
+        finally:
+            close_database_connection(conn)
+
+    def update_outreach_status(
+        self,
+        supplier_id: UUID,
+        status: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Update only the outreach status of a supplier.
+
+        Args:
+            supplier_id: UUID of the supplier
+            status: New outreach status
+
+        Returns:
+            Updated supplier dict if successful, None otherwise
+        """
+        conn = get_database_connection()
+        if not conn:
+            return None
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE suppliers
+                    SET outreach_status = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING id, name, code, status, contact_name, contact_email,
+                              contact_phone, address, city, country, website, notes,
+                              certification_status, pipeline_status, latest_audit_id, certified_at,
+                              outreach_status, created_at, updated_at
+                    """,
+                    (status, str(supplier_id)),
+                )
+                conn.commit()
+                row = cur.fetchone()
+
+                if row:
+                    return self._row_to_dict_extended(row)
+                return None
+        except Exception as e:
+            print(f"ERROR [SupplierRepository]: Failed to update outreach status: {e}")
             conn.rollback()
             return None
         finally:
@@ -2502,7 +2549,7 @@ class SupplierRepository:
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
                            certification_status, pipeline_status, latest_audit_id, certified_at,
-                           created_at, updated_at
+                           outreach_status, created_at, updated_at
                     FROM suppliers
                     WHERE id = %s
                     """,
@@ -2581,7 +2628,7 @@ class SupplierRepository:
                     SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
                            s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
                            s.certification_status, s.pipeline_status, s.latest_audit_id, s.certified_at,
-                           s.created_at, s.updated_at,
+                           s.outreach_status, s.created_at, s.updated_at,
                            (SELECT COUNT(*) FROM products p WHERE p.supplier_id = s.id) as product_count
                     FROM suppliers s
                     ORDER BY s.name
@@ -2601,8 +2648,8 @@ class SupplierRepository:
 
                 # Group suppliers by pipeline status
                 for row in rows:
-                    supplier = self._row_to_dict_extended(row[:18])
-                    supplier["product_count"] = row[18]
+                    supplier = self._row_to_dict_extended(row[:19])
+                    supplier["product_count"] = row[19]
                     pipeline_status = row[13]  # pipeline_status column
                     if pipeline_status in result:
                         result[pipeline_status].append(supplier)
