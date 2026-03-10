@@ -114,6 +114,8 @@ import type {
   // Business card capture types
   BusinessCardCapture,
   SupplierFromCardResult,
+  // Trade fair activity types
+  TradeFairActivity,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -1035,6 +1037,18 @@ export const dashboardService = {
         createdAt: c.created_at,
       })),
     };
+  },
+};
+
+// =============================================================================
+// TRADE FAIR SERVICE
+// =============================================================================
+
+export const tradeFairService = {
+  async getActivity(): Promise<TradeFairActivity> {
+    console.log('INFO [tradeFairService]: Fetching trade fair activity');
+    const response = await apiClient.get<TradeFairActivity>('/dashboard/trade-fair');
+    return response.data;
   },
 };
 

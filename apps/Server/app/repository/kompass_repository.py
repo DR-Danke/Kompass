@@ -5278,6 +5278,156 @@ class QuotationRepository:
 
 
 # =============================================================================
+# TRADE FAIR REPOSITORY
+# =============================================================================
+
+
+class TradeFairRepository:
+    """Data access layer for trade fair activity dashboard queries."""
+
+    def get_capture_stats(self, since: datetime) -> Dict[str, int]:
+        """Get capture counts grouped by status since a given datetime.
+
+        Args:
+            since: Only count captures created at or after this datetime.
+
+        Returns:
+            Dict mapping status string to count.
+        """
+        conn = get_database_connection()
+        if not conn:
+            return {}
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT status, COUNT(*) as count
+                    FROM business_card_captures
+                    WHERE created_at >= %s
+                    GROUP BY status
+                    """,
+                    (since,),
+                )
+                rows = cur.fetchall()
+                return {row[0]: row[1] for row in rows}
+        except Exception as e:
+            print(f"ERROR [TradeFairRepository]: Failed to get capture stats: {e}")
+            return {}
+        finally:
+            close_database_connection(conn)
+
+    def get_supplier_outreach_stats(self, since: datetime) -> Dict[str, int]:
+        """Get outreach status counts for suppliers linked to captures since a given datetime.
+
+        Args:
+            since: Only count captures created at or after this datetime.
+
+        Returns:
+            Dict mapping outreach_status string to count.
+        """
+        conn = get_database_connection()
+        if not conn:
+            return {}
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT COALESCE(s.outreach_status, 'none') as outreach_status, COUNT(*) as count
+                    FROM business_card_captures bcc
+                    JOIN suppliers s ON bcc.supplier_id = s.id
+                    WHERE bcc.created_at >= %s
+                    GROUP BY s.outreach_status
+                    """,
+                    (since,),
+                )
+                rows = cur.fetchall()
+                return {row[0]: row[1] for row in rows}
+        except Exception as e:
+            print(f"ERROR [TradeFairRepository]: Failed to get outreach stats: {e}")
+            return {}
+        finally:
+            close_database_connection(conn)
+
+    def get_recent_captures(
+        self, limit: int, since: datetime
+    ) -> List[Dict[str, Any]]:
+        """Get recent captures with linked supplier outreach info.
+
+        Args:
+            limit: Maximum number of captures to return.
+            since: Only return captures created at or after this datetime.
+
+        Returns:
+            List of capture dicts with supplier outreach info.
+        """
+        conn = get_database_connection()
+        if not conn:
+            return []
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT bcc.id, bcc.company_name, bcc.contact_name, bcc.status,
+                           bcc.supplier_id, s.outreach_status, bcc.created_at
+                    FROM business_card_captures bcc
+                    LEFT JOIN suppliers s ON bcc.supplier_id = s.id
+                    WHERE bcc.created_at >= %s
+                    ORDER BY bcc.created_at DESC
+                    LIMIT %s
+                    """,
+                    (since, limit),
+                )
+                rows = cur.fetchall()
+                return [
+                    {
+                        "id": row[0],
+                        "company_name": row[1],
+                        "contact_name": row[2],
+                        "status": row[3],
+                        "supplier_id": row[4],
+                        "outreach_status": row[5],
+                        "created_at": row[6],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            print(f"ERROR [TradeFairRepository]: Failed to get recent captures: {e}")
+            return []
+        finally:
+            close_database_connection(conn)
+
+    def get_captures_count(self, since: datetime) -> int:
+        """Get total count of captures since a given datetime.
+
+        Args:
+            since: Only count captures created at or after this datetime.
+
+        Returns:
+            Count of captures.
+        """
+        conn = get_database_connection()
+        if not conn:
+            return 0
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM business_card_captures WHERE created_at >= %s",
+                    (since,),
+                )
+                result = cur.fetchone()
+                return result[0] if result else 0
+        except Exception as e:
+            print(f"ERROR [TradeFairRepository]: Failed to get captures count: {e}")
+            return 0
+        finally:
+            close_database_connection(conn)
+
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
@@ -5308,3 +5458,4 @@ client_repository = ClientRepository()
 freight_rate_repository = FreightRateRepository()
 pricing_settings_repository = PricingSettingsRepository()
 quotation_repository = QuotationRepository()
+trade_fair_repository = TradeFairRepository()

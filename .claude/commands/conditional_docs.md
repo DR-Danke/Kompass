@@ -1804,3 +1804,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying extraction_routes.py approve, reject, or update endpoints
     - When working with BusinessCardService approve_card() or reject_card() methods
     - When troubleshooting the review & confirm flow between AI extraction and supplier creation
+
+- app_docs/feature-a9b12751-trade-fair-dashboard-activity-feed.md
+  - Conditions:
+    - When working with the trade fair activity dashboard widget or TradeFairActivity component
+    - When modifying the Dashboard page trade fair section
+    - When working with GET /api/dashboard/trade-fair endpoint
+    - When modifying TradeFairRepository or trade fair capture queries
+    - When working with useTradeFairActivity hook or tradeFairService
+    - When working with TradeFairActivityDTO or TradeFairCaptureDTO
+    - When implementing dashboard widgets that use auto-refresh patterns
+    - When working with business_card_captures aggregation or outreach status statistics

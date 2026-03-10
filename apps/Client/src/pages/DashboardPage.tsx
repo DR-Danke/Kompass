@@ -34,6 +34,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDashboard } from '@/hooks/kompass/useDashboard';
 import { KPICard } from '@/components/kompass/KPICard';
 import { ActivityFeed } from '@/components/kompass/ActivityFeed';
+import { TradeFairActivity } from '@/components/kompass/TradeFairActivity';
 import { QuickActions } from '@/components/kompass/QuickActions';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -133,6 +134,11 @@ const DashboardPage: React.FC = () => {
         {/* Quick Actions */}
         <Grid item xs={12}>
           <QuickActions />
+        </Grid>
+
+        {/* Trade Fair Activity */}
+        <Grid item xs={12}>
+          <TradeFairActivity />
         </Grid>
 
         {/* KPI Cards */}
