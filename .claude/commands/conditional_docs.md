@@ -1782,3 +1782,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying the "Crear Proveedor" button or supplier creation UI on CardCapturePage
     - When filtering suppliers by source (e.g., trade_fair)
     - When working with capture-to-supplier linking or capture status transitions to confirmed/rejected
+
+- app_docs/feature-9cd1e419-real-smtp-email-service.md
+  - Conditions:
+    - When working with email sending functionality (quotation emails, supplier emails)
+    - When modifying or extending the EmailService or email_service.py
+    - When configuring SMTP settings or EMAIL_MOCK_MODE
+    - When working with the quotation send email endpoint or quotation_service.send_email()
+    - When adding new email templates or email types
+    - When working with trade fair supplier introduction emails
+    - When troubleshooting email delivery or SMTP configuration issues
+    - When modifying supplier_service.create_supplier_from_card() email trigger
