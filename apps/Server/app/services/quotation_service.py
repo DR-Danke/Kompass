@@ -6,7 +6,6 @@ transitions, quotation cloning, PDF generation, share tokens, and email function
 """
 
 import math
-import os
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, List, Optional
@@ -1138,7 +1137,7 @@ class QuotationService:
         """Send a quotation via email.
 
         Generates a PDF attachment and sends the quotation to the recipient.
-        Supports mock mode via EMAIL_MOCK_MODE environment variable.
+        Delegates to the shared EmailService for SMTP/mock handling.
 
         Args:
             quotation_id: UUID of the quotation
@@ -1147,53 +1146,43 @@ class QuotationService:
         Returns:
             QuotationSendEmailResponseDTO with result, or None if quotation not found
         """
+        from app.services.email_service import email_service
+
         # Verify quotation exists
         quotation = self.repository.get_by_id(quotation_id)
         if not quotation:
             print(f"INFO [QuotationService]: Quotation {quotation_id} not found for email")
             return None
 
-        # Check if mock mode is enabled
-        mock_mode = os.environ.get("EMAIL_MOCK_MODE", "true").lower() == "true"
-
         # Generate PDF if requested
-        pdf_bytes = None
+        pdf_attachment = None
         if request.include_pdf:
             pdf_bytes = self.generate_pdf(quotation_id)
-
-        # Build email subject
-        subject = request.subject or f"Quotation {quotation['quotation_number']}"
-
-        if mock_mode:
-            # Mock mode - just log and return success
-            print(
-                f"INFO [QuotationService]: MOCK EMAIL - Would send quotation {quotation_id} "
-                f"to {request.recipient_email}, subject: '{subject}'"
-            )
             if pdf_bytes:
-                print(f"INFO [QuotationService]: MOCK EMAIL - PDF attachment size: {len(pdf_bytes)} bytes")
+                pdf_attachment = {
+                    "filename": f"quotation_{quotation['quotation_number']}.pdf",
+                    "data": pdf_bytes,
+                }
 
-            return QuotationSendEmailResponseDTO(
-                success=True,
-                message=f"Email would be sent to {request.recipient_email} (mock mode)",
-                sent_at=datetime.utcnow(),
-                recipient_email=request.recipient_email,
-                mock_mode=True,
-            )
+        # Build email subject and body
+        subject = request.subject or f"Quotation {quotation['quotation_number']}"
+        body_html = request.message or f"<p>Please find attached quotation {quotation['quotation_number']}.</p>"
 
-        # TODO: Implement actual email sending when SMTP is configured
-        # For now, return success in mock mode
-        print(
-            f"WARN [QuotationService]: Email sending not configured. "
-            f"Would send to {request.recipient_email}"
+        # Delegate to shared email service
+        result = email_service.send_quotation_email(
+            recipient_email=request.recipient_email,
+            subject=subject,
+            body_html=body_html,
+            pdf_attachment=pdf_attachment,
         )
 
+        # Map EmailSendResultDTO to QuotationSendEmailResponseDTO
         return QuotationSendEmailResponseDTO(
-            success=True,
-            message=f"Email functionality requires SMTP configuration. Mock: {request.recipient_email}",
-            sent_at=datetime.utcnow(),
-            recipient_email=request.recipient_email,
-            mock_mode=True,
+            success=result.success,
+            message=result.message,
+            sent_at=result.sent_at,
+            recipient_email=result.recipient_email,
+            mock_mode=result.mock_mode,
         )
 
     # =========================================================================

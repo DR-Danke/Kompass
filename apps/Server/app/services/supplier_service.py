@@ -617,6 +617,24 @@ class SupplierService:
             f"INFO [SupplierService]: Created supplier {result['id']} from capture {capture_id}"
         )
 
+        # Send introduction email if supplier has an email address
+        if contact_email:
+            try:
+                from app.services.email_service import email_service
+
+                email_result = email_service.send_supplier_introduction(
+                    supplier_name=supplier_name,
+                    supplier_email=contact_email,
+                    fair_name=fair_name or "the trade fair",
+                )
+                print(
+                    f"INFO [SupplierService]: Introduction email sent to {contact_email}: "
+                    f"success={email_result.success}, mock={email_result.mock_mode}"
+                )
+            except Exception as e:
+                # Email failure should not block supplier creation
+                print(f"WARN [SupplierService]: Failed to send introduction email: {e}")
+
         return SupplierFromCardResultDTO(
             success=True,
             supplier_id=result["id"],

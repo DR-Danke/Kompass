@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     EXTRACTION_MAX_RETRIES: int = 3
     EXTRACTION_TIMEOUT_SECONDS: int = 60
 
+    # SMTP Email
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = ""
+    FROM_NAME: str = "Kompass"
+    EMAIL_MOCK_MODE: bool = True
+
     # Supabase Storage
     SUPABASE_URL: Optional[str] = None
     SUPABASE_SERVICE_KEY: Optional[str] = None

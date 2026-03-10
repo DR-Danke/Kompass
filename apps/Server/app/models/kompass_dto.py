@@ -1539,6 +1539,18 @@ class QuotationSendEmailResponseDTO(BaseModel):
     )
 
 
+class EmailSendResultDTO(BaseModel):
+    """Generic result for email send operations."""
+
+    success: bool
+    message: str
+    sent_at: Optional[datetime] = None
+    recipient_email: str
+    mock_mode: bool = Field(
+        default=False, description="Whether email was sent in mock mode"
+    )
+
+
 # =============================================================================
 # BULK OPERATION DTOs
 # =============================================================================
