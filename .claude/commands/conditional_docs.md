@@ -1866,3 +1866,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying SupplierFromCardResultDTO email status fields
     - When troubleshooting email sending after business card capture
     - When working with supplier_service.create_supplier_from_card() email logic
+
+- app_docs/feature-931a99d6-wechat-id-extraction-pipeline.md
+  - Conditions:
+    - When working with WeChat ID extraction from business cards
+    - When modifying the AI extraction prompt in extraction_service.py
+    - When working with contact_wechat field on CardReviewPage or CardCapturePage
+    - When troubleshooting WeChat ID visibility in the card review or capture workflow
+    - When modifying ExtractedField or EditableCell components for business card data
