@@ -31,6 +31,11 @@ Extract ADW workflow information from the text below and return a JSON response.
 - `/adw_plan_build_test_review_iso` - Plan + Build + Test + Review
 - `/adw_sdlc_iso` - Complete SDLC: Plan + Build + Test + Review + Document
 - `/adw_sdlc_zte_iso` - Zero Touch Execution: Complete SDLC + auto-merge to production. Note: as per instructions, 'ZTE' must be capitalized. Do not run this if 'zte' is not capitalized.
+- `/adw_continuous_improvement_iso` - Continuous improvement scan and implementation
+- `/adw_requirements_pipeline_iso` - Full requirements pipeline: transcript → PRD → prompts → issues
+- `/adw_transcript_to_prd_iso` - Convert transcript to PRD
+- `/adw_prd_to_prompts_iso` - Convert PRD to implementation prompts
+- `/adw_prompts_to_issues_iso` - Convert prompts to GitHub issues
 
 ## Response Format
 
