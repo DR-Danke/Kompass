@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -133,6 +134,8 @@ const formatDate = (dateString: string | null): string => {
 };
 
 const SuppliersPage: React.FC = () => {
+  const navigate = useNavigate();
+
   // View mode state
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
@@ -552,6 +555,11 @@ const SuppliersPage: React.FC = () => {
     );
   };
 
+  // Handle quick action: Import Products
+  const handleImportProducts = (supplier: SupplierResponse) => {
+    navigate(`/import-wizard?supplier_id=${supplier.id}`);
+  };
+
   const currentError = viewMode === 'kanban' ? kanbanError : error;
   const clearError = () => {
     if (viewMode === 'kanban') {
@@ -808,6 +816,7 @@ const SuppliersPage: React.FC = () => {
                         onDelete={handleDeleteClick}
                         onUploadAudit={handleUploadAudit}
                         onViewCertification={handleViewCertification}
+                        onImportProducts={handleImportProducts}
                         onChangePipelineStatus={handleChangePipelineStatus}
                         onSendOutreach={handleSendOutreach}
                         isUpdating={pipelineStatusLoading === supplier.id}
