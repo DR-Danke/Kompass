@@ -1793,3 +1793,16 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with trade fair supplier introduction emails
     - When troubleshooting email delivery or SMTP configuration issues
     - When modifying supplier_service.create_supplier_from_card() email trigger
+
+- app_docs/feature-c8333f4a-wechat-integration-messaging.md
+  - Conditions:
+    - When working with WeChat integration or messaging functionality
+    - When modifying or extending WeChatService or wechat_service.py
+    - When working with WeChat webhook endpoints (GET/POST /api/wechat/webhook)
+    - When configuring WECHAT_* settings or WECHAT_MOCK_MODE
+    - When working with incoming WeChat message handling or XML parsing
+    - When sending messages to suppliers via WeChat (introduction or custom)
+    - When working with QR code decoding from business card images
+    - When integrating WeChat image messages with business card extraction pipeline
+    - When troubleshooting WeChat API connectivity or access token issues
+    - When working with pyzbar dependency or libzbar0 system library
