@@ -200,7 +200,7 @@ const SuppliersPage: React.FC = () => {
   const [outreachChannels, setOutreachChannels] = useState<('email' | 'wechat')[]>(['email']);
   const [outreachCustomMessage, setOutreachCustomMessage] = useState('');
   const [outreachLoading, setOutreachLoading] = useState(false);
-  const [outreachResult, setOutreachResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [outreachResult, setOutreachResult] = useState<{ success: boolean; message: string; mock_mode?: boolean } | null>(null);
 
   // Debounce search query for list view
   useEffect(() => {
@@ -530,7 +530,7 @@ const SuppliersPage: React.FC = () => {
       };
       const result = await supplierService.sendOutreach(outreachSupplier.id, request);
       const success = result.email_sent || result.wechat_sent;
-      setOutreachResult({ success, message: result.message });
+      setOutreachResult({ success, message: result.message, mock_mode: result.mock_mode });
       if (success) {
         // Refresh supplier data to reflect updated outreach_status
         if (viewMode === 'list') {
@@ -1001,9 +1001,18 @@ const SuppliersPage: React.FC = () => {
 
             {/* Result feedback */}
             {outreachResult && (
-              <Alert severity={outreachResult.success ? 'success' : 'error'}>
-                {outreachResult.message}
-              </Alert>
+              <>
+                {outreachResult.mock_mode && (
+                  <Alert severity="warning">
+                    SMTP no configurado — el email no fue enviado realmente. Configure las variables SMTP_USER, SMTP_PASSWORD y EMAIL_MOCK_MODE=false para enviar emails.
+                  </Alert>
+                )}
+                <Alert severity={outreachResult.mock_mode ? 'info' : (outreachResult.success ? 'success' : 'error')}>
+                  {outreachResult.mock_mode
+                    ? 'Simulación exitosa (modo prueba). El email se enviaría correctamente una vez configurado SMTP.'
+                    : outreachResult.message}
+                </Alert>
+              </>
             )}
           </Box>
         </DialogContent>

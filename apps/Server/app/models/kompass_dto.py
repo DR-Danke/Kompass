@@ -475,6 +475,7 @@ class SupplierOutreachResultDTO(BaseModel):
     wechat_sent: bool = False
     message: str
     outreach_status: str
+    mock_mode: bool = False
 
 
 class OutreachTemplateDTO(BaseModel):

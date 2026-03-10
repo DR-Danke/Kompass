@@ -693,6 +693,7 @@ class SupplierService:
 
         email_sent = False
         wechat_sent = False
+        mock_mode = False
         messages = []
 
         # Send via email
@@ -705,6 +706,7 @@ class SupplierService:
                     custom_message=custom_message,
                 )
                 email_sent = result.success
+                mock_mode = result.mock_mode
                 messages.append(f"Email: {result.message}")
             else:
                 messages.append("Email: No contact email available")
@@ -732,7 +734,7 @@ class SupplierService:
 
         print(
             f"INFO [SupplierService]: Outreach sent for supplier {supplier_id} "
-            f"(email={email_sent}, wechat={wechat_sent}, status={new_status})"
+            f"(email={email_sent}, wechat={wechat_sent}, mock={mock_mode}, status={new_status})"
         )
 
         return {
@@ -740,6 +742,7 @@ class SupplierService:
             "wechat_sent": wechat_sent,
             "message": "; ".join(messages),
             "outreach_status": new_status,
+            "mock_mode": mock_mode,
         }
 
     def _format_markets_served(self, markets: Any) -> str:

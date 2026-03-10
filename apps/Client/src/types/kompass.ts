@@ -1263,6 +1263,7 @@ export interface SupplierOutreachResult {
   wechat_sent: boolean;
   message: string;
   outreach_status: string;
+  mock_mode: boolean;
 }
 
 export interface OutreachTemplate {
