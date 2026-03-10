@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     FROM_EMAIL: str = ""
     FROM_NAME: str = "Kompass"
     EMAIL_MOCK_MODE: bool = True
+    # Auto-send follow-up email on business card supplier creation
+    AUTO_SEND_CARD_EMAIL: bool = False
 
     # WeChat Integration
     WECHAT_APP_ID: str = ""

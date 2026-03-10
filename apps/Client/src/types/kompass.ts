@@ -236,6 +236,7 @@ export interface SupplierCreate {
   contact_name?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
+  wechat_id?: string | null;
   address?: string | null;
   city?: string | null;
   country?: string;
@@ -250,6 +251,7 @@ export interface SupplierUpdate {
   contact_name?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
+  wechat_id?: string | null;
   address?: string | null;
   city?: string | null;
   country?: string | null;
@@ -267,6 +269,7 @@ export interface SupplierResponse {
   contact_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  wechat_id: string | null;
   address: string | null;
   city: string | null;
   country: string;
@@ -1076,6 +1079,9 @@ export interface SupplierFromCardResult {
   duplicate_supplier_id?: string;
   duplicate_supplier_name?: string;
   message: string;
+  email_sent: boolean;
+  email_error?: string;
+  no_email_address: boolean;
 }
 
 // =============================================================================

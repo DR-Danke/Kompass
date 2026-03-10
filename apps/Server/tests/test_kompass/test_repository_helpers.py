@@ -183,6 +183,7 @@ class TestSupplierGetByName:
             "China",
             "https://example.com",
             "Test notes",
+            None,  # wechat_id
             self.now,
             self.now,
         )
@@ -235,6 +236,7 @@ class TestSupplierGetByName:
             "China",
             None,
             None,
+            None,  # wechat_id
             self.now,
             self.now,
         )

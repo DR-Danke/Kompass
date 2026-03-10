@@ -1278,6 +1278,7 @@ class SupplierRepository:
         country: str = "China",
         website: Optional[str] = None,
         notes: Optional[str] = None,
+        wechat_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Create a new supplier."""
         conn = get_database_connection()
@@ -1290,12 +1291,12 @@ class SupplierRepository:
                     """
                     INSERT INTO suppliers (
                         name, code, status, contact_name, contact_email, contact_phone,
-                        address, city, country, website, notes
+                        address, city, country, website, notes, wechat_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              created_at, updated_at
+                              wechat_id, created_at, updated_at
                     """,
                     (
                         name,
@@ -1309,6 +1310,7 @@ class SupplierRepository:
                         country,
                         website,
                         notes,
+                        wechat_id,
                     ),
                 )
                 conn.commit()
@@ -1382,7 +1384,7 @@ class SupplierRepository:
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              certification_status, pipeline_status, latest_audit_id,
+                              wechat_id, certification_status, pipeline_status, latest_audit_id,
                               certified_at, outreach_status, created_at, updated_at
                     """,
                     (
@@ -1416,7 +1418,7 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     WHERE id = %s
                     """,
@@ -1475,7 +1477,7 @@ class SupplierRepository:
                     f"""
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     {where_clause}
                     ORDER BY name
@@ -1507,6 +1509,7 @@ class SupplierRepository:
         country: Optional[str] = None,
         website: Optional[str] = None,
         notes: Optional[str] = None,
+        wechat_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Update a supplier."""
         conn = get_database_connection()
@@ -1550,6 +1553,9 @@ class SupplierRepository:
             if notes is not None:
                 updates.append("notes = %s")
                 params.append(notes)
+            if wechat_id is not None:
+                updates.append("wechat_id = %s")
+                params.append(wechat_id)
 
             if not updates:
                 return self.get_by_id(supplier_id)
@@ -1564,7 +1570,7 @@ class SupplierRepository:
                     WHERE id = %s
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              created_at, updated_at
+                              wechat_id, created_at, updated_at
                     """,
                     params,
                 )
@@ -1707,8 +1713,9 @@ class SupplierRepository:
             "country": row[9],
             "website": row[10],
             "notes": row[11],
-            "created_at": row[12],
-            "updated_at": row[13],
+            "wechat_id": row[12],
+            "created_at": row[13],
+            "updated_at": row[14],
         }
 
     def find_duplicate_supplier(
@@ -1748,7 +1755,7 @@ class SupplierRepository:
                     f"""
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           certification_status, pipeline_status, latest_audit_id,
+                           wechat_id, certification_status, pipeline_status, latest_audit_id,
                            certified_at, outreach_status, created_at, updated_at
                     FROM suppliers
                     WHERE {where_clause}
@@ -1779,7 +1786,7 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     WHERE LOWER(name) = LOWER(%s)
                     LIMIT 1
@@ -1945,7 +1952,7 @@ class SupplierRepository:
                     f"""
                     SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
                            s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
-                           s.certification_status, s.pipeline_status, s.latest_audit_id,
+                           s.wechat_id, s.certification_status, s.pipeline_status, s.latest_audit_id,
                            s.certified_at, s.outreach_status, s.created_at, s.updated_at
                     FROM suppliers s
                     {where_clause}
@@ -2058,8 +2065,8 @@ class SupplierRepository:
                     f"""
                     SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
                            s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
-                           s.certification_status, s.pipeline_status, s.latest_audit_id,
-                           s.certified_at, s.created_at, s.updated_at,
+                           s.wechat_id, s.certification_status, s.pipeline_status, s.latest_audit_id,
+                           s.certified_at, s.outreach_status, s.created_at, s.updated_at,
                            a.supplier_type, a.employee_count, a.factory_area_sqm,
                            a.production_lines_count, a.markets_served, a.certifications,
                            a.has_machinery_photos, a.positive_points, a.negative_points,
@@ -2083,25 +2090,25 @@ class SupplierRepository:
 
                 items = []
                 for row in rows:
-                    item = self._row_to_dict_extended(row[:18])
+                    item = self._row_to_dict_extended(row[:20])
                     item.update({
-                        "supplier_type": row[18],
-                        "employee_count": row[19],
-                        "factory_area_sqm": row[20],
-                        "production_lines_count": row[21],
-                        "markets_served": row[22],
-                        "certifications": row[23],
-                        "has_machinery_photos": row[24],
-                        "positive_points": row[25],
-                        "negative_points": row[26],
-                        "products_verified": row[27],
-                        "audit_date": row[28],
-                        "inspector_name": row[29],
-                        "extraction_status": row[30],
-                        "ai_classification": row[31],
-                        "ai_classification_reason": row[32],
-                        "manual_classification": row[33],
-                        "classification_notes": row[34],
+                        "supplier_type": row[20],
+                        "employee_count": row[21],
+                        "factory_area_sqm": row[22],
+                        "production_lines_count": row[23],
+                        "markets_served": row[24],
+                        "certifications": row[25],
+                        "has_machinery_photos": row[26],
+                        "positive_points": row[27],
+                        "negative_points": row[28],
+                        "products_verified": row[29],
+                        "audit_date": row[30],
+                        "inspector_name": row[31],
+                        "extraction_status": row[32],
+                        "ai_classification": row[33],
+                        "ai_classification_reason": row[34],
+                        "manual_classification": row[35],
+                        "classification_notes": row[36],
                     })
                     items.append(item)
 
@@ -2137,7 +2144,7 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     WHERE name ILIKE %s
                        OR contact_email ILIKE %s
@@ -2189,8 +2196,8 @@ class SupplierRepository:
                     WHERE id = %s
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              certification_status, pipeline_status, latest_audit_id, certified_at,
-                              outreach_status, created_at, updated_at
+                              wechat_id, certification_status, pipeline_status, latest_audit_id,
+                              certified_at, outreach_status, created_at, updated_at
                     """,
                     (certification_status, str(audit_id), str(supplier_id)),
                 )
@@ -2229,13 +2236,14 @@ class SupplierRepository:
             "country": row[9],
             "website": row[10],
             "notes": row[11],
-            "certification_status": row[12],
-            "pipeline_status": row[13],
-            "latest_audit_id": row[14],
-            "certified_at": row[15],
-            "outreach_status": row[16],
-            "created_at": row[17],
-            "updated_at": row[18],
+            "wechat_id": row[12],
+            "certification_status": row[13],
+            "pipeline_status": row[14],
+            "latest_audit_id": row[15],
+            "certified_at": row[16],
+            "outreach_status": row[17],
+            "created_at": row[18],
+            "updated_at": row[19],
         }
 
     def get_by_certification_status(
@@ -2299,8 +2307,8 @@ class SupplierRepository:
                     f"""
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           certification_status, pipeline_status, latest_audit_id, certified_at,
-                           outreach_status, created_at, updated_at
+                           wechat_id, certification_status, pipeline_status, latest_audit_id,
+                           certified_at, outreach_status, created_at, updated_at
                     FROM suppliers
                     {where_clause}
                     ORDER BY name
@@ -2354,8 +2362,8 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           certification_status, pipeline_status, latest_audit_id, certified_at,
-                           outreach_status, created_at, updated_at
+                           wechat_id, certification_status, pipeline_status, latest_audit_id,
+                           certified_at, outreach_status, created_at, updated_at
                     FROM suppliers
                     WHERE pipeline_status = %s
                     ORDER BY name
@@ -2401,8 +2409,8 @@ class SupplierRepository:
                     WHERE id = %s
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              certification_status, pipeline_status, latest_audit_id, certified_at,
-                              outreach_status, created_at, updated_at
+                              wechat_id, certification_status, pipeline_status, latest_audit_id,
+                              certified_at, outreach_status, created_at, updated_at
                     """,
                     (pipeline_status, str(supplier_id)),
                 )
@@ -2447,8 +2455,8 @@ class SupplierRepository:
                     WHERE id = %s
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              certification_status, pipeline_status, latest_audit_id, certified_at,
-                              outreach_status, created_at, updated_at
+                              wechat_id, certification_status, pipeline_status, latest_audit_id,
+                              certified_at, outreach_status, created_at, updated_at
                     """,
                     (status, str(supplier_id)),
                 )
@@ -2548,8 +2556,8 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           certification_status, pipeline_status, latest_audit_id, certified_at,
-                           outreach_status, created_at, updated_at
+                           wechat_id, certification_status, pipeline_status, latest_audit_id,
+                           certified_at, outreach_status, created_at, updated_at
                     FROM suppliers
                     WHERE id = %s
                     """,
@@ -2627,8 +2635,8 @@ class SupplierRepository:
                     """
                     SELECT s.id, s.name, s.code, s.status, s.contact_name, s.contact_email,
                            s.contact_phone, s.address, s.city, s.country, s.website, s.notes,
-                           s.certification_status, s.pipeline_status, s.latest_audit_id, s.certified_at,
-                           s.outreach_status, s.created_at, s.updated_at,
+                           s.wechat_id, s.certification_status, s.pipeline_status, s.latest_audit_id,
+                           s.certified_at, s.outreach_status, s.created_at, s.updated_at,
                            (SELECT COUNT(*) FROM products p WHERE p.supplier_id = s.id) as product_count
                     FROM suppliers s
                     ORDER BY s.name
@@ -2648,9 +2656,9 @@ class SupplierRepository:
 
                 # Group suppliers by pipeline status
                 for row in rows:
-                    supplier = self._row_to_dict_extended(row[:19])
-                    supplier["product_count"] = row[19]
-                    pipeline_status = row[13]  # pipeline_status column
+                    supplier = self._row_to_dict_extended(row[:20])
+                    supplier["product_count"] = row[20]
+                    pipeline_status = row[14]  # pipeline_status column
                     if pipeline_status in result:
                         result[pipeline_status].append(supplier)
 
