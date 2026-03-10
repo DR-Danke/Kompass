@@ -269,6 +269,7 @@ Rules:
 - Only include confidence scores for fields that are not null
 - Set confidence to 0.0 for fields you cannot find
 - For phone numbers, always include the country code prefix
+- WeChat ID recognition: look for labels such as "WeChat", "微信", "Wechat ID", "微信号". WeChat IDs are alphanumeric strings, typically 6-20 characters, often starting with a letter. If a QR code is visible and labeled as WeChat, set qr_code_detected to true and attempt to read any adjacent text that may be the WeChat ID.
 - Only return valid JSON, no additional text or explanation."""
 
     def extract_business_card_data(self, image_data: bytes) -> dict:
