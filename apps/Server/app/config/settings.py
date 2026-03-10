@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     FROM_NAME: str = "Kompass"
     EMAIL_MOCK_MODE: bool = True
 
+    # WeChat Integration
+    WECHAT_APP_ID: str = ""
+    WECHAT_APP_SECRET: str = ""
+    WECHAT_VERIFY_TOKEN: str = ""
+    WECHAT_MOCK_MODE: bool = True
+
     # Supabase Storage
     SUPABASE_URL: Optional[str] = None
     SUPABASE_SERVICE_KEY: Optional[str] = None
