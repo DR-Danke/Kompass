@@ -1793,3 +1793,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with trade fair supplier introduction emails
     - When troubleshooting email delivery or SMTP configuration issues
     - When modifying supplier_service.create_supplier_from_card() email trigger
+
+- app_docs/feature-a9b12751-trade-fair-dashboard-activity-feed.md
+  - Conditions:
+    - When working with the trade fair activity dashboard widget or TradeFairActivity component
+    - When modifying the Dashboard page trade fair section
+    - When working with GET /api/dashboard/trade-fair endpoint
+    - When modifying TradeFairRepository or trade fair capture queries
+    - When working with useTradeFairActivity hook or tradeFairService
+    - When working with TradeFairActivityDTO or TradeFairCaptureDTO
+    - When implementing dashboard widgets that use auto-refresh patterns
+    - When working with business_card_captures aggregation or outreach status statistics
