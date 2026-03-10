@@ -1,8 +1,6 @@
 """Unit tests for EmailService."""
 
-from datetime import datetime
-from unittest.mock import MagicMock, patch, call
-from uuid import uuid4
+from unittest.mock import MagicMock, patch
 
 import pytest
 
