@@ -1828,3 +1828,15 @@ This prompt helps you determine what documentation you should read based on the 
     - When integrating WeChat image messages with business card extraction pipeline
     - When troubleshooting WeChat API connectivity or access token issues
     - When working with pyzbar dependency or libzbar0 system library
+
+- app_docs/feature-26a0e280-followup-message-templates.md
+  - Conditions:
+    - When working with supplier outreach or follow-up messaging
+    - When modifying OUTREACH_TEMPLATES or adding new message templates
+    - When working with POST /api/suppliers/{id}/outreach endpoint
+    - When working with GET /api/suppliers/outreach-templates endpoint
+    - When modifying EmailService.send_template_email or WeChatService.send_template_message
+    - When working with outreach_status field on suppliers
+    - When modifying the outreach dialog on SuppliersPage
+    - When working with SupplierOutreachRequestDTO or SupplierOutreachResultDTO
+    - When adding new outreach channels beyond email and WeChat
