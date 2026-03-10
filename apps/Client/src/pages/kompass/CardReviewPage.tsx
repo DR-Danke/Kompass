@@ -344,6 +344,7 @@ export default function CardReviewPage() {
                 <TableCell>Contacto</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Teléfono</TableCell>
+                <TableCell>WeChat ID</TableCell>
                 <TableCell>Estado</TableCell>
                 <TableCell>Feria</TableCell>
                 <TableCell>Fecha</TableCell>
@@ -410,6 +411,16 @@ export default function CardReviewPage() {
                         fieldName="contact_phone"
                         captureId={capture.id}
                         confidenceScore={scores.contact_phone}
+                        onSave={updateField}
+                        disabled={!editable}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <EditableCell
+                        value={capture.contact_wechat}
+                        fieldName="contact_wechat"
+                        captureId={capture.id}
+                        confidenceScore={scores.contact_wechat}
                         onSave={updateField}
                         disabled={!editable}
                       />

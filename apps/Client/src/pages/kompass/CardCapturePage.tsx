@@ -20,6 +20,7 @@ import ReplayIcon from '@mui/icons-material/Replay';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import ChatIcon from '@mui/icons-material/Chat';
 import BusinessIcon from '@mui/icons-material/Business';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -390,6 +391,11 @@ const CardCapturePage: React.FC = () => {
                         icon={<EmailIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
                         value={capture.contact_email}
                         confidence={scores.contact_email}
+                      />
+                      <ExtractedField
+                        icon={<ChatIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
+                        value={capture.contact_wechat}
+                        confidence={scores.contact_wechat}
                       />
                       <ExtractedField
                         icon={<LocationOnIcon sx={{ fontSize: 14, color: 'text.secondary' }} />}
