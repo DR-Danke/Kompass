@@ -291,6 +291,7 @@ const CardCapturePage: React.FC = () => {
           ref={fileInputRef}
           type="file"
           accept={ACCEPTED_EXTENSIONS}
+          capture={import.meta.env.VITE_CAMERA_CAPTURE === 'true' ? 'environment' : undefined}
           style={{ display: 'none' }}
           onChange={handleFileChange}
         />
