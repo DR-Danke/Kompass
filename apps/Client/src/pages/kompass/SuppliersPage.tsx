@@ -25,6 +25,12 @@ import {
   InputAdornment,
   ToggleButton,
   ToggleButtonGroup,
+  FormControl,
+  InputLabel,
+  Select,
+  FormControlLabel,
+  Checkbox,
+  FormGroup,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -38,6 +44,8 @@ import type {
   SupplierWithProductCount,
   CertificationStatus,
   SupplierDeletePreview,
+  OutreachTemplate,
+  SupplierOutreachRequest,
 } from '@/types/kompass';
 import { supplierService } from '@/services/kompassService';
 import SupplierForm from '@/components/kompass/SupplierForm';
@@ -106,6 +114,15 @@ const getStatusLabel = (status: SupplierStatus): string => {
   }
 };
 
+const OUTREACH_STATUS_CONFIG: Record<string, { label: string; color: 'default' | 'warning' | 'info' | 'success' | 'secondary' }> = {
+  none: { label: 'Sin contactar', color: 'default' },
+  pending: { label: 'Pendiente', color: 'warning' },
+  contacted: { label: 'Contactado', color: 'info' },
+  responded: { label: 'Respondió', color: 'success' },
+  meeting_scheduled: { label: 'Reunión agendada', color: 'secondary' },
+  completed: { label: 'Completado', color: 'success' },
+};
+
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -171,6 +188,16 @@ const SuppliersPage: React.FC = () => {
 
   // Excel export loading state
   const [exporting, setExporting] = useState(false);
+
+  // Outreach dialog state
+  const [outreachDialogOpen, setOutreachDialogOpen] = useState(false);
+  const [outreachSupplier, setOutreachSupplier] = useState<SupplierResponse | null>(null);
+  const [outreachTemplates, setOutreachTemplates] = useState<OutreachTemplate[]>([]);
+  const [outreachSelectedTemplate, setOutreachSelectedTemplate] = useState('follow_up_catalog');
+  const [outreachChannels, setOutreachChannels] = useState<('email' | 'wechat')[]>(['email']);
+  const [outreachCustomMessage, setOutreachCustomMessage] = useState('');
+  const [outreachLoading, setOutreachLoading] = useState(false);
+  const [outreachResult, setOutreachResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Debounce search query for list view
   useEffect(() => {
@@ -462,6 +489,69 @@ const SuppliersPage: React.FC = () => {
     }
   };
 
+  // Handle quick action: Send Outreach
+  const handleSendOutreach = async (supplier: SupplierResponse) => {
+    setOutreachSupplier(supplier);
+    setOutreachResult(null);
+    setOutreachCustomMessage('');
+    setOutreachSelectedTemplate('follow_up_catalog');
+    setOutreachChannels(supplier.contact_email ? ['email'] : []);
+    setOutreachDialogOpen(true);
+
+    // Load templates if not already loaded
+    if (outreachTemplates.length === 0) {
+      try {
+        const templates = await supplierService.getOutreachTemplates();
+        setOutreachTemplates(templates);
+      } catch (err) {
+        console.log('ERROR [SuppliersPage]: Failed to load outreach templates', err);
+      }
+    }
+  };
+
+  const handleOutreachClose = () => {
+    setOutreachDialogOpen(false);
+    setOutreachSupplier(null);
+    setOutreachResult(null);
+  };
+
+  const handleOutreachSend = async () => {
+    if (!outreachSupplier || outreachChannels.length === 0) return;
+    setOutreachLoading(true);
+    setOutreachResult(null);
+    try {
+      const request: SupplierOutreachRequest = {
+        template: outreachSelectedTemplate,
+        channels: outreachChannels,
+        custom_message: outreachCustomMessage || undefined,
+      };
+      const result = await supplierService.sendOutreach(outreachSupplier.id, request);
+      const success = result.email_sent || result.wechat_sent;
+      setOutreachResult({ success, message: result.message });
+      if (success) {
+        // Refresh supplier data to reflect updated outreach_status
+        if (viewMode === 'list') {
+          fetchSuppliers();
+        } else {
+          fetchPipeline();
+        }
+      }
+    } catch (err) {
+      console.log('ERROR [SuppliersPage]: Failed to send outreach', err);
+      setOutreachResult({ success: false, message: err instanceof Error ? err.message : 'Error al enviar' });
+    } finally {
+      setOutreachLoading(false);
+    }
+  };
+
+  const handleOutreachChannelToggle = (channel: 'email' | 'wechat') => {
+    setOutreachChannels(prev =>
+      prev.includes(channel)
+        ? prev.filter(c => c !== channel)
+        : [...prev, channel]
+    );
+  };
+
   const currentError = viewMode === 'kanban' ? kanbanError : error;
   const clearError = () => {
     if (viewMode === 'kanban') {
@@ -647,19 +737,20 @@ const SuppliersPage: React.FC = () => {
                     Certified Date
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>Seguimiento</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : suppliers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       {hasActiveFilters
                         ? 'No suppliers match your filters'
@@ -700,6 +791,16 @@ const SuppliersPage: React.FC = () => {
                       <PipelineStatusBadge status={supplier.pipeline_status} />
                     </TableCell>
                     <TableCell>{formatDate(supplier.certified_at)}</TableCell>
+                    <TableCell>
+                      {(supplier.outreach_status && supplier.outreach_status !== 'none') && (
+                        <Chip
+                          label={OUTREACH_STATUS_CONFIG[supplier.outreach_status]?.label || supplier.outreach_status}
+                          color={OUTREACH_STATUS_CONFIG[supplier.outreach_status]?.color || 'default'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+                    </TableCell>
                     <TableCell align="right">
                       <SupplierQuickActionsMenu
                         supplier={supplier}
@@ -708,6 +809,7 @@ const SuppliersPage: React.FC = () => {
                         onUploadAudit={handleUploadAudit}
                         onViewCertification={handleViewCertification}
                         onChangePipelineStatus={handleChangePipelineStatus}
+                        onSendOutreach={handleSendOutreach}
                         isUpdating={pipelineStatusLoading === supplier.id}
                       />
                     </TableCell>
@@ -802,6 +904,109 @@ const SuppliersPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleAuditUploadClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Outreach Dialog */}
+      <Dialog
+        open={outreachDialogOpen}
+        onClose={handleOutreachClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Enviar Seguimiento — {outreachSupplier?.name}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Template selector */}
+            <FormControl fullWidth size="small">
+              <InputLabel>Plantilla</InputLabel>
+              <Select
+                value={outreachSelectedTemplate}
+                label="Plantilla"
+                onChange={(e) => setOutreachSelectedTemplate(e.target.value)}
+              >
+                {outreachTemplates.map((tmpl) => (
+                  <MenuItem key={tmpl.key} value={tmpl.key}>
+                    {tmpl.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Channel checkboxes */}
+            <FormControl component="fieldset">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                Canales
+              </Typography>
+              <FormGroup row>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={outreachChannels.includes('email')}
+                      onChange={() => handleOutreachChannelToggle('email')}
+                      disabled={!outreachSupplier?.contact_email}
+                    />
+                  }
+                  label={`Email${!outreachSupplier?.contact_email ? ' (sin email)' : ''}`}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={outreachChannels.includes('wechat')}
+                      onChange={() => handleOutreachChannelToggle('wechat')}
+                      disabled={!outreachSupplier?.contact_phone}
+                    />
+                  }
+                  label={`WeChat${!outreachSupplier?.contact_phone ? ' (sin ID)' : ''}`}
+                />
+              </FormGroup>
+            </FormControl>
+
+            {/* Message preview */}
+            {outreachTemplates.length > 0 && (
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  Vista previa
+                </Typography>
+                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Asunto: {outreachTemplates.find(t => t.key === outreachSelectedTemplate)?.subject || ''}
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontSize: '0.8rem' }}>
+                    {outreachTemplates.find(t => t.key === outreachSelectedTemplate)?.body_preview || ''}
+                  </Typography>
+                </Paper>
+              </Box>
+            )}
+
+            {/* Custom message override */}
+            <TextField
+              label="Mensaje personalizado (opcional)"
+              multiline
+              rows={3}
+              value={outreachCustomMessage}
+              onChange={(e) => setOutreachCustomMessage(e.target.value)}
+              size="small"
+              helperText="Si se proporciona, reemplaza el cuerpo de la plantilla"
+            />
+
+            {/* Result feedback */}
+            {outreachResult && (
+              <Alert severity={outreachResult.success ? 'success' : 'error'}>
+                {outreachResult.message}
+              </Alert>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleOutreachClose}>Cancelar</Button>
+          <Button
+            onClick={handleOutreachSend}
+            variant="contained"
+            disabled={outreachLoading || outreachChannels.length === 0}
+          >
+            {outreachLoading ? <CircularProgress size={20} /> : 'Enviar'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

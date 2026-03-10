@@ -17,6 +17,70 @@ from app.config.settings import get_settings
 from app.models.kompass_dto import EmailSendResultDTO
 
 
+# =============================================================================
+# OUTREACH TEMPLATES
+# =============================================================================
+
+OUTREACH_TEMPLATES = {
+    "introduction": {
+        "name": "Presentación inicial",
+        "subject": "Nice meeting you at {fair_name} — Kompass",
+        "body": (
+            "Dear {contact_name},\n\n"
+            "It was a pleasure meeting you at {fair_name}. Thank you for taking the time "
+            "to share your products and capabilities with us.\n\n"
+            "We are Kompass, a sourcing and trading company specializing in connecting "
+            "quality manufacturers with buyers across Latin America and beyond. "
+            "We are always looking for reliable partners who share our commitment "
+            "to quality and competitive pricing.\n\n"
+            "We would love to explore potential collaboration opportunities with {company_name}. "
+            "Could we schedule a follow-up call or exchange catalogs to discuss "
+            "how we might work together?\n\n"
+            "Looking forward to hearing from you.\n\n"
+            "Best regards,\n"
+            "{sender_name}\n"
+            "Kompass Trading"
+        ),
+    },
+    "follow_up_catalog": {
+        "name": "Solicitud de catálogo",
+        "subject": "Product catalog request — Kompass × {company_name}",
+        "body": (
+            "Dear {contact_name},\n\n"
+            "I hope this message finds you well. We met at {fair_name} and I wanted to "
+            "follow up on our conversation.\n\n"
+            "We are very interested in {company_name}'s product range and would love to "
+            "receive your latest product catalog, including pricing information if available.\n\n"
+            "This will help us identify the best products for our Latin American buyers and "
+            "move forward with potential orders.\n\n"
+            "Thank you in advance for your time.\n\n"
+            "Best regards,\n"
+            "{sender_name}\n"
+            "Kompass Trading"
+        ),
+    },
+    "follow_up_pricing": {
+        "name": "Solicitud de precios",
+        "subject": "Pricing inquiry — Kompass × {company_name}",
+        "body": (
+            "Dear {contact_name},\n\n"
+            "Thank you for sharing your catalog with us. We have reviewed your products "
+            "and are interested in obtaining detailed pricing for the following:\n\n"
+            "- FOB pricing per unit (USD)\n"
+            "- Minimum order quantities (MOQ)\n"
+            "- Lead times for production\n"
+            "- Available packaging options\n\n"
+            "We are planning to place orders for the Latin American market and would "
+            "appreciate a competitive quotation from {company_name}.\n\n"
+            "Please let us know if you need any additional information from our side.\n\n"
+            "Best regards,\n"
+            "{sender_name}\n"
+            "Kompass Trading"
+        ),
+    },
+}
+
+
 class EmailService:
     """SMTP email service with mock mode fallback."""
 
@@ -161,6 +225,81 @@ class EmailService:
                 recipient_email=to_email,
                 mock_mode=False,
             )
+
+    @staticmethod
+    def get_templates() -> list:
+        """Return metadata for all available outreach templates.
+
+        Returns:
+            List of template metadata dicts with key, name, subject, body_preview
+        """
+        templates = []
+        for key, tmpl in OUTREACH_TEMPLATES.items():
+            templates.append({
+                "key": key,
+                "name": tmpl["name"],
+                "subject": tmpl["subject"],
+                "body_preview": tmpl["body"][:150] + "...",
+            })
+        return templates
+
+    def send_template_email(
+        self,
+        supplier: dict,
+        template_name: str,
+        custom_message: Optional[str] = None,
+    ) -> EmailSendResultDTO:
+        """Send a template-based outreach email to a supplier.
+
+        Args:
+            supplier: Supplier dict with contact_name, contact_email, etc.
+            template_name: Key from OUTREACH_TEMPLATES
+            custom_message: Optional override for the template body
+
+        Returns:
+            EmailSendResultDTO with send result
+        """
+        if template_name not in OUTREACH_TEMPLATES:
+            return EmailSendResultDTO(
+                success=False,
+                message=f"Template '{template_name}' not found",
+                recipient_email=supplier.get("contact_email", ""),
+                mock_mode=self.mock_mode,
+            )
+
+        template = OUTREACH_TEMPLATES[template_name]
+        context = {
+            "contact_name": supplier.get("contact_name") or supplier.get("name", ""),
+            "company_name": supplier.get("name", ""),
+            "fair_name": supplier.get("fair_name") or "the trade fair",
+            "sender_name": self.from_name or "Kompass",
+        }
+
+        subject = template["subject"].format(**context)
+        body = custom_message if custom_message else template["body"].format(**context)
+
+        # Wrap plain text body in simple HTML
+        html_body = f"""\
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+{body.replace(chr(10), '<br>')}
+</body>
+</html>"""
+
+        to_email = supplier.get("contact_email", "")
+        print(
+            f"INFO [EmailService]: Sending template '{template_name}' email to "
+            f"{to_email} (supplier: {supplier.get('name', '')})"
+        )
+
+        return self.send_email(
+            to_email=to_email,
+            subject=subject,
+            html_body=html_body,
+            plain_body=body,
+        )
 
     def _render_introduction_template(
         self, supplier_name: str, fair_name: str, sender_name: str = "Rubén"

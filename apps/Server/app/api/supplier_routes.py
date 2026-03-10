@@ -16,11 +16,14 @@ from fastapi.responses import StreamingResponse
 from app.api.dependencies import get_current_user
 from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
+    OutreachTemplateDTO,
     ProductFilterDTO,
     ProductListResponseDTO,
     SupplierCertificationSummaryDTO,
     SupplierCreateDTO,
     SupplierListResponseDTO,
+    SupplierOutreachRequestDTO,
+    SupplierOutreachResultDTO,
     SupplierPipelineResponseDTO,
     SupplierPipelineStatus,
     SupplierPipelineStatusUpdateDTO,
@@ -286,6 +289,24 @@ async def list_suppliers_by_pipeline(
     return result
 
 
+@router.get("/outreach-templates", response_model=List[OutreachTemplateDTO])
+async def get_outreach_templates(
+    current_user: dict = Depends(get_current_user),
+) -> List[OutreachTemplateDTO]:
+    """Get available outreach message templates.
+
+    Args:
+        current_user: Authenticated user (injected)
+
+    Returns:
+        List of outreach templates with metadata
+    """
+    print("INFO [SupplierRoutes]: Getting outreach templates")
+
+    templates = supplier_service.get_outreach_templates()
+    return [OutreachTemplateDTO(**t) for t in templates]
+
+
 @router.get("/export/excel")
 async def export_verification_excel(
     status: Optional[str] = Query(None, description="Filter by status"),
@@ -338,6 +359,46 @@ async def export_verification_excel(
     except Exception as e:
         print(f"ERROR [SupplierRoutes]: Failed to export Excel: {e}")
         raise HTTPException(status_code=500, detail="Failed to export supplier data")
+
+
+@router.post("/{supplier_id}/outreach", response_model=SupplierOutreachResultDTO)
+async def send_outreach(
+    supplier_id: UUID,
+    request: SupplierOutreachRequestDTO,
+    current_user: dict = Depends(get_current_user),
+) -> SupplierOutreachResultDTO:
+    """Send outreach messages to a supplier via selected channels.
+
+    Args:
+        supplier_id: UUID of the supplier
+        request: Outreach request with template, channels, and optional custom message
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Outreach result with per-channel status
+
+    Raises:
+        HTTPException 400: If invalid template or channels
+        HTTPException 404: If supplier not found
+    """
+    print(
+        f"INFO [SupplierRoutes]: Sending outreach to supplier {supplier_id} "
+        f"(template={request.template}, channels={request.channels})"
+    )
+
+    try:
+        result = supplier_service.send_outreach(
+            supplier_id=supplier_id,
+            template=request.template,
+            channels=request.channels,
+            custom_message=request.custom_message,
+        )
+        return SupplierOutreachResultDTO(**result)
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg.lower():
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
 
 
 @router.get("/{supplier_id}")

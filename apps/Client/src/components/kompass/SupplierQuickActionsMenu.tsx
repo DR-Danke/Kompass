@@ -14,6 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import SendIcon from '@mui/icons-material/Send';
 import type { SupplierResponse, SupplierPipelineStatus } from '@/types/kompass';
 
 interface SupplierQuickActionsMenuProps {
@@ -23,6 +24,7 @@ interface SupplierQuickActionsMenuProps {
   onUploadAudit: (supplier: SupplierResponse) => void;
   onViewCertification: (supplier: SupplierResponse) => void;
   onChangePipelineStatus: (supplier: SupplierResponse, status: SupplierPipelineStatus) => void;
+  onSendOutreach: (supplier: SupplierResponse) => void;
   isUpdating?: boolean;
 }
 
@@ -42,6 +44,7 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
   onUploadAudit,
   onViewCertification,
   onChangePipelineStatus,
+  onSendOutreach,
   isUpdating = false,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -89,12 +92,18 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
     onViewCertification(supplier);
   };
 
+  const handleSendOutreach = () => {
+    handleClose();
+    onSendOutreach(supplier);
+  };
+
   const handlePipelineStatusChange = (status: SupplierPipelineStatus) => {
     handleClose();
     onChangePipelineStatus(supplier, status);
   };
 
   const hasAudits = !!supplier.latest_audit_id;
+  const hasContactInfo = !!(supplier.contact_email || supplier.contact_phone);
 
   return (
     <>
@@ -144,6 +153,13 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
             <ArrowRightIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Change Pipeline Status</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleSendOutreach} disabled={!hasContactInfo}>
+          <ListItemIcon>
+            <SendIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Enviar Seguimiento</ListItemText>
         </MenuItem>
 
         <Divider />

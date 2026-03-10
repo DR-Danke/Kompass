@@ -116,6 +116,10 @@ import type {
   SupplierFromCardResult,
   // Trade fair activity types
   TradeFairActivity,
+  // Outreach types
+  SupplierOutreachRequest,
+  SupplierOutreachResult,
+  OutreachTemplate,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -309,6 +313,21 @@ export const supplierService = {
     const response = await apiClient.get<ProductListResponse>(
       `/suppliers/${supplierId}/products`,
       { params: { page, limit } }
+    );
+    return response.data;
+  },
+
+  async getOutreachTemplates(): Promise<OutreachTemplate[]> {
+    console.log('INFO [supplierService]: Fetching outreach templates');
+    const response = await apiClient.get<OutreachTemplate[]>('/suppliers/outreach-templates');
+    return response.data;
+  },
+
+  async sendOutreach(supplierId: string, request: SupplierOutreachRequest): Promise<SupplierOutreachResult> {
+    console.log(`INFO [supplierService]: Sending outreach for supplier ${supplierId}`);
+    const response = await apiClient.post<SupplierOutreachResult>(
+      `/suppliers/${supplierId}/outreach`,
+      request
     );
     return response.data;
   },

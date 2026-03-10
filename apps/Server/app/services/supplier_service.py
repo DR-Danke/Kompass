@@ -642,6 +642,106 @@ class SupplierService:
             message="Proveedor creado exitosamente",
         )
 
+    def get_outreach_templates(self) -> list:
+        """Return available outreach message templates.
+
+        Returns:
+            List of template metadata dicts
+        """
+        from app.services.email_service import EmailService
+
+        return EmailService.get_templates()
+
+    def send_outreach(
+        self,
+        supplier_id: UUID,
+        template: str,
+        channels: List[str],
+        custom_message: Optional[str] = None,
+    ) -> dict:
+        """Send outreach messages to a supplier via selected channels.
+
+        Args:
+            supplier_id: UUID of the supplier
+            template: Template key from OUTREACH_TEMPLATES
+            channels: List of channels ('email', 'wechat')
+            custom_message: Optional custom message override
+
+        Returns:
+            Dict with email_sent, wechat_sent, message, outreach_status
+
+        Raises:
+            ValueError: If supplier not found, invalid template, or invalid channels
+        """
+        from app.services.email_service import OUTREACH_TEMPLATES, email_service
+        from app.services.wechat_service import wechat_service
+
+        # Validate supplier exists
+        supplier = supplier_repository.get_by_id_extended(supplier_id)
+        if not supplier:
+            raise ValueError("Supplier not found")
+
+        # Validate template
+        if template not in OUTREACH_TEMPLATES:
+            valid_keys = ", ".join(OUTREACH_TEMPLATES.keys())
+            raise ValueError(f"Invalid template: {template}. Must be one of: {valid_keys}")
+
+        # Validate channels
+        valid_channels = {"email", "wechat"}
+        if not channels or not set(channels).issubset(valid_channels):
+            raise ValueError("Channels must contain 'email' and/or 'wechat'")
+
+        email_sent = False
+        wechat_sent = False
+        messages = []
+
+        # Send via email
+        if "email" in channels:
+            contact_email = supplier.get("contact_email")
+            if contact_email:
+                result = email_service.send_template_email(
+                    supplier=supplier,
+                    template_name=template,
+                    custom_message=custom_message,
+                )
+                email_sent = result.success
+                messages.append(f"Email: {result.message}")
+            else:
+                messages.append("Email: No contact email available")
+
+        # Send via WeChat
+        if "wechat" in channels:
+            wechat_id = supplier.get("wechat_id")
+            if wechat_id:
+                result = wechat_service.send_template_message(
+                    supplier=supplier,
+                    template_name=template,
+                    custom_message=custom_message,
+                )
+                wechat_sent = result.success
+                messages.append(f"WeChat: {result.message}")
+            else:
+                messages.append("WeChat: No WeChat ID available")
+
+        # Update outreach status if any message was sent
+        current_status = supplier.get("outreach_status", "none")
+        new_status = current_status
+        if email_sent or wechat_sent:
+            new_status = "contacted"
+            supplier_repository.update_outreach_status(supplier_id, new_status)
+
+        print(
+            f"INFO [SupplierService]: Outreach sent for supplier {supplier_id} "
+            f"(email={email_sent}, wechat={wechat_sent}, status={new_status})"
+        )
+
+        return {
+            "email_sent": email_sent,
+            "wechat_sent": wechat_sent,
+            "message": "; ".join(messages),
+            "outreach_status": new_status,
+        }
+
     def _format_markets_served(self, markets: Any) -> str:
         """Format markets_served JSONB dict to readable string.
 

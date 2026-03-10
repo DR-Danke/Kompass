@@ -246,6 +246,50 @@ class WeChatService:
                 mock_mode=False,
             )
 
+    def send_template_message(
+        self,
+        supplier: dict,
+        template_name: str,
+        custom_message: Optional[str] = None,
+    ) -> WeChatSendResultDTO:
+        """Send a template-based outreach message to a supplier via WeChat.
+
+        Args:
+            supplier: Supplier dict with wechat_id, contact_name, etc.
+            template_name: Key from OUTREACH_TEMPLATES
+            custom_message: Optional override for the template body
+
+        Returns:
+            WeChatSendResultDTO with send result
+        """
+        from app.services.email_service import OUTREACH_TEMPLATES
+
+        if template_name not in OUTREACH_TEMPLATES:
+            return WeChatSendResultDTO(
+                success=False,
+                message=f"Template '{template_name}' not found",
+                recipient_wechat_id=supplier.get("wechat_id", ""),
+                mock_mode=self.mock_mode,
+            )
+
+        template = OUTREACH_TEMPLATES[template_name]
+        context = {
+            "contact_name": supplier.get("contact_name") or supplier.get("name", ""),
+            "company_name": supplier.get("name", ""),
+            "fair_name": supplier.get("fair_name") or "the trade fair",
+            "sender_name": "Kompass",
+        }
+
+        body = custom_message if custom_message else template["body"].format(**context)
+        wechat_id = supplier.get("wechat_id", "")
+
+        print(
+            f"INFO [WeChatService]: Sending template '{template_name}' message to "
+            f"{wechat_id} (supplier: {supplier.get('name', '')})"
+        )
+
+        return self.send_message(wechat_id, body)
+
     def _render_introduction_message(
         self,
         supplier_name: str,
