@@ -14,6 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import type { SupplierResponse, SupplierPipelineStatus } from '@/types/kompass';
 
 interface SupplierQuickActionsMenuProps {
@@ -22,6 +23,7 @@ interface SupplierQuickActionsMenuProps {
   onDelete: (supplier: SupplierResponse) => void;
   onUploadAudit: (supplier: SupplierResponse) => void;
   onViewCertification: (supplier: SupplierResponse) => void;
+  onImportProducts: (supplier: SupplierResponse) => void;
   onChangePipelineStatus: (supplier: SupplierResponse, status: SupplierPipelineStatus) => void;
   isUpdating?: boolean;
 }
@@ -41,6 +43,7 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
   onDelete,
   onUploadAudit,
   onViewCertification,
+  onImportProducts,
   onChangePipelineStatus,
   isUpdating = false,
 }) => {
@@ -87,6 +90,11 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
   const handleViewCertification = () => {
     handleClose();
     onViewCertification(supplier);
+  };
+
+  const handleImportProducts = () => {
+    handleClose();
+    onImportProducts(supplier);
   };
 
   const handlePipelineStatusChange = (status: SupplierPipelineStatus) => {
@@ -137,6 +145,13 @@ const SupplierQuickActionsMenu: React.FC<SupplierQuickActionsMenuProps> = ({
             <AssignmentIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>View Certification Summary</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={handleImportProducts}>
+          <ListItemIcon>
+            <Inventory2Icon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Importar Productos</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleStatusMenuOpen}>

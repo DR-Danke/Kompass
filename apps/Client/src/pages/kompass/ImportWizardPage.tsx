@@ -28,6 +28,7 @@ import {
   ListItemText,
   Snackbar,
 } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -167,6 +168,31 @@ export default function ImportWizardPage() {
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+
+  // Pre-selected supplier from URL param
+  const [searchParams] = useSearchParams();
+  const [preSelectedSupplier, setPreSelectedSupplier] = useState<SupplierResponse | null>(null);
+  const [preSelectedSupplierError, setPreSelectedSupplierError] = useState<string | null>(null);
+  const [preSelectedSupplierLoading, setPreSelectedSupplierLoading] = useState(false);
+
+  // Fetch pre-selected supplier from URL param on mount
+  useEffect(() => {
+    const supplierId = searchParams.get('supplier_id');
+    if (supplierId) {
+      setPreSelectedSupplierLoading(true);
+      supplierService.get(supplierId)
+        .then((supplier) => {
+          setPreSelectedSupplier(supplier);
+          setSelectedSupplierId(supplier.id);
+        })
+        .catch(() => {
+          setPreSelectedSupplierError('Proveedor no encontrado. Puede seleccionar uno manualmente.');
+        })
+        .finally(() => {
+          setPreSelectedSupplierLoading(false);
+        });
+    }
+  }, [searchParams]);
 
   // Check for draft on mount
   useEffect(() => {
@@ -611,13 +637,24 @@ export default function ImportWizardPage() {
                 value={selectedSupplierId}
                 onChange={(e) => setSelectedSupplierId(e.target.value)}
                 label="Supplier *"
+                disabled={!!preSelectedSupplier}
               >
+                {preSelectedSupplier && (
+                  <MenuItem value={preSelectedSupplier.id}>
+                    {preSelectedSupplier.name} ({preSelectedSupplier.country})
+                  </MenuItem>
+                )}
                 {suppliers.map((supplier) => (
                   <MenuItem key={supplier.id} value={supplier.id}>
                     {supplier.name} ({supplier.country})
                   </MenuItem>
                 ))}
               </Select>
+              {preSelectedSupplier && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  Pre-seleccionado desde proveedor
+                </Typography>
+              )}
             </FormControl>
 
             <Autocomplete
@@ -700,6 +737,22 @@ export default function ImportWizardPage() {
           </Button>
         </Box>
       </Box>
+
+      {preSelectedSupplierLoading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Cargando información del proveedor...
+        </Alert>
+      )}
+      {preSelectedSupplier && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Importando productos para: <strong>{preSelectedSupplier.name}</strong>
+        </Alert>
+      )}
+      {preSelectedSupplierError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {preSelectedSupplierError}
+        </Alert>
+      )}
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
