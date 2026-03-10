@@ -114,6 +114,8 @@ import type {
   // Business card capture types
   BusinessCardCapture,
   SupplierFromCardResult,
+  // Trade fair activity types
+  TradeFairActivity,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -1039,6 +1041,18 @@ export const dashboardService = {
 };
 
 // =============================================================================
+// TRADE FAIR SERVICE
+// =============================================================================
+
+export const tradeFairService = {
+  async getActivity(): Promise<TradeFairActivity> {
+    console.log('INFO [tradeFairService]: Fetching trade fair activity');
+    const response = await apiClient.get<TradeFairActivity>('/dashboard/trade-fair');
+    return response.data;
+  },
+};
+
+// =============================================================================
 // AUDIT SERVICE
 // =============================================================================
 
@@ -1245,6 +1259,32 @@ export const businessCardService = {
     console.log(`INFO [businessCardService]: Creating supplier from card ${captureId}`);
     const response = await apiClient.post<SupplierFromCardResult>(
       `/extract/business-cards/${captureId}/create-supplier`
+    );
+    return response.data;
+  },
+
+  async updateCapture(captureId: string, updates: Partial<BusinessCardCapture>): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Updating capture ${captureId}`);
+    const response = await apiClient.put<BusinessCardCapture>(
+      `/extract/business-cards/${captureId}`,
+      updates
+    );
+    return response.data;
+  },
+
+  async approveCard(captureId: string): Promise<SupplierFromCardResult> {
+    console.log(`INFO [businessCardService]: Approving card ${captureId}`);
+    const response = await apiClient.post<SupplierFromCardResult>(
+      `/extract/business-cards/${captureId}/approve`
+    );
+    return response.data;
+  },
+
+  async rejectCard(captureId: string, reason?: string): Promise<BusinessCardCapture> {
+    console.log(`INFO [businessCardService]: Rejecting card ${captureId}`);
+    const response = await apiClient.post<BusinessCardCapture>(
+      `/extract/business-cards/${captureId}/reject`,
+      { reason }
     );
     return response.data;
   },

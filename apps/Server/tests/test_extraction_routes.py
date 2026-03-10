@@ -750,6 +750,209 @@ class TestCreateSupplierFromCardEndpoint:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+class TestUpdateBusinessCardEndpoint:
+    """Tests for the PUT /business-cards/{capture_id} endpoint."""
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_update_business_card_success(self, mock_svc, authenticated_client):
+        """Test successful update of business card fields."""
+        from datetime import datetime
+
+        capture_id = uuid4()
+        mock_svc.update_capture.return_value = {
+            "id": capture_id,
+            "image_url": "https://example.com/card.jpg",
+            "status": "extracted",
+            "company_name": "Updated Corp",
+            "contact_name": "John Doe",
+            "contact_email": "john@updated.com",
+            "contact_phone": "+1234567890",
+            "contact_wechat": None,
+            "website": None,
+            "address": "123 Main St",
+            "supplier_id": None,
+            "fair_name": "Canton Fair",
+            "notes": None,
+            "captured_by": None,
+            "extraction_raw_response": None,
+            "created_at": datetime(2026, 1, 1),
+            "updated_at": datetime(2026, 1, 2),
+        }
+
+        response = authenticated_client.put(
+            f"/api/extract/business-cards/{capture_id}",
+            json={"company_name": "Updated Corp", "contact_email": "john@updated.com"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["company_name"] == "Updated Corp"
+        assert data["contact_email"] == "john@updated.com"
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_update_business_card_not_found(self, mock_svc, authenticated_client):
+        """Test 404 when capture not found."""
+        capture_id = uuid4()
+        mock_svc.update_capture.side_effect = ValueError(
+            f"Failed to update business card capture {capture_id} not found"
+        )
+
+        response = authenticated_client.put(
+            f"/api/extract/business-cards/{capture_id}",
+            json={"company_name": "Test"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestApproveBusinessCardEndpoint:
+    """Tests for the POST /business-cards/{capture_id}/approve endpoint."""
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_approve_business_card_success(self, mock_svc, authenticated_client):
+        """Test successful approval of a business card."""
+        from app.models.kompass_dto import SupplierFromCardResultDTO
+
+        capture_id = uuid4()
+        supplier_id = uuid4()
+        mock_svc.approve_card.return_value = SupplierFromCardResultDTO(
+            success=True,
+            supplier_id=supplier_id,
+            supplier_name="Test Corp",
+            message="Proveedor creado exitosamente",
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/approve"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["supplier_name"] == "Test Corp"
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_approve_business_card_invalid_status(self, mock_svc, authenticated_client):
+        """Test 400 when card status is not 'extracted'."""
+        capture_id = uuid4()
+        mock_svc.approve_card.side_effect = ValueError(
+            "Cannot approve card with status 'pending'."
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/approve"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_viewer_cannot_approve(self, viewer_client):
+        """Test that viewer role is denied approval access."""
+        capture_id = uuid4()
+        response = viewer_client.post(
+            f"/api/extract/business-cards/{capture_id}/approve"
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestRejectBusinessCardEndpoint:
+    """Tests for the POST /business-cards/{capture_id}/reject endpoint."""
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_reject_business_card_success(self, mock_svc, authenticated_client):
+        """Test successful rejection of a business card."""
+        from datetime import datetime
+
+        capture_id = uuid4()
+        mock_svc.reject_card.return_value = {
+            "id": capture_id,
+            "image_url": "https://example.com/card.jpg",
+            "status": "rejected",
+            "company_name": "Test Corp",
+            "contact_name": None,
+            "contact_email": None,
+            "contact_phone": None,
+            "contact_wechat": None,
+            "website": None,
+            "address": None,
+            "supplier_id": None,
+            "fair_name": None,
+            "notes": None,
+            "captured_by": None,
+            "extraction_raw_response": None,
+            "created_at": datetime(2026, 1, 1),
+            "updated_at": datetime(2026, 1, 2),
+        }
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/reject",
+            json={},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["status"] == "rejected"
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_reject_business_card_with_reason(self, mock_svc, authenticated_client):
+        """Test rejection with a reason is passed through."""
+        from datetime import datetime
+
+        capture_id = uuid4()
+        mock_svc.reject_card.return_value = {
+            "id": capture_id,
+            "image_url": "https://example.com/card.jpg",
+            "status": "rejected",
+            "company_name": None,
+            "contact_name": None,
+            "contact_email": None,
+            "contact_phone": None,
+            "contact_wechat": None,
+            "website": None,
+            "address": None,
+            "supplier_id": None,
+            "fair_name": None,
+            "notes": "Rechazo: Información ilegible",
+            "captured_by": None,
+            "extraction_raw_response": None,
+            "created_at": datetime(2026, 1, 1),
+            "updated_at": datetime(2026, 1, 2),
+        }
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/reject",
+            json={"reason": "Información ilegible"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        mock_svc.reject_card.assert_called_once_with(capture_id, "Información ilegible")
+
+    @patch("app.api.extraction_routes.business_card_service")
+    def test_reject_business_card_invalid_status(self, mock_svc, authenticated_client):
+        """Test 400 when card status is not rejectable."""
+        capture_id = uuid4()
+        mock_svc.reject_card.side_effect = ValueError(
+            "Cannot reject card with status 'confirmed'."
+        )
+
+        response = authenticated_client.post(
+            f"/api/extract/business-cards/{capture_id}/reject",
+            json={},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_viewer_cannot_reject(self, viewer_client):
+        """Test that viewer role is denied rejection access."""
+        capture_id = uuid4()
+        response = viewer_client.post(
+            f"/api/extract/business-cards/{capture_id}/reject",
+            json={},
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 class TestExtractionJobDTO:
     """Tests for extraction job DTOs."""
 

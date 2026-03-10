@@ -23,6 +23,7 @@ from app.api.pricing_routes import router as pricing_router
 from app.api.dashboard_routes import router as dashboard_router
 from app.api.audit_routes import router as audit_router
 from app.api.user_routes import router as user_router
+from app.api.wechat_routes import router as wechat_router
 from database.init_db import init_database
 
 
@@ -86,6 +87,7 @@ def create_app() -> FastAPI:
     app.include_router(dashboard_router, prefix="/api/dashboard")
     app.include_router(audit_router, prefix="/api/suppliers")
     app.include_router(user_router, prefix="/api/users")
+    app.include_router(wechat_router, prefix="/api/wechat")
 
     print(f"INFO [Main]: Application configured with CORS origins: {settings.get_cors_origins()}")
 

@@ -1793,3 +1793,38 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with trade fair supplier introduction emails
     - When troubleshooting email delivery or SMTP configuration issues
     - When modifying supplier_service.create_supplier_from_card() email trigger
+
+- app_docs/feature-ba9f1399-card-review-page.md
+  - Conditions:
+    - When working with the CardReviewPage or /card-review route
+    - When modifying business card approve or reject workflows
+    - When working with business card capture status transitions (extracted → confirmed/rejected)
+    - When implementing inline editing or confidence score display for extracted fields
+    - When working with batch approve/reject operations on business cards
+    - When modifying extraction_routes.py approve, reject, or update endpoints
+    - When working with BusinessCardService approve_card() or reject_card() methods
+    - When troubleshooting the review & confirm flow between AI extraction and supplier creation
+
+- app_docs/feature-a9b12751-trade-fair-dashboard-activity-feed.md
+  - Conditions:
+    - When working with the trade fair activity dashboard widget or TradeFairActivity component
+    - When modifying the Dashboard page trade fair section
+    - When working with GET /api/dashboard/trade-fair endpoint
+    - When modifying TradeFairRepository or trade fair capture queries
+    - When working with useTradeFairActivity hook or tradeFairService
+    - When working with TradeFairActivityDTO or TradeFairCaptureDTO
+    - When implementing dashboard widgets that use auto-refresh patterns
+    - When working with business_card_captures aggregation or outreach status statistics
+
+- app_docs/feature-c8333f4a-wechat-integration-messaging.md
+  - Conditions:
+    - When working with WeChat integration or messaging functionality
+    - When modifying or extending WeChatService or wechat_service.py
+    - When working with WeChat webhook endpoints (GET/POST /api/wechat/webhook)
+    - When configuring WECHAT_* settings or WECHAT_MOCK_MODE
+    - When working with incoming WeChat message handling or XML parsing
+    - When sending messages to suppliers via WeChat (introduction or custom)
+    - When working with QR code decoding from business card images
+    - When integrating WeChat image messages with business card extraction pipeline
+    - When troubleshooting WeChat API connectivity or access token issues
+    - When working with pyzbar dependency or libzbar0 system library

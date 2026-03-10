@@ -621,6 +621,24 @@ class SupplierAuditListResponseDTO(BaseModel):
 # =============================================================================
 
 
+class BusinessCardUpdateDTO(BaseModel):
+    """Request model for updating business card capture fields."""
+
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    company_name: Optional[str] = None
+    address: Optional[str] = None
+    fair_name: Optional[str] = Field(default=None, max_length=255)
+    notes: Optional[str] = None
+
+
+class BusinessCardRejectDTO(BaseModel):
+    """Request model for rejecting a business card capture."""
+
+    reason: Optional[str] = None
+
+
 class BusinessCardCaptureCreateDTO(BaseModel):
     """Request model for creating a business card capture."""
 
@@ -1552,6 +1570,44 @@ class EmailSendResultDTO(BaseModel):
 
 
 # =============================================================================
+# WECHAT DTOs
+# =============================================================================
+
+
+class WeChatMessageDTO(BaseModel):
+    """Request DTO for sending a WeChat message to a supplier."""
+
+    supplier_id: UUID
+    message_type: str = Field(
+        default="introduction",
+        description="Type: introduction, follow_up, or custom",
+    )
+    custom_content: Optional[str] = Field(default=None, max_length=2000)
+
+
+class WeChatStatusDTO(BaseModel):
+    """Response DTO for WeChat configuration status."""
+
+    enabled: bool
+    configured: bool
+    app_id_set: bool
+    webhook_url: str
+    mock_mode: bool = Field(default=True)
+
+
+class WeChatSendResultDTO(BaseModel):
+    """Result DTO for WeChat message send operations."""
+
+    success: bool
+    message: str
+    sent_at: Optional[datetime] = None
+    recipient_wechat_id: str = ""
+    mock_mode: bool = Field(
+        default=False, description="Whether message was sent in mock mode"
+    )
+
+
+# =============================================================================
 # BULK OPERATION DTOs
 # =============================================================================
 
@@ -1658,3 +1714,32 @@ class DashboardStatsDTO(BaseModel):
     recent_products: List[RecentProductDTO] = []
     recent_quotations: List[RecentQuotationDTO] = []
     recent_clients: List[RecentClientDTO] = []
+
+
+# =============================================================================
+# TRADE FAIR ACTIVITY DTOs
+# =============================================================================
+
+
+class TradeFairCaptureDTO(BaseModel):
+    """A single trade fair capture for the activity feed."""
+
+    id: UUID
+    company_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    status: BusinessCardCaptureStatus
+    supplier_id: Optional[UUID] = None
+    outreach_status: Optional[str] = None
+    created_at: datetime
+
+
+class TradeFairActivityDTO(BaseModel):
+    """Trade fair activity summary for the dashboard."""
+
+    total_captures: int = 0
+    by_status: dict = {}
+    total_suppliers_created: int = 0
+    outreach_status: dict = {}
+    recent_captures: List[TradeFairCaptureDTO] = []
+    captures_today: int = 0
+    captures_last_48h: int = 0

@@ -30,6 +30,7 @@ import LabelIcon from '@mui/icons-material/Label';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -49,6 +50,7 @@ const navItems: NavItem[] = [
   { title: 'Biblia General', icon: <InventoryIcon />, path: '/products' },
   { title: 'Import Wizard', icon: <CloudUploadIcon />, path: '/import-wizard' },
   { title: 'Captura Tarjetas', icon: <CameraAltIcon />, path: '/card-capture' },
+  { title: 'Revisión Tarjetas', icon: <RateReviewIcon />, path: '/card-review' },
   { title: 'Categories', icon: <CategoryIcon />, path: '/categories' },
   { title: 'Portfolios', icon: <CollectionsIcon />, path: '/portfolios' },
   { title: 'Clients', icon: <PeopleIcon />, path: '/clients' },

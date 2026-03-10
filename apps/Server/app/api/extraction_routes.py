@@ -28,6 +28,8 @@ from app.models.kompass_dto import (
     BusinessCardCaptureListResponseDTO,
     BusinessCardCaptureResponseDTO,
     BusinessCardCaptureStatus,
+    BusinessCardRejectDTO,
+    BusinessCardUpdateDTO,
     ProductCreateDTO,
     ProductStatus,
     SupplierFromCardResultDTO,
@@ -506,6 +508,139 @@ async def create_supplier_from_card(
         raise HTTPException(
             status_code=500, detail="Failed to create supplier from business card"
         )
+
+
+def _build_capture_response(capture: Dict[str, Any]) -> BusinessCardCaptureResponseDTO:
+    """Build a BusinessCardCaptureResponseDTO from a capture dict."""
+    return BusinessCardCaptureResponseDTO(
+        id=capture["id"],
+        image_url=capture["image_url"],
+        status=BusinessCardCaptureStatus(capture["status"]),
+        company_name=capture.get("company_name"),
+        contact_name=capture.get("contact_name"),
+        contact_email=capture.get("contact_email"),
+        contact_phone=capture.get("contact_phone"),
+        contact_wechat=capture.get("contact_wechat"),
+        website=capture.get("website"),
+        address=capture.get("address"),
+        supplier_id=capture.get("supplier_id"),
+        fair_name=capture.get("fair_name"),
+        notes=capture.get("notes"),
+        captured_by=capture.get("captured_by"),
+        extraction_raw_response=capture.get("extraction_raw_response"),
+        created_at=capture["created_at"],
+        updated_at=capture["updated_at"],
+    )
+
+
+@router.put(
+    "/business-cards/{capture_id}",
+    response_model=BusinessCardCaptureResponseDTO,
+)
+async def update_business_card(
+    capture_id: UUID,
+    updates: BusinessCardUpdateDTO,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> BusinessCardCaptureResponseDTO:
+    """Update editable fields on a business card capture.
+
+    Args:
+        capture_id: UUID of the capture
+        updates: Fields to update
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureResponseDTO with updated data
+    """
+    try:
+        capture = business_card_service.update_capture(
+            capture_id, updates.model_dump(exclude_unset=True)
+        )
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg:
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    return _build_capture_response(capture)
+
+
+@router.post(
+    "/business-cards/{capture_id}/approve",
+    response_model=SupplierFromCardResultDTO,
+)
+async def approve_business_card(
+    capture_id: UUID,
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> SupplierFromCardResultDTO:
+    """Approve a business card capture and create a supplier.
+
+    Args:
+        capture_id: UUID of the capture to approve
+        current_user: Authenticated user
+
+    Returns:
+        SupplierFromCardResultDTO with creation result
+    """
+    print(
+        f"INFO [ExtractionRoutes]: Approve card {capture_id} "
+        f"by user {current_user.get('email')}"
+    )
+
+    try:
+        result = business_card_service.approve_card(capture_id)
+        return result
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg:
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+    except Exception as e:
+        print(f"ERROR [ExtractionRoutes]: Failed to approve card: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to approve business card"
+        )
+
+
+@router.post(
+    "/business-cards/{capture_id}/reject",
+    response_model=BusinessCardCaptureResponseDTO,
+)
+async def reject_business_card(
+    capture_id: UUID,
+    body: BusinessCardRejectDTO = BusinessCardRejectDTO(),
+    current_user: Dict[str, Any] = Depends(
+        require_roles(["admin", "manager", "user"])
+    ),
+) -> BusinessCardCaptureResponseDTO:
+    """Reject a business card capture.
+
+    Args:
+        capture_id: UUID of the capture to reject
+        body: Optional rejection reason
+        current_user: Authenticated user
+
+    Returns:
+        BusinessCardCaptureResponseDTO with updated data
+    """
+    print(
+        f"INFO [ExtractionRoutes]: Reject card {capture_id} "
+        f"by user {current_user.get('email')}"
+    )
+
+    try:
+        capture = business_card_service.reject_card(capture_id, body.reason)
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg:
+            raise HTTPException(status_code=404, detail=error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    return _build_capture_response(capture)
 
 
 @router.get("/{job_id}", response_model=ExtractionJobDTO)
