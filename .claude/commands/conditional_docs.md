@@ -1793,3 +1793,14 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with trade fair supplier introduction emails
     - When troubleshooting email delivery or SMTP configuration issues
     - When modifying supplier_service.create_supplier_from_card() email trigger
+
+- app_docs/feature-ba9f1399-card-review-page.md
+  - Conditions:
+    - When working with the CardReviewPage or /card-review route
+    - When modifying business card approve or reject workflows
+    - When working with business card capture status transitions (extracted → confirmed/rejected)
+    - When implementing inline editing or confidence score display for extracted fields
+    - When working with batch approve/reject operations on business cards
+    - When modifying extraction_routes.py approve, reject, or update endpoints
+    - When working with BusinessCardService approve_card() or reject_card() methods
+    - When troubleshooting the review & confirm flow between AI extraction and supplier creation

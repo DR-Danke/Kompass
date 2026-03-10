@@ -120,6 +120,71 @@ class BusinessCardService:
             raise ValueError(f"Failed to update business card capture {capture_id}")
         return result
 
+    def approve_card(self, capture_id: UUID) -> Dict[str, Any]:
+        """Approve a business card capture and create a supplier.
+
+        Args:
+            capture_id: UUID of the capture to approve
+
+        Returns:
+            SupplierFromCardResultDTO from supplier_service
+
+        Raises:
+            ValueError: If capture not found or status is not 'extracted'
+        """
+        from app.services.supplier_service import supplier_service
+
+        capture = self.get_capture(capture_id)
+        if capture["status"] != "extracted":
+            raise ValueError(
+                f"Cannot approve card with status '{capture['status']}'. "
+                "Only 'extracted' captures can be approved."
+            )
+
+        print(f"INFO [BusinessCardService]: Approving card {capture_id}")
+        result = supplier_service.create_supplier_from_card(capture_id)
+        return result
+
+    def reject_card(
+        self,
+        capture_id: UUID,
+        reason: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Reject a business card capture.
+
+        Args:
+            capture_id: UUID of the capture to reject
+            reason: Optional rejection reason
+
+        Returns:
+            Updated capture dictionary
+
+        Raises:
+            ValueError: If capture not found or status is invalid
+        """
+        capture = self.get_capture(capture_id)
+        allowed = ("extracted", "pending", "failed")
+        if capture["status"] not in allowed:
+            raise ValueError(
+                f"Cannot reject card with status '{capture['status']}'. "
+                f"Only {allowed} captures can be rejected."
+            )
+
+        print(f"INFO [BusinessCardService]: Rejecting card {capture_id}")
+
+        updates: Dict[str, Any] = {"status": "rejected"}
+        if reason:
+            existing_notes = capture.get("notes") or ""
+            if existing_notes:
+                updates["notes"] = f"{existing_notes}\nRechazo: {reason}"
+            else:
+                updates["notes"] = f"Rechazo: {reason}"
+
+        result = business_card_repository.update(capture_id, updates)
+        if not result:
+            raise ValueError(f"Failed to reject business card capture {capture_id}")
+        return result
+
     def extract_card(self, capture_id: UUID) -> Dict[str, Any]:
         """Run AI extraction on a business card capture.
 

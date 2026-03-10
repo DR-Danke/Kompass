@@ -621,6 +621,24 @@ class SupplierAuditListResponseDTO(BaseModel):
 # =============================================================================
 
 
+class BusinessCardUpdateDTO(BaseModel):
+    """Request model for updating business card capture fields."""
+
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    company_name: Optional[str] = None
+    address: Optional[str] = None
+    fair_name: Optional[str] = Field(default=None, max_length=255)
+    notes: Optional[str] = None
+
+
+class BusinessCardRejectDTO(BaseModel):
+    """Request model for rejecting a business card capture."""
+
+    reason: Optional[str] = None
+
+
 class BusinessCardCaptureCreateDTO(BaseModel):
     """Request model for creating a business card capture."""
 

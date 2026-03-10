@@ -16,6 +16,7 @@ import QuotationCreatorPage from './pages/kompass/QuotationCreatorPage';
 import SettingsPage from './pages/kompass/SettingsPage';
 import ImportWizardPage from './pages/kompass/ImportWizardPage';
 import CardCapturePage from './pages/kompass/CardCapturePage';
+import CardReviewPage from './pages/kompass/CardReviewPage';
 import NichesPage from './pages/kompass/NichesPage';
 import PricingConfigPage from './pages/kompass/PricingConfigPage';
 import DocumentationPage from './pages/kompass/DocumentationPage';
@@ -50,6 +51,7 @@ function App() {
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="import-wizard" element={<ImportWizardPage />} />
                 <Route path="card-capture" element={<CardCapturePage />} />
+                <Route path="card-review" element={<CardReviewPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="portfolios" element={<PortfoliosPage />} />
                 <Route path="portfolios/:id" element={<PortfolioBuilderPage />} />
