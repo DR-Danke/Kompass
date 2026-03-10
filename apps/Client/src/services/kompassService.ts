@@ -113,6 +113,7 @@ import type {
   ClassificationOverride,
   // Business card capture types
   BusinessCardCapture,
+  SupplierFromCardResult,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -1236,6 +1237,14 @@ export const businessCardService = {
     console.log(`INFO [businessCardService]: Triggering extraction for ${captureId}`);
     const response = await apiClient.post<BusinessCardCapture>(
       `/extract/business-cards/${captureId}/extract`
+    );
+    return response.data;
+  },
+
+  async createSupplierFromCard(captureId: string): Promise<SupplierFromCardResult> {
+    console.log(`INFO [businessCardService]: Creating supplier from card ${captureId}`);
+    const response = await apiClient.post<SupplierFromCardResult>(
+      `/extract/business-cards/${captureId}/create-supplier`
     );
     return response.data;
   },

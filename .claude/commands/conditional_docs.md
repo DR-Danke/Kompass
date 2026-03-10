@@ -1772,3 +1772,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying auto-extract behavior on business card upload
     - When working with ConfidenceBadge or ExtractedField components on CardCapturePage
     - When troubleshooting business card extraction status transitions or confidence scoring
+
+- app_docs/feature-672e87d6-auto-create-supplier-from-card.md
+  - Conditions:
+    - When working with auto-creation of suppliers from business card captures
+    - When modifying the POST /api/extract/business-cards/{id}/create-supplier endpoint
+    - When working with duplicate supplier detection by email or phone
+    - When working with trade fair metadata on suppliers (source, fair_name, capture_date, wechat_id)
+    - When modifying the "Crear Proveedor" button or supplier creation UI on CardCapturePage
+    - When filtering suppliers by source (e.g., trade_fair)
+    - When working with capture-to-supplier linking or capture status transitions to confirmed/rejected
