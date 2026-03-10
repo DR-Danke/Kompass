@@ -379,6 +379,7 @@ class SupplierCreateDTO(BaseModel):
     contact_name: Optional[str] = Field(default=None, max_length=200)
     contact_email: Optional[EmailStr] = None
     contact_phone: Optional[str] = Field(default=None, max_length=50)
+    wechat_id: Optional[str] = Field(default=None, max_length=100, description="WeChat ID for supplier contact")
     address: Optional[str] = None
     city: Optional[str] = Field(default=None, max_length=100)
     country: str = Field(default="China", max_length=100)
@@ -398,6 +399,7 @@ class SupplierUpdateDTO(BaseModel):
     contact_name: Optional[str] = Field(default=None, max_length=200)
     contact_email: Optional[EmailStr] = None
     contact_phone: Optional[str] = Field(default=None, max_length=50)
+    wechat_id: Optional[str] = Field(default=None, max_length=100, description="WeChat ID for supplier contact")
     address: Optional[str] = None
     city: Optional[str] = Field(default=None, max_length=100)
     country: Optional[str] = Field(default=None, max_length=100)
@@ -418,6 +420,7 @@ class SupplierResponseDTO(BaseModel):
     contact_name: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
+    wechat_id: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
     country: str

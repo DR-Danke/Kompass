@@ -1278,6 +1278,7 @@ class SupplierRepository:
         country: str = "China",
         website: Optional[str] = None,
         notes: Optional[str] = None,
+        wechat_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Create a new supplier."""
         conn = get_database_connection()
@@ -1290,12 +1291,12 @@ class SupplierRepository:
                     """
                     INSERT INTO suppliers (
                         name, code, status, contact_name, contact_email, contact_phone,
-                        address, city, country, website, notes
+                        address, city, country, website, notes, wechat_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              created_at, updated_at
+                              wechat_id, created_at, updated_at
                     """,
                     (
                         name,
@@ -1309,6 +1310,7 @@ class SupplierRepository:
                         country,
                         website,
                         notes,
+                        wechat_id,
                     ),
                 )
                 conn.commit()
@@ -1416,7 +1418,7 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     WHERE id = %s
                     """,
@@ -1475,7 +1477,7 @@ class SupplierRepository:
                     f"""
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     {where_clause}
                     ORDER BY name
@@ -1507,6 +1509,7 @@ class SupplierRepository:
         country: Optional[str] = None,
         website: Optional[str] = None,
         notes: Optional[str] = None,
+        wechat_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Update a supplier."""
         conn = get_database_connection()
@@ -1550,6 +1553,9 @@ class SupplierRepository:
             if notes is not None:
                 updates.append("notes = %s")
                 params.append(notes)
+            if wechat_id is not None:
+                updates.append("wechat_id = %s")
+                params.append(wechat_id)
 
             if not updates:
                 return self.get_by_id(supplier_id)
@@ -1564,7 +1570,7 @@ class SupplierRepository:
                     WHERE id = %s
                     RETURNING id, name, code, status, contact_name, contact_email,
                               contact_phone, address, city, country, website, notes,
-                              created_at, updated_at
+                              wechat_id, created_at, updated_at
                     """,
                     params,
                 )
@@ -1707,8 +1713,9 @@ class SupplierRepository:
             "country": row[9],
             "website": row[10],
             "notes": row[11],
-            "created_at": row[12],
-            "updated_at": row[13],
+            "wechat_id": row[12],
+            "created_at": row[13],
+            "updated_at": row[14],
         }
 
     def find_duplicate_supplier(
@@ -1779,7 +1786,7 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     WHERE LOWER(name) = LOWER(%s)
                     LIMIT 1
@@ -2137,7 +2144,7 @@ class SupplierRepository:
                     """
                     SELECT id, name, code, status, contact_name, contact_email,
                            contact_phone, address, city, country, website, notes,
-                           created_at, updated_at
+                           wechat_id, created_at, updated_at
                     FROM suppliers
                     WHERE name ILIKE %s
                        OR contact_email ILIKE %s

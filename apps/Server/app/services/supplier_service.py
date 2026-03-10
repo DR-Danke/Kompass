@@ -103,6 +103,7 @@ class SupplierService:
             country=request.country,
             website=request.website,
             notes=request.notes,
+            wechat_id=request.wechat_id,
         )
 
         if not result:
@@ -272,6 +273,8 @@ class SupplierService:
             update_kwargs["website"] = request.website
         if request.notes is not None:
             update_kwargs["notes"] = request.notes
+        if request.wechat_id is not None:
+            update_kwargs["wechat_id"] = request.wechat_id
 
         result = supplier_repository.update(supplier_id, **update_kwargs)
 

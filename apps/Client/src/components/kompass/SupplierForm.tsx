@@ -34,6 +34,7 @@ interface FormData {
   contact_name: string;
   contact_email: string;
   contact_phone: string;
+  wechat_id: string;
   country: string;
   city: string;
   address: string;
@@ -86,6 +87,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
       contact_name: '',
       contact_email: '',
       contact_phone: '',
+      wechat_id: '',
       country: 'CN',
       city: '',
       address: '',
@@ -106,6 +108,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
           contact_name: supplier.contact_name || '',
           contact_email: supplier.contact_email || '',
           contact_phone: supplier.contact_phone || '',
+          wechat_id: supplier.wechat_id || '',
           country: supplier.country,
           city: supplier.city || '',
           address: supplier.address || '',
@@ -120,6 +123,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
           contact_name: '',
           contact_email: '',
           contact_phone: '',
+          wechat_id: '',
           country: 'CN',
           city: '',
           address: '',
@@ -142,6 +146,7 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
         contact_name: data.contact_name || null,
         contact_email: data.contact_email || null,
         contact_phone: data.contact_phone || null,
+        wechat_id: data.wechat_id || null,
         country: data.country,
         city: data.city || null,
         address: data.address || null,
@@ -289,6 +294,22 @@ const SupplierForm: React.FC<SupplierFormProps> = ({ open, onClose, onSuccess, s
                   fullWidth
                   label="Contact Phone"
                   {...register('contact_phone')}
+                  disabled={loading}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="WeChat ID"
+                  placeholder="ID de WeChat del proveedor"
+                  {...register('wechat_id', {
+                    maxLength: {
+                      value: 100,
+                      message: 'Máximo 100 caracteres',
+                    },
+                  })}
+                  error={!!errors.wechat_id}
+                  helperText={errors.wechat_id?.message}
                   disabled={loading}
                 />
               </Grid>
