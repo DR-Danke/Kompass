@@ -1828,3 +1828,12 @@ This prompt helps you determine what documentation you should read based on the 
     - When integrating WeChat image messages with business card extraction pipeline
     - When troubleshooting WeChat API connectivity or access token issues
     - When working with pyzbar dependency or libzbar0 system library
+
+- app_docs/feature-9477e39c-supplier-product-import-pipeline.md
+  - Conditions:
+    - When working with the supplier-to-product import pipeline
+    - When modifying the Import Wizard page or its URL parameters
+    - When working with SupplierQuickActionsMenu or supplier quick actions
+    - When implementing supplier pre-selection or context-passing between pages
+    - When troubleshooting the flow from Suppliers page to Import Wizard
+    - When working with the Trade Fair Supplier Capture pipeline (TF-009)
