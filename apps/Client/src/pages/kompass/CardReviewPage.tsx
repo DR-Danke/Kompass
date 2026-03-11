@@ -21,12 +21,16 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
   ToggleButton,
   ToggleButtonGroup,
   Skeleton,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import BrokenImageIcon from '@mui/icons-material/BrokenImage';
+import CloseIcon from '@mui/icons-material/Close';
 import { useLocation } from 'react-router-dom';
 import type { BusinessCardCaptureStatus } from '@/types/kompass';
 import { useCardReview } from '@/hooks/kompass/useCardReview';
@@ -200,6 +204,9 @@ export default function CardReviewPage() {
       if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
     };
   }, [highlightId, isLoading, captures.length]);
+
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
@@ -406,15 +413,65 @@ export default function CardReviewPage() {
                       />
                     </TableCell>
                     <TableCell>
-                      {capture.image_url ? (
+                      {capture.image_url && !brokenImages.has(capture.image_url) ? (
                         <Box
-                          component="img"
-                          src={capture.image_url}
-                          alt="Tarjeta"
-                          sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                        />
+                          sx={{
+                            position: 'relative',
+                            width: 80,
+                            height: 80,
+                            cursor: 'pointer',
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            '&:hover .lightbox-overlay': { opacity: 1 },
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxImage(capture.image_url);
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={capture.image_url}
+                            alt="Tarjeta de presentación"
+                            onError={() => {
+                              setBrokenImages(prev => new Set(prev).add(capture.image_url!));
+                            }}
+                            sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                          />
+                          <Box
+                            className="lightbox-overlay"
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              bgcolor: 'rgba(0,0,0,0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: 0,
+                              transition: 'opacity 0.2s',
+                              borderRadius: 1,
+                            }}
+                          >
+                            <ZoomInIcon sx={{ color: 'white', fontSize: 32 }} />
+                          </Box>
+                        </Box>
                       ) : (
-                        <Box sx={{ width: 80, height: 80, bgcolor: 'grey.200', borderRadius: 1 }} />
+                        <Box
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            bgcolor: 'grey.200',
+                            borderRadius: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <BrokenImageIcon sx={{ color: 'grey.500', fontSize: 32 }} />
+                        </Box>
                       )}
                     </TableCell>
                     <TableCell>
@@ -523,6 +580,36 @@ export default function CardReviewPage() {
           </Table>
         </TableContainer>
       )}
+
+      {/* Lightbox dialog */}
+      <Dialog open={!!lightboxImage} onClose={() => setLightboxImage(null)} maxWidth="md" fullWidth>
+        <DialogContent
+          sx={{
+            p: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            bgcolor: 'black',
+            position: 'relative',
+            minHeight: 300,
+          }}
+        >
+          <Tooltip title="Cerrar">
+            <IconButton
+              onClick={() => setLightboxImage(null)}
+              sx={{ position: 'absolute', top: 8, right: 8, color: 'white' }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+          <Box
+            component="img"
+            src={lightboxImage || ''}
+            alt="Tarjeta de presentación"
+            sx={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Reject confirmation dialog */}
       <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)} maxWidth="sm" fullWidth>
