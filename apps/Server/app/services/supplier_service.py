@@ -667,9 +667,9 @@ class SupplierService:
         Returns:
             List of template metadata dicts
         """
-        from app.services.email_service import EmailService
+        from app.services.email_service import email_service
 
-        return EmailService.get_templates()
+        return email_service.get_templates()
 
     def send_outreach(
         self,

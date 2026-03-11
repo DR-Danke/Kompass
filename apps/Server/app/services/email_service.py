@@ -226,19 +226,32 @@ class EmailService:
                 mock_mode=False,
             )
 
-    @staticmethod
-    def get_templates() -> list:
-        """Return metadata for all available outreach templates.
+    def get_templates(self) -> list:
+        """Return metadata for all available outreach templates from DB with fallback.
 
         Returns:
-            List of template metadata dicts with key, name, subject, body_preview
+            List of template metadata dicts with key, name, subject, body, body_preview
         """
+        try:
+            from app.repository.outreach_template_repository import outreach_template_repository
+
+            db_templates = outreach_template_repository.list_templates(active_only=True)
+            if db_templates:
+                for t in db_templates:
+                    body = t.get("body", "")
+                    t["body_preview"] = (body[:150] + "...") if len(body) > 150 else body
+                return db_templates
+        except Exception as e:
+            print(f"WARN [EmailService]: Failed to read templates from DB, using defaults: {e}")
+
+        # Fallback to hardcoded defaults
         templates = []
         for key, tmpl in OUTREACH_TEMPLATES.items():
             templates.append({
                 "key": key,
                 "name": tmpl["name"],
                 "subject": tmpl["subject"],
+                "body": tmpl["body"],
                 "body_preview": tmpl["body"][:150] + "...",
             })
         return templates
@@ -259,15 +272,26 @@ class EmailService:
         Returns:
             EmailSendResultDTO with send result
         """
-        if template_name not in OUTREACH_TEMPLATES:
-            return EmailSendResultDTO(
-                success=False,
-                message=f"Template '{template_name}' not found",
-                recipient_email=supplier.get("contact_email", ""),
-                mock_mode=self.mock_mode,
-            )
+        # Try DB first, fallback to hardcoded
+        template = None
+        try:
+            from app.repository.outreach_template_repository import outreach_template_repository
 
-        template = OUTREACH_TEMPLATES[template_name]
+            db_template = outreach_template_repository.get_by_key(template_name)
+            if db_template:
+                template = db_template
+        except Exception as e:
+            print(f"WARN [EmailService]: Failed to read template from DB: {e}")
+
+        if not template:
+            if template_name not in OUTREACH_TEMPLATES:
+                return EmailSendResultDTO(
+                    success=False,
+                    message=f"Template '{template_name}' not found",
+                    recipient_email=supplier.get("contact_email", ""),
+                    mock_mode=self.mock_mode,
+                )
+            template = OUTREACH_TEMPLATES[template_name]
         context = {
             "contact_name": supplier.get("contact_name") or supplier.get("name", ""),
             "company_name": supplier.get("name", ""),

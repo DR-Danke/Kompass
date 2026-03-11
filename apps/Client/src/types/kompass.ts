@@ -1273,8 +1273,20 @@ export interface SupplierOutreachResult {
 }
 
 export interface OutreachTemplate {
+  id: string;
   key: string;
   name: string;
   subject: string;
+  body: string;
   body_preview: string;
+  is_active: boolean;
+  sort_order: number;
+  available_placeholders: string[];
+}
+
+export interface OutreachTemplateUpdate {
+  name?: string;
+  subject?: string;
+  body?: string;
+  is_active?: boolean;
 }

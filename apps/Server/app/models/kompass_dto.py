@@ -487,10 +487,26 @@ class SupplierOutreachResultDTO(BaseModel):
 class OutreachTemplateDTO(BaseModel):
     """Metadata for an outreach message template."""
 
+    id: Optional[UUID] = None
     key: str
     name: str
     subject: str
+    body: str = ""
     body_preview: str
+    is_active: bool = True
+    sort_order: int = 0
+    available_placeholders: List[str] = [
+        "{contact_name}", "{company_name}", "{fair_name}", "{sender_name}"
+    ]
+
+
+class OutreachTemplateUpdateDTO(BaseModel):
+    """Update model for outreach template editing."""
+
+    name: Optional[str] = None
+    subject: Optional[str] = None
+    body: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class SupplierCertificationSummaryDTO(BaseModel):

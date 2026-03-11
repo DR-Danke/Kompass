@@ -120,6 +120,7 @@ import type {
   SupplierOutreachRequest,
   SupplierOutreachResult,
   OutreachTemplate,
+  OutreachTemplateUpdate,
 } from '@/types/kompass';
 
 // =============================================================================
@@ -317,9 +318,34 @@ export const supplierService = {
     return response.data;
   },
 
-  async getOutreachTemplates(): Promise<OutreachTemplate[]> {
+  async getOutreachTemplates(activeOnly = true): Promise<OutreachTemplate[]> {
     console.log('INFO [supplierService]: Fetching outreach templates');
-    const response = await apiClient.get<OutreachTemplate[]>('/suppliers/outreach-templates');
+    const response = await apiClient.get<OutreachTemplate[]>('/suppliers/outreach-templates', {
+      params: { active_only: activeOnly },
+    });
+    return response.data;
+  },
+
+  async getTemplate(templateId: string): Promise<OutreachTemplate> {
+    console.log(`INFO [supplierService]: Fetching outreach template ${templateId}`);
+    const response = await apiClient.get<OutreachTemplate>(`/suppliers/outreach-templates/${templateId}`);
+    return response.data;
+  },
+
+  async updateTemplate(templateId: string, updates: OutreachTemplateUpdate): Promise<OutreachTemplate> {
+    console.log(`INFO [supplierService]: Updating outreach template ${templateId}`);
+    const response = await apiClient.put<OutreachTemplate>(
+      `/suppliers/outreach-templates/${templateId}`,
+      updates
+    );
+    return response.data;
+  },
+
+  async resetTemplate(templateId: string): Promise<OutreachTemplate> {
+    console.log(`INFO [supplierService]: Resetting outreach template ${templateId}`);
+    const response = await apiClient.post<OutreachTemplate>(
+      `/suppliers/outreach-templates/${templateId}/reset`
+    );
     return response.data;
   },
 

@@ -557,3 +557,28 @@ CREATE OR REPLACE TRIGGER update_quotation_items_updated_at
     BEFORE UPDATE ON quotation_items
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- =============================================================================
+-- OUTREACH TEMPLATES TABLE
+-- =============================================================================
+
+-- Outreach Templates: Editable email templates for supplier follow-up messages
+CREATE TABLE IF NOT EXISTS outreach_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    key VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true NOT NULL,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_outreach_templates_key ON outreach_templates(key);
+CREATE INDEX IF NOT EXISTS idx_outreach_templates_is_active ON outreach_templates(is_active);
+
+CREATE OR REPLACE TRIGGER update_outreach_templates_updated_at
+    BEFORE UPDATE ON outreach_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();

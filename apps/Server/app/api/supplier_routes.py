@@ -17,6 +17,7 @@ from app.api.dependencies import get_current_user
 from app.api.rbac_dependencies import require_roles
 from app.models.kompass_dto import (
     OutreachTemplateDTO,
+    OutreachTemplateUpdateDTO,
     ProductFilterDTO,
     ProductListResponseDTO,
     SupplierCertificationSummaryDTO,
@@ -32,6 +33,7 @@ from app.models.kompass_dto import (
     SupplierStatus,
     SupplierUpdateDTO,
 )
+from app.services.outreach_template_service import outreach_template_service
 from app.services.product_service import product_service
 from app.services.supplier_service import supplier_service
 
@@ -291,11 +293,13 @@ async def list_suppliers_by_pipeline(
 
 @router.get("/outreach-templates", response_model=List[OutreachTemplateDTO])
 async def get_outreach_templates(
+    active_only: bool = Query(True, description="Filter by active status"),
     current_user: dict = Depends(get_current_user),
 ) -> List[OutreachTemplateDTO]:
     """Get available outreach message templates.
 
     Args:
+        active_only: If True, only return active templates (default True)
         current_user: Authenticated user (injected)
 
     Returns:
@@ -303,8 +307,80 @@ async def get_outreach_templates(
     """
     print("INFO [SupplierRoutes]: Getting outreach templates")
 
-    templates = supplier_service.get_outreach_templates()
+    templates = outreach_template_service.list_templates(active_only=active_only)
     return [OutreachTemplateDTO(**t) for t in templates]
+
+
+@router.get("/outreach-templates/{template_id}", response_model=OutreachTemplateDTO)
+async def get_outreach_template(
+    template_id: UUID,
+    current_user: dict = Depends(get_current_user),
+) -> OutreachTemplateDTO:
+    """Get a single outreach template by ID.
+
+    Args:
+        template_id: UUID of the template
+        current_user: Authenticated user (injected)
+
+    Returns:
+        Outreach template with metadata
+    """
+    print(f"INFO [SupplierRoutes]: Getting outreach template {template_id}")
+
+    try:
+        template = outreach_template_service.get_template_by_id(template_id)
+        return OutreachTemplateDTO(**template)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.put("/outreach-templates/{template_id}", response_model=OutreachTemplateDTO)
+async def update_outreach_template(
+    template_id: UUID,
+    request: OutreachTemplateUpdateDTO,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> OutreachTemplateDTO:
+    """Update an outreach template (admin/manager only).
+
+    Args:
+        template_id: UUID of the template
+        request: Update data
+        current_user: Authenticated admin/manager user (injected)
+
+    Returns:
+        Updated outreach template
+    """
+    print(f"INFO [SupplierRoutes]: Updating outreach template {template_id}")
+
+    try:
+        updates = request.model_dump(exclude_none=True)
+        template = outreach_template_service.update_template(template_id, updates)
+        return OutreachTemplateDTO(**template)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/outreach-templates/{template_id}/reset", response_model=OutreachTemplateDTO)
+async def reset_outreach_template(
+    template_id: UUID,
+    current_user: dict = Depends(require_roles(["admin", "manager"])),
+) -> OutreachTemplateDTO:
+    """Reset an outreach template to default content (admin/manager only).
+
+    Args:
+        template_id: UUID of the template
+        current_user: Authenticated admin/manager user (injected)
+
+    Returns:
+        Reset outreach template
+    """
+    print(f"INFO [SupplierRoutes]: Resetting outreach template {template_id}")
+
+    try:
+        template = outreach_template_service.reset_template(template_id)
+        return OutreachTemplateDTO(**template)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/export/excel")
