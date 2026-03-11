@@ -1900,3 +1900,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying the card-to-supplier creation workflow
     - When working with BusinessCardUpdateDTO or contact_wechat field
     - When debugging the CardReviewPage approval flow
+
+- app_docs/feature-2f828f8f-auto-navigate-card-review-after-capture.md
+  - Conditions:
+    - When modifying post-upload behavior on CardCapturePage
+    - When working with extraction polling or status checking after card upload
+    - When modifying navigation between CardCapturePage and CardReviewPage
+    - When working with row highlighting or scroll-to-row on CardReviewPage
+    - When troubleshooting auto-navigation after business card capture
