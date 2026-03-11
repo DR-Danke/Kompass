@@ -230,6 +230,16 @@ class BusinessCardService:
                 "extraction_raw_response": self._to_json(result),
             }
 
+            # Flag for manual review when company_name is null
+            if updates["company_name"] is None:
+                existing_notes = capture.get("notes") or ""
+                review_note = "Company name could not be determined — manual review required"
+                if existing_notes:
+                    updates["notes"] = f"{existing_notes}\n{review_note}"
+                else:
+                    updates["notes"] = review_note
+                print(f"INFO [BusinessCardService]: Company name null for {capture_id}, flagged for manual review")
+
             updated = business_card_repository.update(capture_id, updates)
             if not updated:
                 raise ValueError(f"Failed to update capture {capture_id} after extraction")

@@ -783,6 +783,132 @@ class TestExcelAIFallback:
             Path(temp_path).unlink()
 
 
+class TestParseBusinessCardResponse:
+    """Tests for business card response parsing and validation."""
+
+    def test_parse_valid_business_card(self, service):
+        """Valid JSON with distinct company_name and contact_name — both preserved."""
+        response = json.dumps({
+            "company_name": "Guangzhou Trading Co., Ltd.",
+            "contact_name": "Zhang Wei",
+            "contact_email": "zhang@example.com",
+            "contact_phone": "+86 13800138000",
+            "website": "https://example.com",
+            "address": "123 Main St, Guangzhou",
+            "contact_wechat": "zhangwei123",
+            "qr_code_detected": False,
+            "confidence_scores": {
+                "company_name": 0.95,
+                "contact_name": 0.9,
+            },
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] == "Guangzhou Trading Co., Ltd."
+        assert result["contact_name"] == "Zhang Wei"
+        assert result["confidence_scores"]["company_name"] == 0.95
+
+    def test_parse_company_equals_contact_name(self, service):
+        """When company_name equals contact_name, company_name set to None."""
+        response = json.dumps({
+            "company_name": "Zhang Wei",
+            "contact_name": "zhang wei",
+            "confidence_scores": {"company_name": 0.8, "contact_name": 0.9},
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] is None
+        assert result["confidence_scores"]["company_name"] == 0.0
+        assert result["contact_name"] == "zhang wei"
+
+    def test_parse_empty_company_name(self, service):
+        """Empty string company_name normalized to None."""
+        response = json.dumps({
+            "company_name": "",
+            "contact_name": "John Doe",
+            "confidence_scores": {"contact_name": 0.9},
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] is None
+
+    def test_parse_whitespace_company_name(self, service):
+        """Whitespace-only company_name normalized to None."""
+        response = json.dumps({
+            "company_name": "   ",
+            "contact_name": "Jane Smith",
+            "confidence_scores": {"contact_name": 0.85},
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] is None
+
+    def test_parse_person_name_as_company(self, service):
+        """2-word company_name without corporate suffixes — confidence capped at 0.4."""
+        response = json.dumps({
+            "company_name": "Li Ming",
+            "contact_name": "Wang Fang",
+            "confidence_scores": {"company_name": 0.8, "contact_name": 0.9},
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] == "Li Ming"
+        assert result["confidence_scores"]["company_name"] <= 0.4
+
+    def test_parse_valid_company_with_suffix(self, service):
+        """Company_name with 'Co., Ltd.' suffix retains normal confidence."""
+        response = json.dumps({
+            "company_name": "Golden Star Co., Ltd.",
+            "contact_name": "Chen Yu",
+            "confidence_scores": {"company_name": 0.9, "contact_name": 0.85},
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] == "Golden Star Co., Ltd."
+        assert result["confidence_scores"]["company_name"] == 0.9
+
+    def test_parse_null_company_name(self, service):
+        """Explicit null company_name remains None."""
+        response = json.dumps({
+            "company_name": None,
+            "contact_name": "Bob Smith",
+            "confidence_scores": {"contact_name": 0.9},
+        })
+        result = service._parse_business_card_response(response)
+
+        assert result["company_name"] is None
+
+    def test_existing_fields_not_regressed(self, service):
+        """Ensure all other fields are preserved when company_name validation fires."""
+        response = json.dumps({
+            "company_name": "Zhang Wei",
+            "contact_name": "Zhang Wei",
+            "contact_email": "zw@example.com",
+            "contact_phone": "+86 13912345678",
+            "website": "https://zw.example.com",
+            "address": "456 Industrial Rd, Shenzhen",
+            "contact_wechat": "zw_wechat",
+            "qr_code_detected": True,
+            "confidence_scores": {
+                "company_name": 0.7,
+                "contact_name": 0.9,
+                "contact_email": 0.95,
+            },
+        })
+        result = service._parse_business_card_response(response)
+
+        # company_name should be nullified (equals contact_name)
+        assert result["company_name"] is None
+        # All other fields preserved
+        assert result["contact_name"] == "Zhang Wei"
+        assert result["contact_email"] == "zw@example.com"
+        assert result["contact_phone"] == "+86 13912345678"
+        assert result["website"] == "https://zw.example.com"
+        assert result["address"] == "456 Industrial Rd, Shenzhen"
+        assert result["contact_wechat"] == "zw_wechat"
+        assert result["qr_code_detected"] is True
+
+
 class TestExtractionDTOs:
     """Tests for extraction DTOs."""
 
