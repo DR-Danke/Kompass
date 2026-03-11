@@ -1,6 +1,6 @@
 """Service layer for outreach template management."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from uuid import UUID
 
 from app.repository.outreach_template_repository import outreach_template_repository
