@@ -1924,3 +1924,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When handling broken or missing image URLs in the card review table
     - When adding actions (e.g., download button) to the lightbox Dialog
     - When troubleshooting thumbnail click vs row selection behavior on CardReviewPage
+
+- app_docs/feature-f1974dcd-card-image-download-button.md
+  - Conditions:
+    - When modifying the card image download functionality on CardReviewPage
+    - When working with file download or blob handling for business card images
+    - When adding or changing actions in the lightbox DialogActions bar
+    - When modifying filename generation for downloaded card images
+    - When troubleshooting download behavior for data URI or HTTP URL images
