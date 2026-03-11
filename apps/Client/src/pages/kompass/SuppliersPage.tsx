@@ -934,7 +934,7 @@ const SuppliersPage: React.FC = () => {
                 label="Plantilla"
                 onChange={(e) => setOutreachSelectedTemplate(e.target.value)}
               >
-                {outreachTemplates.map((tmpl) => (
+                {outreachTemplates.filter((tmpl) => tmpl.is_active !== false).map((tmpl) => (
                   <MenuItem key={tmpl.key} value={tmpl.key}>
                     {tmpl.name}
                   </MenuItem>
@@ -977,12 +977,20 @@ const SuppliersPage: React.FC = () => {
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                   Vista previa
                 </Typography>
-                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50' }}>
+                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50', maxHeight: 200, overflow: 'auto' }}>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    Asunto: {outreachTemplates.find(t => t.key === outreachSelectedTemplate)?.subject || ''}
+                    Asunto: {(outreachTemplates.find(t => t.key === outreachSelectedTemplate)?.subject || '')
+                      .replace(/\{contact_name\}/g, outreachSupplier?.contact_name || outreachSupplier?.name || '')
+                      .replace(/\{company_name\}/g, outreachSupplier?.name || '')
+                      .replace(/\{fair_name\}/g, 'the trade fair')
+                      .replace(/\{sender_name\}/g, 'Kompass')}
                   </Typography>
                   <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontSize: '0.8rem' }}>
-                    {outreachTemplates.find(t => t.key === outreachSelectedTemplate)?.body_preview || ''}
+                    {((tmpl) => (tmpl?.body || tmpl?.body_preview || ''))(outreachTemplates.find(t => t.key === outreachSelectedTemplate))
+                      .replace(/\{contact_name\}/g, outreachSupplier?.contact_name || outreachSupplier?.name || '')
+                      .replace(/\{company_name\}/g, outreachSupplier?.name || '')
+                      .replace(/\{fair_name\}/g, 'the trade fair')
+                      .replace(/\{sender_name\}/g, 'Kompass')}
                   </Typography>
                 </Paper>
               </Box>
