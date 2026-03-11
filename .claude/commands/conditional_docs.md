@@ -1874,3 +1874,13 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with contact_wechat field on CardReviewPage or CardCapturePage
     - When troubleshooting WeChat ID visibility in the card review or capture workflow
     - When modifying ExtractedField or EditableCell components for business card data
+
+- app_docs/feature-1ec0e5cf-editable-outreach-email-templates.md
+  - Conditions:
+    - When working with outreach email templates or the OUTREACH_TEMPLATES dict
+    - When modifying the Settings page or SettingsPage.tsx
+    - When working with email_service.py template rendering or send_template_email
+    - When modifying the outreach_templates database table or migration
+    - When working with outreach_template_repository.py or outreach_template_service.py
+    - When modifying the Suppliers page outreach dialog or template dropdown
+    - When troubleshooting template placeholder substitution or preview rendering
