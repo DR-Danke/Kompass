@@ -168,7 +168,7 @@ const CardCapturePage: React.FC = () => {
           pollIntervalRef.current = null;
           setExtractionPhase(false);
           console.log('INFO [CardCapturePage]: Extraction complete, navigating to review');
-          navigate('/kompass/card-review', { state: { highlightCaptureId: lastCaptureId } });
+          navigate('/card-review', { state: { highlightCaptureId: lastCaptureId } });
         } else if (capture.status === 'failed') {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           pollIntervalRef.current = null;
@@ -232,7 +232,7 @@ const CardCapturePage: React.FC = () => {
 
       if (capture.status === 'extracted') {
         // Navigate immediately
-        navigate('/kompass/card-review', { state: { highlightCaptureId: capture.id } });
+        navigate('/card-review', { state: { highlightCaptureId: capture.id } });
       } else if (capture.status === 'processing' || capture.status === 'pending') {
         // Start polling for extraction
         setExtractionTimeout(false);
@@ -413,7 +413,7 @@ const CardCapturePage: React.FC = () => {
           La extracción está tomando más tiempo de lo esperado. Puedes revisar el resultado en la página de revisión.
           <Button
             component={RouterLink}
-            to="/kompass/card-review"
+            to="/card-review"
             size="small"
             variant="outlined"
             sx={{ ml: 2 }}
