@@ -265,6 +265,12 @@ Return a JSON object with these fields (use null for missing/unreadable fields):
     }
 }
 
+CRITICAL DISTINCTION — company_name vs. contact_name:
+- company_name: The name of the COMPANY or ORGANIZATION (NOT the person). Visual cues: largest/boldest text on the card, text near logos, text with corporate suffixes (Inc., LLC, S.A., S.A.S., Ltda., GmbH, Co., Ltd., Corp., S.R.L., S.L., Company, Group, Trading, Industrial, Factory, Manufacture).
+- contact_name: The individual PERSON's full name. Visual cues: text near job titles, text in normal/smaller font.
+- If you cannot clearly identify a company name, set company_name to null — do NOT use the person's name as the company name.
+- Set confidence_scores.company_name below 0.5 if the company name is uncertain.
+
 Rules:
 - Only include confidence scores for fields that are not null
 - Set confidence to 0.0 for fields you cannot find
@@ -389,6 +395,49 @@ Rules:
 
         # Ensure qr_code_detected is boolean
         data["qr_code_detected"] = bool(data.get("qr_code_detected", False))
+
+        # Normalize empty/whitespace company_name to None
+        company_name = data.get("company_name")
+        if isinstance(company_name, str):
+            company_name = company_name.strip()
+            if not company_name:
+                company_name = None
+            data["company_name"] = company_name
+
+        # Detect company_name == contact_name (misidentification)
+        contact_name = data.get("contact_name")
+        if (
+            company_name is not None
+            and contact_name is not None
+            and company_name.strip().lower() == str(contact_name).strip().lower()
+        ):
+            print(
+                f"WARN [ExtractionService]: company_name '{company_name}' "
+                f"equals contact_name — setting company_name to null"
+            )
+            data["company_name"] = None
+            data["confidence_scores"]["company_name"] = 0.0
+
+        # Detect person-name-like company_name (no corporate suffix)
+        elif data.get("company_name") is not None:
+            _corporate_suffixes = (
+                "inc", "llc", "s.a.", "s.a.s", "ltda", "gmbh", "co.",
+                "ltd", "corp", "s.r.l.", "s.l.", "company", "group",
+                "trading", "industrial", "factory", "manufacture",
+            )
+            cn = data["company_name"]
+            words = cn.split()
+            if 2 <= len(words) <= 3:
+                cn_lower = cn.lower()
+                has_suffix = any(suffix in cn_lower for suffix in _corporate_suffixes)
+                if not has_suffix:
+                    current_conf = data["confidence_scores"].get("company_name", 0.5)
+                    capped = min(current_conf, 0.4)
+                    data["confidence_scores"]["company_name"] = capped
+                    print(
+                        f"WARN [ExtractionService]: company_name '{cn}' "
+                        f"looks like a person name — confidence capped at {capped}"
+                    )
 
         return data
 
