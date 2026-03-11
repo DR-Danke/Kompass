@@ -552,9 +552,9 @@ class SupplierService:
         if capture.get("supplier_id"):
             raise ValueError("This capture is already linked to a supplier")
 
-        # 4. Extract fields
-        company_name = capture.get("company_name")
-        contact_name = capture.get("contact_name")
+        # 4. Extract fields (strip whitespace, normalize empty to None)
+        company_name = (capture.get("company_name") or "").strip() or None
+        contact_name = (capture.get("contact_name") or "").strip() or None
         contact_email = capture.get("contact_email")
         contact_phone = capture.get("contact_phone")
         contact_wechat = capture.get("contact_wechat")
@@ -566,6 +566,12 @@ class SupplierService:
         supplier_name = company_name or contact_name
         if not supplier_name:
             raise ValueError("No company or contact name extracted from business card")
+
+        # Flag when contact_name is used as supplier name (company_name missing)
+        fallback_note = None
+        if not company_name and contact_name:
+            fallback_note = "Nombre de empresa no encontrado — se usó el nombre del contacto. Revisión manual requerida."
+            print(f"INFO [SupplierService]: Using contact_name as supplier name for capture {capture_id}")
 
         # 6. Duplicate detection
         dup = supplier_repository.find_duplicate_supplier(
@@ -600,6 +606,7 @@ class SupplierService:
             address=address,
             country="China",
             website=website,
+            notes=fallback_note,
             pipeline_status="contacted",
             source="trade_fair",
             fair_name=fair_name,

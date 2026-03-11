@@ -1892,3 +1892,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When troubleshooting company_name vs contact_name misidentification
     - When working with business_card_service.py extract_card method
     - When adding or modifying corporate suffix detection logic
+
+- app_docs/bug-44fe017a-fix-supplier-name-blank-card-approval.md
+  - Conditions:
+    - When working with create_supplier_from_card in supplier_service.py
+    - When troubleshooting blank or whitespace-only supplier names after card approval
+    - When modifying the card-to-supplier creation workflow
+    - When working with BusinessCardUpdateDTO or contact_wechat field
+    - When debugging the CardReviewPage approval flow
