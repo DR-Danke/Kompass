@@ -31,6 +31,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useLocation } from 'react-router-dom';
 import type { BusinessCardCaptureStatus } from '@/types/kompass';
 import { useCardReview } from '@/hooks/kompass/useCardReview';
@@ -206,6 +207,7 @@ export default function CardReviewPage() {
   }, [highlightId, isLoading, captures.length]);
 
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxCapture, setLightboxCapture] = useState<typeof captures[0] | null>(null);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -281,6 +283,29 @@ export default function CardReviewPage() {
     const scores = (raw as Record<string, unknown>).confidence_scores;
     if (!scores || typeof scores !== 'object') return {};
     return scores as Record<string, number>;
+  };
+
+  const handleDownloadImage = async (imageUrl: string | null, captureName: string | null) => {
+    if (!imageUrl) return;
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const safeName = (captureName || 'sin-nombre')
+        .replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .substring(0, 50);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tarjeta-${safeName}-${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('INFO [CardReviewPage]: Error downloading image', error);
+    }
   };
 
   const canApprove = (status: BusinessCardCaptureStatus) => status === 'extracted';
@@ -427,6 +452,7 @@ export default function CardReviewPage() {
                           onClick={(e) => {
                             e.stopPropagation();
                             setLightboxImage(capture.image_url);
+                            setLightboxCapture(capture);
                           }}
                         >
                           <Box
@@ -543,6 +569,22 @@ export default function CardReviewPage() {
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        {capture.image_url && !brokenImages.has(capture.image_url) && (
+                          <Tooltip title="Descargar imagen">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadImage(
+                                  capture.image_url,
+                                  capture.company_name || capture.contact_name || null
+                                );
+                              }}
+                            >
+                              <DownloadIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                         {canApprove(capture.status) && (
                           <Tooltip title="Aprobar">
                             <Button
@@ -582,7 +624,7 @@ export default function CardReviewPage() {
       )}
 
       {/* Lightbox dialog */}
-      <Dialog open={!!lightboxImage} onClose={() => setLightboxImage(null)} maxWidth="md" fullWidth>
+      <Dialog open={!!lightboxImage} onClose={() => { setLightboxImage(null); setLightboxCapture(null); }} maxWidth="md" fullWidth>
         <DialogContent
           sx={{
             p: 0,
@@ -596,7 +638,7 @@ export default function CardReviewPage() {
         >
           <Tooltip title="Cerrar">
             <IconButton
-              onClick={() => setLightboxImage(null)}
+              onClick={() => { setLightboxImage(null); setLightboxCapture(null); }}
               sx={{ position: 'absolute', top: 8, right: 8, color: 'white' }}
             >
               <CloseIcon />
@@ -609,6 +651,19 @@ export default function CardReviewPage() {
             sx={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
           />
         </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', bgcolor: 'black' }}>
+          <Tooltip title="Descargar imagen">
+            <IconButton
+              onClick={() => handleDownloadImage(
+                lightboxImage,
+                lightboxCapture?.company_name || lightboxCapture?.contact_name || null
+              )}
+              color="primary"
+            >
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+        </DialogActions>
       </Dialog>
 
       {/* Reject confirmation dialog */}
