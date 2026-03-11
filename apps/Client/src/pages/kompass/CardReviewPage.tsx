@@ -32,6 +32,7 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useLocation } from 'react-router-dom';
 import type { BusinessCardCaptureStatus } from '@/types/kompass';
 import { useCardReview } from '@/hooks/kompass/useCardReview';
@@ -174,6 +175,8 @@ export default function CardReviewPage() {
     rejectCard,
     batchApprove,
     batchReject,
+    createSupplierFromCard,
+    creatingSupplierIds,
     toggleSelection,
     toggleSelectAll,
     setStatusFilter,
@@ -236,6 +239,25 @@ export default function CardReviewPage() {
       }
     } catch {
       setSnackbar({ message: 'Error al aprobar la tarjeta', severity: 'error' });
+    }
+  };
+
+  const handleCreateSupplier = async (captureId: string) => {
+    try {
+      const result = await createSupplierFromCard(captureId);
+      if (result.is_duplicate) {
+        setSnackbar({ message: `Duplicado detectado: ${result.duplicate_supplier_name || 'proveedor existente'}`, severity: 'error' });
+      } else if (result.email_sent) {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado. Correo de seguimiento enviado`, severity: 'success' });
+      } else if (result.email_error) {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado. Error al enviar correo de seguimiento`, severity: 'warning' });
+      } else if (result.no_email_address) {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado. No se encontró correo electrónico — seguimiento manual requerido`, severity: 'warning' });
+      } else {
+        setSnackbar({ message: `Proveedor "${result.supplier_name}" creado exitosamente`, severity: 'success' });
+      }
+    } catch {
+      setSnackbar({ message: 'Error al crear proveedor', severity: 'error' });
     }
   };
 
@@ -584,6 +606,27 @@ export default function CardReviewPage() {
                               <DownloadIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
+                        )}
+                        {capture.status === 'extracted' && !capture.supplier_id && (
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            startIcon={creatingSupplierIds.has(capture.id) ? <CircularProgress size={16} /> : <PersonAddIcon />}
+                            onClick={() => handleCreateSupplier(capture.id)}
+                            disabled={creatingSupplierIds.has(capture.id) || isProcessing}
+                          >
+                            {creatingSupplierIds.has(capture.id) ? 'Creando...' : 'Crear Proveedor'}
+                          </Button>
+                        )}
+                        {capture.status === 'confirmed' && capture.supplier_id && (
+                          <Chip
+                            icon={<CheckCircleIcon />}
+                            label="Proveedor vinculado"
+                            color="primary"
+                            size="small"
+                            variant="outlined"
+                          />
                         )}
                         {canApprove(capture.status) && (
                           <Tooltip title="Aprobar">

@@ -23,6 +23,8 @@ export interface UseCardReviewReturn extends UseCardReviewState {
   rejectCard: (captureId: string, reason?: string) => Promise<void>;
   batchApprove: (captureIds: string[]) => Promise<void>;
   batchReject: (captureIds: string[], reason?: string) => Promise<void>;
+  createSupplierFromCard: (captureId: string) => Promise<SupplierFromCardResult>;
+  creatingSupplierIds: Set<string>;
   toggleSelection: (captureId: string) => void;
   toggleSelectAll: () => void;
   setStatusFilter: (status: BusinessCardCaptureStatus | null) => void;
@@ -37,6 +39,7 @@ export function useCardReview(): UseCardReviewReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [creatingSupplierIds, setCreatingSupplierIds] = useState<Set<string>>(new Set());
 
   const fetchCaptures = useCallback(async (filter?: BusinessCardCaptureStatus | null) => {
     console.log('INFO [useCardReview]: Fetching captures');
@@ -179,6 +182,41 @@ export function useCardReview(): UseCardReviewReturn {
     }
   }, [rejectCard]);
 
+  const createSupplierFromCard = useCallback(async (captureId: string): Promise<SupplierFromCardResult> => {
+    console.log(`INFO [useCardReview]: Creating supplier from card ${captureId}`);
+    setCreatingSupplierIds(prev => new Set(prev).add(captureId));
+
+    try {
+      const result = await businessCardService.createSupplierFromCard(captureId);
+
+      setCaptures(prev =>
+        prev.map(c => {
+          if (c.id !== captureId) return c;
+          if (result.is_duplicate) {
+            return { ...c, status: 'rejected' as BusinessCardCaptureStatus };
+          }
+          return {
+            ...c,
+            status: 'confirmed' as BusinessCardCaptureStatus,
+            supplier_id: result.supplier_id ?? null,
+          };
+        })
+      );
+
+      console.log(`INFO [useCardReview]: Supplier created successfully from card ${captureId}`);
+      return result;
+    } catch (err) {
+      console.error('ERROR [useCardReview]: Failed to create supplier from card:', err);
+      throw err;
+    } finally {
+      setCreatingSupplierIds(prev => {
+        const next = new Set(prev);
+        next.delete(captureId);
+        return next;
+      });
+    }
+  }, []);
+
   const toggleSelection = useCallback((captureId: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -227,6 +265,8 @@ export function useCardReview(): UseCardReviewReturn {
     rejectCard,
     batchApprove,
     batchReject,
+    createSupplierFromCard,
+    creatingSupplierIds,
     toggleSelection,
     toggleSelectAll,
     setStatusFilter,

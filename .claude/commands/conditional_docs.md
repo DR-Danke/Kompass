@@ -1932,3 +1932,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When adding or changing actions in the lightbox DialogActions bar
     - When modifying filename generation for downloaded card images
     - When troubleshooting download behavior for data URI or HTTP URL images
+
+- app_docs/feature-d3b666c5-create-supplier-card-review.md
+  - Conditions:
+    - When modifying the "Crear Proveedor" button on CardReviewPage
+    - When working with supplier creation from business card captures
+    - When modifying the useCardReview hook's createSupplierFromCard method
+    - When working with the actions column on the Card Review page
+    - When troubleshooting supplier creation flow from card review
