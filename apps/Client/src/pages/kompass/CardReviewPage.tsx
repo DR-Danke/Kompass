@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { useLocation } from 'react-router-dom';
 import type { BusinessCardCaptureStatus } from '@/types/kompass';
 import { useCardReview } from '@/hooks/kompass/useCardReview';
 
@@ -154,6 +155,7 @@ function EditableCell({ value, fieldName, captureId, confidenceScore, onSave, di
 }
 
 export default function CardReviewPage() {
+  const location = useLocation();
   const {
     captures,
     total,
@@ -172,6 +174,32 @@ export default function CardReviewPage() {
     setStatusFilter,
     clearError,
   } = useCardReview();
+
+  const [highlightId, setHighlightId] = useState<string | undefined>(
+    (location.state as { highlightCaptureId?: string } | null)?.highlightCaptureId
+  );
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Scroll to highlighted row and clear highlight after 3s
+  useEffect(() => {
+    if (!highlightId || isLoading || captures.length === 0) return;
+
+    // Clear navigation state to prevent re-highlight on refresh
+    window.history.replaceState({}, document.title);
+
+    const row = document.querySelector(`[data-capture-id="${highlightId}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    highlightTimerRef.current = setTimeout(() => {
+      setHighlightId(undefined);
+    }, 3000);
+
+    return () => {
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+    };
+  }, [highlightId, isLoading, captures.length]);
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
@@ -356,7 +384,21 @@ export default function CardReviewPage() {
                 const scores = getConfidenceScores(capture);
                 const editable = isEditable(capture.status);
                 return (
-                  <TableRow key={capture.id} hover selected={selectedIds.has(capture.id)}>
+                  <TableRow
+                    key={capture.id}
+                    hover
+                    selected={selectedIds.has(capture.id)}
+                    data-capture-id={capture.id}
+                    sx={{
+                      ...(capture.id === highlightId && {
+                        '@keyframes highlightPulse': {
+                          '0%': { backgroundColor: 'rgba(25, 118, 210, 0.15)' },
+                          '100%': { backgroundColor: 'transparent' },
+                        },
+                        animation: 'highlightPulse 3s ease-out',
+                      }),
+                    }}
+                  >
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={selectedIds.has(capture.id)}

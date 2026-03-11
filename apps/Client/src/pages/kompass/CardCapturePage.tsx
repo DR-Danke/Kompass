@@ -26,11 +26,14 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { businessCardService } from '@/services/kompassService';
 import type { BusinessCardCapture, BusinessCardCaptureStatus, SupplierFromCardResult } from '@/types/kompass';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_EXTENSIONS = '.png,.jpg,.jpeg';
+const POLL_INTERVAL_MS = 2000;
+const POLL_TIMEOUT_MS = 30000;
 
 const STATUS_COLORS: Record<BusinessCardCaptureStatus, 'warning' | 'info' | 'success' | 'error' | 'default'> = {
   pending: 'warning',
@@ -104,6 +107,7 @@ function ExtractedField({ icon, value, confidence }: ExtractedFieldProps) {
 }
 
 const CardCapturePage: React.FC = () => {
+  const navigate = useNavigate();
   const [captures, setCaptures] = useState<BusinessCardCapture[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -114,7 +118,12 @@ const CardCapturePage: React.FC = () => {
   const [extractingIds, setExtractingIds] = useState<Set<string>>(new Set());
   const [creatingSupplierIds, setCreatingSupplierIds] = useState<Set<string>>(new Set());
   const [supplierResults, setSupplierResults] = useState<Record<string, SupplierFromCardResult>>({});
+  const [extractionPhase, setExtractionPhase] = useState(false);
+  const [extractionTimeout, setExtractionTimeout] = useState(false);
+  const [lastCaptureId, setLastCaptureId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cancelledRef = useRef(false);
 
   const loadCaptures = useCallback(async () => {
     try {
@@ -129,6 +138,57 @@ const CardCapturePage: React.FC = () => {
   useEffect(() => {
     loadCaptures();
   }, [loadCaptures]);
+
+  // Polling for extraction status after upload
+  useEffect(() => {
+    if (!extractionPhase || !lastCaptureId) return;
+
+    cancelledRef.current = false;
+    const startTime = Date.now();
+
+    pollIntervalRef.current = setInterval(async () => {
+      if (cancelledRef.current) return;
+
+      // Check timeout
+      if (Date.now() - startTime >= POLL_TIMEOUT_MS) {
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+        setExtractionPhase(false);
+        setExtractionTimeout(true);
+        console.log('INFO [CardCapturePage]: Extraction polling timed out');
+        return;
+      }
+
+      try {
+        const capture = await businessCardService.getCapture(lastCaptureId);
+        if (cancelledRef.current) return;
+
+        if (capture.status === 'extracted') {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+          setExtractionPhase(false);
+          console.log('INFO [CardCapturePage]: Extraction complete, navigating to review');
+          navigate('/kompass/card-review', { state: { highlightCaptureId: lastCaptureId } });
+        } else if (capture.status === 'failed') {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+          setExtractionPhase(false);
+          setError('Error al extraer datos. Por favor, intenta de nuevo.');
+          console.log('INFO [CardCapturePage]: Extraction failed');
+        }
+      } catch (err) {
+        console.error('ERROR [CardCapturePage]: Polling error', err);
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelledRef.current = true;
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [extractionPhase, lastCaptureId, navigate]);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -168,11 +228,21 @@ const CardCapturePage: React.FC = () => {
       );
 
       setCaptures((prev) => [capture, ...prev]);
-      const statusMsg = capture.status === 'extracted'
-        ? 'Tarjeta capturada y datos extraídos'
-        : 'Tarjeta capturada exitosamente';
-      setSuccess(statusMsg);
-      console.log('INFO [CardCapturePage]: Upload complete', capture.id);
+      console.log('INFO [CardCapturePage]: Upload complete', capture.id, 'status:', capture.status);
+
+      if (capture.status === 'extracted') {
+        // Navigate immediately
+        navigate('/kompass/card-review', { state: { highlightCaptureId: capture.id } });
+      } else if (capture.status === 'processing' || capture.status === 'pending') {
+        // Start polling for extraction
+        setExtractionTimeout(false);
+        setLastCaptureId(capture.id);
+        setExtractionPhase(true);
+      } else if (capture.status === 'failed') {
+        setError('Error al extraer datos. Por favor, intenta de nuevo.');
+      } else {
+        setSuccess('Tarjeta capturada exitosamente');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al subir la imagen';
       setError(message);
@@ -325,6 +395,32 @@ const CardCapturePage: React.FC = () => {
             {uploadProgress}%
           </Typography>
         </Box>
+      )}
+
+      {/* Extraction Phase Indicator */}
+      {extractionPhase && (
+        <Box sx={{ mb: 3 }}>
+          <LinearProgress sx={{ height: 8, borderRadius: 4 }} />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+            Extrayendo datos de la tarjeta...
+          </Typography>
+        </Box>
+      )}
+
+      {/* Extraction Timeout */}
+      {extractionTimeout && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          La extracción está tomando más tiempo de lo esperado. Puedes revisar el resultado en la página de revisión.
+          <Button
+            component={RouterLink}
+            to="/kompass/card-review"
+            size="small"
+            variant="outlined"
+            sx={{ ml: 2 }}
+          >
+            Ir a Revisión
+          </Button>
+        </Alert>
       )}
 
       {/* Recent Captures */}
