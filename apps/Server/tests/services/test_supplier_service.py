@@ -564,7 +564,7 @@ class TestCreateSupplierFromCard:
     def test_fallback_to_contact_name(
         self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
     ):
-        """Test that contact_name is used when company_name is missing."""
+        """Test that contact_name is used when company_name is missing, with fallback note."""
         extracted_capture["company_name"] = None
         created_supplier_data["name"] = "Zhang Wei"
         mock_bcs.get_capture.return_value = extracted_capture
@@ -576,6 +576,59 @@ class TestCreateSupplierFromCard:
         assert result.success is True
         call_kwargs = mock_repo.create_with_trade_fair_metadata.call_args.kwargs
         assert call_kwargs["name"] == "Zhang Wei"
+        assert call_kwargs["notes"] is not None
+        assert "Revisión manual requerida" in call_kwargs["notes"]
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_whitespace_only_company_name_falls_back_to_contact(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
+    ):
+        """Test that whitespace-only company_name falls back to contact_name."""
+        extracted_capture["company_name"] = "   "
+        created_supplier_data["name"] = "Zhang Wei"
+        mock_bcs.get_capture.return_value = extracted_capture
+        mock_repo.find_duplicate_supplier.return_value = None
+        mock_repo.create_with_trade_fair_metadata.return_value = created_supplier_data
+
+        result = supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+        assert result.success is True
+        call_kwargs = mock_repo.create_with_trade_fair_metadata.call_args.kwargs
+        assert call_kwargs["name"] == "Zhang Wei"
+        assert call_kwargs["notes"] is not None
+        assert "Revisión manual requerida" in call_kwargs["notes"]
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_whitespace_only_both_names_raises_error(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture
+    ):
+        """Test that whitespace-only company_name and contact_name raises ValueError."""
+        extracted_capture["company_name"] = "   "
+        extracted_capture["contact_name"] = "  "
+        mock_bcs.get_capture.return_value = extracted_capture
+
+        with pytest.raises(ValueError, match="No company or contact name"):
+            supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+    @patch("app.services.supplier_service.supplier_repository")
+    @patch("app.services.supplier_service.business_card_service")
+    def test_fallback_note_added_when_using_contact_name(
+        self, mock_bcs, mock_repo, supplier_service, extracted_capture, created_supplier_data
+    ):
+        """Test that fallback note is added when contact_name is used as supplier name."""
+        extracted_capture["company_name"] = ""
+        created_supplier_data["name"] = "Zhang Wei"
+        mock_bcs.get_capture.return_value = extracted_capture
+        mock_repo.find_duplicate_supplier.return_value = None
+        mock_repo.create_with_trade_fair_metadata.return_value = created_supplier_data
+
+        supplier_service.create_supplier_from_card(extracted_capture["id"])
+
+        call_kwargs = mock_repo.create_with_trade_fair_metadata.call_args.kwargs
+        assert call_kwargs["name"] == "Zhang Wei"
+        assert call_kwargs["notes"] == "Nombre de empresa no encontrado — se usó el nombre del contacto. Revisión manual requerida."
 
     @patch("app.services.supplier_service.supplier_repository")
     @patch("app.services.supplier_service.business_card_service")

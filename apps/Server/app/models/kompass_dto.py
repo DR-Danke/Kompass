@@ -679,6 +679,7 @@ class BusinessCardUpdateDTO(BaseModel):
     contact_phone: Optional[str] = None
     contact_email: Optional[str] = None
     company_name: Optional[str] = None
+    contact_wechat: Optional[str] = None
     address: Optional[str] = None
     fair_name: Optional[str] = Field(default=None, max_length=255)
     notes: Optional[str] = None
