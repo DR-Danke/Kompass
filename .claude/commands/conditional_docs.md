@@ -1916,3 +1916,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying navigation between CardCapturePage and CardReviewPage
     - When working with highlightCaptureId or capture row highlighting
     - When troubleshooting stopPropagation on action buttons within capture cards
+
+- app_docs/feature-2734e661-card-image-lightbox-review-page.md
+  - Conditions:
+    - When modifying the card image thumbnail or lightbox on CardReviewPage
+    - When working with image preview or zoom functionality on business card captures
+    - When handling broken or missing image URLs in the card review table
+    - When adding actions (e.g., download button) to the lightbox Dialog
+    - When troubleshooting thumbnail click vs row selection behavior on CardReviewPage
