@@ -1908,3 +1908,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When modifying navigation between CardCapturePage and CardReviewPage
     - When working with row highlighting or scroll-to-row on CardReviewPage
     - When troubleshooting auto-navigation after business card capture
+
+- app_docs/feature-a973c501-clickable-recent-captures-navigation.md
+  - Conditions:
+    - When modifying the recent captures list on CardCapturePage
+    - When working with click handlers or navigation on capture cards
+    - When modifying navigation between CardCapturePage and CardReviewPage
+    - When working with highlightCaptureId or capture row highlighting
+    - When troubleshooting stopPropagation on action buttons within capture cards

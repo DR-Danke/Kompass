@@ -444,7 +444,16 @@ const CardCapturePage: React.FC = () => {
           const showRetryButton = capture.status === 'failed' && !extracting;
 
           return (
-            <Card key={capture.id} sx={{ overflow: 'hidden' }}>
+            <Card
+              key={capture.id}
+              sx={{
+                overflow: 'hidden',
+                cursor: 'pointer',
+                transition: 'box-shadow 0.2s ease-in-out',
+                '&:hover': { boxShadow: 3 },
+              }}
+              onClick={() => navigate('/card-review', { state: { highlightCaptureId: capture.id } })}
+            >
               <Box sx={{ display: 'flex' }}>
                 <CardMedia
                   component="img"
@@ -534,7 +543,7 @@ const CardCapturePage: React.FC = () => {
                         size="small"
                         variant="outlined"
                         startIcon={<SmartToyIcon />}
-                        onClick={() => handleExtract(capture.id)}
+                        onClick={(e) => { e.stopPropagation(); handleExtract(capture.id); }}
                       >
                         Extraer
                       </Button>
@@ -545,7 +554,7 @@ const CardCapturePage: React.FC = () => {
                         variant="outlined"
                         color="warning"
                         startIcon={<ReplayIcon />}
-                        onClick={() => handleExtract(capture.id)}
+                        onClick={(e) => { e.stopPropagation(); handleExtract(capture.id); }}
                       >
                         Reintentar
                       </Button>
@@ -557,7 +566,7 @@ const CardCapturePage: React.FC = () => {
                         color="primary"
                         startIcon={creatingSupplierIds.has(capture.id) ? <CircularProgress size={16} /> : <PersonAddIcon />}
                         disabled={creatingSupplierIds.has(capture.id)}
-                        onClick={() => handleCreateSupplier(capture.id)}
+                        onClick={(e) => { e.stopPropagation(); handleCreateSupplier(capture.id); }}
                       >
                         {creatingSupplierIds.has(capture.id) ? 'Creando...' : 'Crear Proveedor'}
                       </Button>
