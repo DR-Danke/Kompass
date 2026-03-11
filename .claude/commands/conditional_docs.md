@@ -1884,3 +1884,11 @@ This prompt helps you determine what documentation you should read based on the 
     - When working with outreach_template_repository.py or outreach_template_service.py
     - When modifying the Suppliers page outreach dialog or template dropdown
     - When troubleshooting template placeholder substitution or preview rendering
+
+- app_docs/bug-09516803-fix-extraction-company-name-misidentification.md
+  - Conditions:
+    - When working with business card AI extraction or _build_business_card_prompt
+    - When modifying _parse_business_card_response validation logic
+    - When troubleshooting company_name vs contact_name misidentification
+    - When working with business_card_service.py extract_card method
+    - When adding or modifying corporate suffix detection logic
